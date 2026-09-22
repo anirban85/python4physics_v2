@@ -1,0 +1,29 @@
+# Database dumps and temporary local text dumps
+*.sql
+!database_v2_migration.sql
+tables.txt
+diff_block.txt
+recovered.txt
+latex_head_recovered.txt
+
+# Runtime output and caches
+error_log
+*.log
+program/python/cache/*
+program/python/ratelimit/*
+program/python/tmp/*
+program/latex/pdf_outputs/*
+!program/python/cache/.gitkeep
+!program/python/ratelimit/.gitkeep
+!program/python/tmp/.gitkeep
+!program/latex/pdf_outputs/.gitkeep
+
+# Local database overrides
+db_config.php
+.env
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/python4p/v2.python4physics.in/
+    - /bin/cp -R * $DEPLOYPATH

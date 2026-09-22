@@ -1,0 +1,4 @@
+ID | Name | Score
+1 | ABC | 85
+2 | DEF | 90
+3 | GHI | 78
