@@ -495,15 +495,15 @@ require_once __DIR__ . '/layout_top.php';
                                     <strong>#<?php echo (int)$prog['program_id']; ?></strong>
                                 </td>
                                 <td style="font-weight: 600;">
-                                    <?php echo htmlspecialchars($prog['algo']); ?>
+                                    <?php echo htmlspecialchars($prog['algo'] ?? 'Untitled Program'); ?>
                                 </td>
                                 <td>
                                     <span style="color: var(--admin-text-muted); font-size: 0.8rem;">
-                                        <?php echo strlen($prog['content']); ?> bytes
+                                        <?php echo strlen($prog['content'] ?? ''); ?> bytes
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <button type="button" class="btn-admin btn-admin-secondary btn-admin-sm" onclick="previewCode(<?php echo (int)$prog['id']; ?>, '<?php echo htmlspecialchars(addslashes($prog['algo'])); ?>')">
+                                    <button type="button" class="btn-admin btn-admin-secondary btn-admin-sm" onclick="previewCode(<?php echo (int)$prog['id']; ?>, '<?php echo htmlspecialchars(addslashes($prog['algo'] ?? '')); ?>')">
                                         <i class="fa-solid fa-eye"></i> View
                                     </button>
                                     <a href="?action=edit&lang=<?php echo urlencode($selected_lang); ?>&id=<?php echo (int)$prog['id']; ?>" class="btn-admin btn-admin-secondary btn-admin-sm">
