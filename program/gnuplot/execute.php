@@ -24,6 +24,10 @@ $possible_paths = [
     'C:\Program Files (x86)\gnuplot\bin\gnuplot.exe',
     'gnuplot.exe',
     'gnuplot',
+    (isset($_SERVER['DOCUMENT_ROOT']) ? dirname($_SERVER['DOCUMENT_ROOT']) . '/gnuplot/bin/gnuplot' : null),
+    (isset($_SERVER['DOCUMENT_ROOT']) ? dirname($_SERVER['DOCUMENT_ROOT']) . '/gnuplot-5.4.6/bin/gnuplot' : null),
+    '/home/python4p/gnuplot/bin/gnuplot',
+    '/home/python4p/gnuplot-5.4.6/bin/gnuplot',
     getenv('HOME') . '/gnuplot/bin/gnuplot',
     '/usr/bin/gnuplot',
     '/usr/local/bin/gnuplot'
