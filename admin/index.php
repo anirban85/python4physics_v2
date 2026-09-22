@@ -8,29 +8,60 @@ require_once __DIR__ . '/auth.php';
 $page_title = "Admin Dashboard";
 require_once __DIR__ . '/layout_top.php';
 
-// Fetch metrics
-$python_count = $conn->query("SELECT COUNT(*) FROM `python`")->fetchColumn();
-$gnuplot_count = $conn->query("SELECT COUNT(*) FROM `gnuplot`")->fetchColumn();
-$latex_count = $conn->query("SELECT COUNT(*) FROM `latex`")->fetchColumn();
-$assign_count = $conn->query("SELECT COUNT(*) FROM `assignments`")->fetchColumn();
-$feedback_count = $conn->query("SELECT COUNT(*) FROM `feedback`")->fetchColumn();
-$menus_count = $conn->query("SELECT COUNT(*) FROM `p4p_menus`")->fetchColumn();
-$submenus_count = $conn->query("SELECT COUNT(*) FROM `p4p_submenus`")->fetchColumn();
+// Safely fetch metrics with fallback if any table does not exist
+function safe_count($conn, $table) {
+    try {
+        if (!$conn) return 0;
+        return (int)$conn->query("SELECT COUNT(*) FROM `{$table}`")->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
 
-// Check GNUplot binary
-$gnuplot_bin = 'C:\\Program Files\\gnuplot\\bin\\gnuplot.exe';
-$gnuplot_installed = file_exists($gnuplot_bin);
+$python_count   = safe_count($conn, 'python');
+$gnuplot_count  = safe_count($conn, 'gnuplot');
+$latex_count    = safe_count($conn, 'latex');
+$assign_count   = safe_count($conn, 'assignments');
+$feedback_count = safe_count($conn, 'feedback');
+$menus_count    = safe_count($conn, 'p4p_menus');
+$submenus_count = safe_count($conn, 'p4p_submenus');
 
-// Fetch recent Python & GNUplot programs
-$recent_stmt = $conn->query("
-    (SELECT 'python' as lang, id, menu_id, submenu_id, program_id, algo FROM python ORDER BY id DESC LIMIT 4)
-    UNION ALL
-    (SELECT 'gnuplot' as lang, id, menu_id, submenu_id, program_id, algo FROM gnuplot ORDER BY id DESC LIMIT 4)
-    UNION ALL
-    (SELECT 'latex' as lang, id, menu_id, submenu_id, program_id, algo FROM latex ORDER BY id DESC LIMIT 4)
-    ORDER BY id DESC LIMIT 8
-");
-$recent_programs = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
+// Check GNUplot binary across Windows and Linux server paths
+$possible_gp = [
+    'C:\Program Files\gnuplot\bin\gnuplot.exe',
+    'C:\Program Files (x86)\gnuplot\bin\gnuplot.exe',
+    (isset($_SERVER['DOCUMENT_ROOT']) ? dirname($_SERVER['DOCUMENT_ROOT']) . '/gnuplot/bin/gnuplot' : null),
+    '/home/python4p/gnuplot/bin/gnuplot',
+    '/usr/bin/gnuplot',
+    '/usr/local/bin/gnuplot'
+];
+$gnuplot_installed = false;
+foreach ($possible_gp as $p) {
+    if ($p && file_exists($p)) {
+        $gnuplot_installed = true;
+        break;
+    }
+}
+
+// Fetch recent Python & GNUplot programs safely
+$recent_programs = [];
+try {
+    if ($conn) {
+        $recent_stmt = $conn->query("
+            (SELECT 'python' as lang, id, menu_id, submenu_id, program_id, algo FROM python ORDER BY id DESC LIMIT 4)
+            UNION ALL
+            (SELECT 'gnuplot' as lang, id, menu_id, submenu_id, program_id, algo FROM gnuplot ORDER BY id DESC LIMIT 4)
+            UNION ALL
+            (SELECT 'latex' as lang, id, menu_id, submenu_id, program_id, algo FROM latex ORDER BY id DESC LIMIT 4)
+            ORDER BY id DESC LIMIT 8
+        ");
+        if ($recent_stmt) {
+            $recent_programs = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    }
+} catch (Throwable $e) {
+    $recent_programs = [];
+}
 ?>
 
 <div class="admin-page-header">

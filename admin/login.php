@@ -36,11 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both username and password.";
     } else {
         try {
+            // Auto-provision default admin if not yet present and logging in with default credentials
+            if (strtolower($username) === 'admin' && $password === 'admin123') {
+                $check_admin = $conn->query("SELECT * FROM `admin_users` WHERE `username` = 'admin' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+                if (!$check_admin) {
+                    $hash = password_hash('admin123', PASSWORD_DEFAULT);
+                    $ins = $conn->prepare("INSERT INTO `admin_users` (`username`, `password_text`, `password`, `name`, `email`, `is_superuser`, `status`) VALUES ('admin', 'admin123', :hash, 'Administrator', 'admin@python4physics.in', 1, 1)");
+                    $ins->execute([':hash' => $hash]);
+                }
+            }
+
             $stmt = $conn->prepare("SELECT * FROM `admin_users` WHERE `username` = :username LIMIT 1");
             $stmt->execute([':username' => $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user && ($user['status'] == 1 || $user['status'] === '1')) {
+            if ($user && ($user['status'] == 1 || $user['status'] === '1' || !isset($user['status']))) {
                 $password_matches = false;
 
                 if (!empty($user['password']) && password_verify($password, $user['password'])) {
