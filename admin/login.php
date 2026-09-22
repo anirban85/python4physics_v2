@@ -22,11 +22,17 @@ if (isset($_GET['logged_out'])) {
     $success = "You have been logged out successfully.";
 }
 
+if (!isset($conn) || $conn === null) {
+    $error = "Database connection error: " . ($db_error ?? "Unable to connect to MySQL. Please verify db_config.php.");
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    if (empty($username) || empty($password)) {
+    if (!isset($conn) || $conn === null) {
+        $error = "Cannot sign in: Database is not connected (" . ($db_error ?? "Check db_config.php") . ").";
+    } elseif (empty($username) || empty($password)) {
         $error = "Please enter both username and password.";
     } else {
         try {
@@ -59,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = "Invalid credentials or account is inactive.";
             }
-        } catch (PDOException $e) {
+        } catch (Throwable $e) {
             $error = "Database error: " . htmlspecialchars($e->getMessage());
         }
     }
