@@ -1,5 +1,5 @@
 -- Python4Physics v2.0 - Complete Production Database Dump
--- Generated: 2026-09-22 15:09:54
+-- Generated: 2026-09-22 15:42:39
 SET FOREIGN_KEY_CHECKS=0;
 SET NAMES utf8mb4;
 
@@ -284,7 +284,7 @@ INSERT INTO `admin_users` (`admin_id`, `fac_id`, `name`, `nickname`, `mobilenumb
 ('28', '425', 'Raju', 'raju', '', 'History', '4', 'aaa@bbb.ccc', 'RajuMistry', 'Raju@23#', '$2y$10$VxZozENLAxtMZg87mnnjce4UtEspyhaNYsAG36UQyGtPp8JXoTb0e', '', '1', '2023-01-27 20:03:22', '2', '4', '1', '0'),
 ('30', '608', 'Kutubuddin Sk.', 'kutubuddin', '7003500431', 'Philosophy', '6', 'dchcollege@yahoo.com', 'KUTUB', 'Kutub@23#', '$2y$10$Pjm3f02eJrdyv4AO/9zG4uAzhxl.OViiv.XlYogQNhPVpmmeXU6/u', '', '1', '2023-01-31 11:31:38', '2', '6', '1', '0'),
 ('31', '1110', 'PUSPITA', 'puspita', '8777396656', 'Physics', '11', 'aaa@bbb.ccc', 'Puspita', 'Puspita@23#', '$2y$10$PGgM/vZNVa0mobq6XGKYj.U/V/2PJsXwzgMptniUML3b5wdWWLG.C', '', '1', '2023-02-02 11:01:34', '2', '11', '1', '0'),
-('32', '1103', 'Anirban', 'anirban', '7003939962', 'Physics', '11', 'anirban.shaw@gmail.com', 'anirban', 'Anirban@23#', '$2y$10$1BNKWQDA0AlEIeYJziLjeO9AoQ/UQUXK4LwLzpPpkbbuTkqHleq9e', '', '1', '2023-02-03 15:05:01', '1', '11', '1', '0'),
+('32', '1103', 'Anirban', 'anirban', '7003939962', 'Physics', '11', 'anirban.shaw@gmail.com', 'anirban', 'Anirban@23#', '$2y$10$1BNKWQDA0AlEIeYJziLjeO9AoQ/UQUXK4LwLzpPpkbbuTkqHleq9e', '', '1', '2023-02-03 15:05:01', '1', '11', '1', '1'),
 ('33', '4', 'Achyutananda Biswas', 'achyutananda', '9874799033', 'Bengali', '1', 'dchcollege@yahoo.com', 'ACHYUT', 'ach#beng20', '$2y$10$byM63tAnyZNCQg9tv9Bj/Opgyh8HMV4Tnv.WJtGunk4kjSppF7Cwu', '', '1', '2023-02-07 16:47:10', '2', '1', '1', '0'),
 ('34', '6', 'Rita Naskar', 'rita', '', 'Bengali', '1', 'dchcollege@yahoo.com', 'RITA-RN', 'ri#beng20', '$2y$10$ELmk8XayXSyuhOWQ4uGuT.AESuaKh4CfrSdAwBlZmDYws7Zv42kMG', '', '1', '2023-02-07 16:48:56', '2', '1', '1', '0'),
 ('35', '9', 'Abhiram Sarder', 'abhiram', '97326 07312', 'Bengali', '1', 'dchcollege@yahoo.com', 'ABHIRAM-AS', 'ab#beng20', '$2y$10$t9iSpadjVNpy3Jc1khGE3uyMltXlfzl0PD7cehZT.ZBdQM.NryKYW', '', '1', '2023-02-07 16:50:27', '2', '1', '1', '0'),
@@ -341,7 +341,8 @@ INSERT INTO `admin_users` (`admin_id`, `fac_id`, `name`, `nickname`, `mobilenumb
 ('88', '76', 'Subhasis Chakravarty', 'subhasis', '9433105887', 'Commerce', '18', '', 'subhasis_sc', 'Subhasis@25#', '$2y$10$8IhaDisvelJTJvx2cuFRdeQEObr/HZiqWs/.BCLDof2DVAmO4Bgze', '', '1', '', '2', '18', '1', '0'),
 ('89', '641', 'Arup Ratan Misra', 'arup', '9474577686', 'Commerce', '18', '', 'arup_rm', 'AruP@25#', '$2y$10$Ah6h/oe2rSpG0lwfSCzZnel/Hb4qNc9V8Roo92.l2Q2DDUq8VJ7dO', '', '1', '', '2', '18', '1', '0'),
 ('90', '1108', 'Ripon Sk', 'ripon', '80133 30542', 'Physics', '11', '', 'ripon', 'Ripon@physics#', '$2y$10$Bo3av3UuDuRNGowvGYaFauQYx4BFm93o.876ao7v4/Hg7sx6Ug0R6', '', '1', '', '2', '11', '1', '0'),
-('91', '642', 'Monica Mahali', 'Monica Mahali', '8918018126', 'Commerce', '18', '', 'monica', 'monica@25##', '$2b$12$HsQUFsqyt8IS0npu4WPqV.i1tePE9ewJIyx0zpiNTwZvAbmcP9ZrW', '123456', '1', '', '0', '0', '1', '');
+('91', '642', 'Monica Mahali', 'Monica Mahali', '8918018126', 'Commerce', '18', '', 'monica', 'monica@25##', '$2b$12$HsQUFsqyt8IS0npu4WPqV.i1tePE9ewJIyx0zpiNTwZvAbmcP9ZrW', '123456', '1', '', '0', '0', '1', ''),
+('999', '0', 'Administrator', '', '', '', '', 'admin@python4physics.in', 'admin', 'admin123', '$2y$12$P/CM3dm2HtLlqv.s37qs6.JGtBBl0cH/p7M58q3r7sC1jonMtJL5S', '', '', '', '0', '0', '1', '1');
 
 DROP TABLE IF EXISTS `gnuplot`;
 CREATE TABLE `gnuplot` (
