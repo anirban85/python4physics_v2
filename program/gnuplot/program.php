@@ -130,6 +130,20 @@ require_once __DIR__ . '/../../include/navbar.php';
 
         <!-- Main Content Area -->
         <main style="min-width: 0; max-width: 100%; overflow: hidden;">
+            <?php if (isset($db_error) || !isset($conn) || $conn === null): ?>
+                <div class="glass-card" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); padding: 1.5rem; margin-bottom: 2rem; border-radius: var(--radius-md);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; color: #ef4444; font-weight: 700; margin-bottom: 0.5rem;">
+                        <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+                        <span>Database Connection Notice</span>
+                    </div>
+                    <p style="color: var(--text-color); margin-bottom: 0.5rem; font-size: 0.95rem;">
+                        Could not connect to the MySQL database: <code><?php echo htmlspecialchars($db_error ?? 'Database connection not initialized'); ?></code>
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+                        Please verify that <strong><code>db_config.php</code></strong> in the website root directory contains the correct database name (e.g. <code>python4p_v2</code>), username, and password.
+                    </p>
+                </div>
+            <?php endif; ?>
             <?php if (empty($programs)): ?>
                 <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
                     <i class="fa-solid fa-chart-line fa-3x" style="color: var(--text-dim); margin-bottom: 1rem;"></i>
