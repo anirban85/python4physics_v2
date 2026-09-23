@@ -161,6 +161,9 @@ require_once __DIR__ . '/include/navbar.php';
             <!-- Left/Center: Interactive Circuit Canvas Container -->
             <div class="tc-canvas-container" id="tcCanvasContainer">
                 
+                <!-- Circuit Warning & Connectivity Floating Banner -->
+                <div class="tc-circuit-warning" id="tcCircuitWarning"></div>
+
                 <!-- Canvas Floating Zoom / Fit Controls -->
                 <div class="tc-canvas-nav">
                     <button type="button" class="tc-nav-btn" id="tcZoomInBtn" title="Zoom In (+)"><i class="fa-solid fa-plus"></i></button>
@@ -182,7 +185,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <div id="tcTerminalsContainer"></div>
 
                     <!-- Photorealistic Arduino Uno R3 Board SVG -->
-                    <div class="tc-arduino-uno" id="arduinoUno" style="top: 80px; left: 40px;">
+                    <div class="tc-arduino-uno" id="arduinoUno" style="top: 75px; left: 35px;">
                         <svg viewBox="0 0 360 250" width="360" height="250" xmlns="http://www.w3.org/2000/svg">
                             <!-- Drop Shadow Filter -->
                             <defs>
@@ -317,89 +320,139 @@ require_once __DIR__ . '/include/navbar.php';
                         </svg>
                     </div>
 
-                    <!-- Photorealistic Half-Size Solderless Breadboard -->
-                    <div class="tc-breadboard" id="breadboardSmall" style="top: 100px; left: 450px;">
-                        
-                        <!-- Top Power Bus (+) Red & (-) Blue -->
-                        <div class="tc-bb-power-rail">
-                            <!-- Positive Rail (+) -->
-                            <div class="tc-bb-rail-row">
-                                <span class="tc-bb-sign-plus">+</span>
-                                <div class="tc-bb-holes-group">
-                                    <?php for($i=1; $i<=30; $i++): ?>
-                                        <div class="tc-bb-hole" id="bb-top-pos-<?php echo $i; ?>" title="Top Power Rail (+) Column <?php echo $i; ?>"></div>
-                                    <?php endfor; ?>
-                                </div>
-                                <span class="tc-bb-sign-plus">+</span>
-                            </div>
-                            <!-- Negative Rail (-) -->
-                            <div class="tc-bb-rail-row">
-                                <span class="tc-bb-sign-minus">-</span>
-                                <div class="tc-bb-holes-group">
-                                    <?php for($i=1; $i<=30; $i++): ?>
-                                        <div class="tc-bb-hole" id="bb-top-neg-<?php echo $i; ?>" title="Top Ground Rail (-) Column <?php echo $i; ?>"></div>
-                                    <?php endfor; ?>
-                                </div>
-                                <span class="tc-bb-sign-minus">-</span>
-                            </div>
-                        </div>
+                    <!-- Photorealistic Half-Size Solderless Breadboard (600x330 SVG) -->
+                    <div class="tc-breadboard" id="breadboardSmall" style="top: 35px; left: 430px; width: 600px; height: 330px;">
+                        <svg id="tcBreadboardSvg" viewBox="0 0 600 330" width="600" height="330" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <filter id="bbShadow" x="-5%" y="-5%" width="110%" height="115%">
+                                    <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.22"/>
+                                </filter>
+                                <linearGradient id="bbPlastic" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#faf8f2"/>
+                                    <stop offset="100%" stop-color="#f1ece1"/>
+                                </linearGradient>
+                                <linearGradient id="bbTrough" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#d5ccbb"/>
+                                    <stop offset="50%" stop-color="#baa992"/>
+                                    <stop offset="100%" stop-color="#d5ccbb"/>
+                                </linearGradient>
+                                <!-- 3D embossed hole socket template with phosphor-bronze spring clips -->
+                                <g id="bbHoleTemplate">
+                                    <rect x="-4.2" y="-4.2" width="8.4" height="8.4" rx="1.5" fill="#e8e2d5" stroke="#cac0af" stroke-width="0.7"/>
+                                    <rect x="-2.8" y="-2.8" width="5.6" height="5.6" rx="0.8" fill="#181c24"/>
+                                    <line x1="-1.2" y1="-2" x2="-1.2" y2="2" stroke="#64748b" stroke-width="0.6"/>
+                                    <line x1="1.2" y1="-2" x2="1.2" y2="2" stroke="#64748b" stroke-width="0.6"/>
+                                </g>
+                            </defs>
 
-                        <!-- Center Terminal Grid: Columns 1 to 30, Rows a to e, Trough, Rows f to j -->
-                        <div class="tc-bb-center-grid">
-                            <!-- Upper Bank: Rows a to e -->
-                            <?php foreach(['a', 'b', 'c', 'd', 'e'] as $rowLetter): ?>
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 700; width: 12px; text-align: center;"><?php echo $rowLetter; ?></span>
-                                    <div class="tc-bb-holes-group">
-                                        <?php for($col=1; $col<=30; $col++): ?>
-                                            <div class="tc-bb-hole" id="bb-<?php echo $rowLetter . $col; ?>" title="Breadboard Terminal <?php echo strtoupper($rowLetter) . $col; ?>"></div>
-                                        <?php endfor; ?>
-                                    </div>
-                                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 700; width: 12px; text-align: center;"><?php echo $rowLetter; ?></span>
-                                </div>
+                            <!-- Perimeter Dovetail Interlocking Tabs (Left, Right, Top, Bottom) -->
+                            <!-- Left Tab Notch -->
+                            <path d="M 0 145 L 8 152 L 8 178 L 0 185 Z" fill="#ebe4d5" stroke="#d5cebe" stroke-width="1.2"/>
+                            <!-- Right Protruding Tab -->
+                            <path d="M 600 145 L 608 152 L 608 178 L 600 185 Z" fill="#faf8f2" stroke="#d5cebe" stroke-width="1.2"/>
+                            <!-- Top Tab -->
+                            <path d="M 285 0 L 292 8 L 308 8 L 315 0 Z" fill="#ebe4d5" stroke="#d5cebe" stroke-width="1.2"/>
+                            <!-- Bottom Protruding Tab -->
+                            <path d="M 285 330 L 292 338 L 308 338 L 315 330 Z" fill="#f1ece1" stroke="#d5cebe" stroke-width="1.2"/>
+
+                            <!-- Main ABS Breadboard Body -->
+                            <rect x="0" y="0" width="600" height="330" rx="8" ry="8" fill="url(#bbPlastic)" stroke="#d5cebe" stroke-width="1.8" filter="url(#bbShadow)"/>
+                            <!-- Inner border highlight -->
+                            <rect x="2" y="2" width="596" height="326" rx="6" ry="6" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
+
+                            <!-- Silkscreen Header: Breadboard Title & Maker Notes -->
+                            <text x="300" y="13" fill="#a89f8f" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="8.5" text-anchor="middle" letter-spacing="1.2">SOLDERLESS BREADBOARD • 400 TIE-POINTS</text>
+
+                            <!-- ================= TOP POWER RAILS ================= -->
+                            <!-- Positive (+) Red Line -->
+                            <line x1="42" y1="20" x2="558" y2="20" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+                            <text x="28" y="24" fill="#ef4444" font-family="sans-serif" font-weight="900" font-size="13" text-anchor="middle">+</text>
+                            <text x="572" y="24" fill="#ef4444" font-family="sans-serif" font-weight="900" font-size="13" text-anchor="middle">+</text>
+
+                            <!-- Negative (-) Blue Line -->
+                            <line x1="42" y1="42" x2="558" y2="42" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+                            <text x="28" y="46" fill="#3b82f6" font-family="sans-serif" font-weight="900" font-size="15" text-anchor="middle">−</text>
+                            <text x="572" y="46" fill="#3b82f6" font-family="sans-serif" font-weight="900" font-size="15" text-anchor="middle">−</text>
+
+                            <!-- Holes for Top Power Rails (1 to 30) -->
+                            <?php for($c=1; $c<=30; $c++): 
+                                $hx = 52 + ($c - 1) * 17;
+                            ?>
+                                <use href="#bbHoleTemplate" x="<?php echo $hx; ?>" y="20" id="svg-bb-top-pos-<?php echo $c; ?>"/>
+                                <use href="#bbHoleTemplate" x="<?php echo $hx; ?>" y="42" id="svg-bb-top-neg-<?php echo $c; ?>"/>
+                            <?php endfor; ?>
+
+                            <!-- ================= UPPER TERMINAL BANK (Rows a to e) ================= -->
+                            <!-- Column Numbers Top -->
+                            <?php for($c=1; $c<=30; $c++): 
+                                $hx = 52 + ($c - 1) * 17;
+                                if($c == 1 || $c % 5 == 0):
+                            ?>
+                                <text x="<?php echo $hx; ?>" y="67" fill="#64748b" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="8.5" text-anchor="middle"><?php echo $c; ?></text>
+                            <?php endif; endfor; ?>
+
+                            <!-- Row Letters Left and Right -->
+                            <?php 
+                            $upperRows = ['a' => 82, 'b' => 99, 'c' => 116, 'd' => 133, 'e' => 150];
+                            foreach($upperRows as $r => $ry): 
+                            ?>
+                                <text x="28" y="<?php echo $ry + 3; ?>" fill="#64748b" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="9" text-anchor="middle"><?php echo $r; ?></text>
+                                <text x="572" y="<?php echo $ry + 3; ?>" fill="#64748b" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="9" text-anchor="middle"><?php echo $r; ?></text>
+                                <?php for($c=1; $c<=30; $c++): 
+                                    $hx = 52 + ($c - 1) * 17;
+                                ?>
+                                    <use href="#bbHoleTemplate" x="<?php echo $hx; ?>" y="<?php echo $ry; ?>" id="svg-bb-<?php echo $r . $c; ?>"/>
+                                <?php endfor; ?>
                             <?php endforeach; ?>
 
-                            <!-- Center IC Isolation Trough / Ravine -->
-                            <div class="tc-bb-trough"></div>
+                            <!-- Center IC Isolation Trench / Ravine -->
+                            <rect x="36" y="160" width="528" height="14" rx="2" fill="url(#bbTrough)" stroke="#c4baa7" stroke-width="0.8"/>
+                            <line x1="38" y1="167" x2="562" y2="167" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
 
-                            <!-- Lower Bank: Rows f to j -->
-                            <?php foreach(['f', 'g', 'h', 'i', 'j'] as $rowLetter): ?>
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 700; width: 12px; text-align: center;"><?php echo $rowLetter; ?></span>
-                                    <div class="tc-bb-holes-group">
-                                        <?php for($col=1; $col<=30; $col++): ?>
-                                            <div class="tc-bb-hole" id="bb-<?php echo $rowLetter . $col; ?>" title="Breadboard Terminal <?php echo strtoupper($rowLetter) . $col; ?>"></div>
-                                        <?php endfor; ?>
-                                    </div>
-                                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 700; width: 12px; text-align: center;"><?php echo $rowLetter; ?></span>
-                                </div>
+                            <!-- ================= LOWER TERMINAL BANK (Rows f to j) ================= -->
+                            <?php 
+                            $lowerRows = ['f' => 184, 'g' => 201, 'h' => 218, 'i' => 235, 'j' => 252];
+                            foreach($lowerRows as $r => $ry): 
+                            ?>
+                                <text x="28" y="<?php echo $ry + 3; ?>" fill="#64748b" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="9" text-anchor="middle"><?php echo $r; ?></text>
+                                <text x="572" y="<?php echo $ry + 3; ?>" fill="#64748b" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="9" text-anchor="middle"><?php echo $r; ?></text>
+                                <?php for($c=1; $c<=30; $c++): 
+                                    $hx = 52 + ($c - 1) * 17;
+                                ?>
+                                    <use href="#bbHoleTemplate" x="<?php echo $hx; ?>" y="<?php echo $ry; ?>" id="svg-bb-<?php echo $r . $c; ?>"/>
+                                <?php endfor; ?>
                             <?php endforeach; ?>
-                        </div>
 
-                        <!-- Bottom Power Bus (+) Red & (-) Blue -->
-                        <div class="tc-bb-power-rail">
-                            <!-- Positive Rail (+) -->
-                            <div class="tc-bb-rail-row">
-                                <span class="tc-bb-sign-plus">+</span>
-                                <div class="tc-bb-holes-group">
-                                    <?php for($i=1; $i<=30; $i++): ?>
-                                        <div class="tc-bb-hole" id="bb-bot-pos-<?php echo $i; ?>" title="Bottom Power Rail (+) Column <?php echo $i; ?>"></div>
-                                    <?php endfor; ?>
-                                </div>
-                                <span class="tc-bb-sign-plus">+</span>
-                            </div>
-                            <!-- Negative Rail (-) -->
-                            <div class="tc-bb-rail-row">
-                                <span class="tc-bb-sign-minus">-</span>
-                                <div class="tc-bb-holes-group">
-                                    <?php for($i=1; $i<=30; $i++): ?>
-                                        <div class="tc-bb-hole" id="bb-bot-neg-<?php echo $i; ?>" title="Bottom Ground Rail (-) Column <?php echo $i; ?>"></div>
-                                    <?php endfor; ?>
-                                </div>
-                                <span class="tc-bb-sign-minus">-</span>
-                            </div>
-                        </div>
+                            <!-- Column Numbers Bottom -->
+                            <?php for($c=1; $c<=30; $c++): 
+                                $hx = 52 + ($c - 1) * 17;
+                                if($c == 1 || $c % 5 == 0):
+                            ?>
+                                <text x="<?php echo $hx; ?>" y="271" fill="#64748b" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="8.5" text-anchor="middle"><?php echo $c; ?></text>
+                            <?php endif; endfor; ?>
 
+                            <!-- ================= BOTTOM POWER RAILS ================= -->
+                            <!-- Positive (+) Red Line -->
+                            <line x1="42" y1="288" x2="558" y2="288" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+                            <text x="28" y="292" fill="#ef4444" font-family="sans-serif" font-weight="900" font-size="13" text-anchor="middle">+</text>
+                            <text x="572" y="292" fill="#ef4444" font-family="sans-serif" font-weight="900" font-size="13" text-anchor="middle">+</text>
+
+                            <!-- Negative (-) Blue Line -->
+                            <line x1="42" y1="310" x2="558" y2="310" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+                            <text x="28" y="314" fill="#3b82f6" font-family="sans-serif" font-weight="900" font-size="15" text-anchor="middle">−</text>
+                            <text x="572" y="314" fill="#3b82f6" font-family="sans-serif" font-weight="900" font-size="15" text-anchor="middle">−</text>
+
+                            <!-- Holes for Bottom Power Rails (1 to 30) -->
+                            <?php for($c=1; $c<=30; $c++): 
+                                $hx = 52 + ($c - 1) * 17;
+                            ?>
+                                <use href="#bbHoleTemplate" x="<?php echo $hx; ?>" y="288" id="svg-bb-bot-pos-<?php echo $c; ?>"/>
+                                <use href="#bbHoleTemplate" x="<?php echo $hx; ?>" y="310" id="svg-bb-bot-neg-<?php echo $c; ?>"/>
+                            <?php endfor; ?>
+
+                            <!-- Bus Highlight Overlay Group (for when a pin/hole is hovered) -->
+                            <g id="tcBbBusHighlightGroup" pointer-events="none"></g>
+                        </svg>
                     </div>
 
                     <!-- Placed Electronic Components Container (Rendered dynamically) -->
@@ -415,6 +468,9 @@ require_once __DIR__ . '/include/navbar.php';
                     </div>
 
                 </div>
+
+                <!-- Bottom Status Bar -->
+                <div class="tc-status-bar" id="tcStatusBar"></div>
 
             </div>
 

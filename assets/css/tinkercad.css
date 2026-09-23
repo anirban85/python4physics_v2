@@ -1,13 +1,19 @@
 /**
- * Python4Physics - Advanced Tinkercad Circuits Clone Styling
- * Replicates Autodesk Tinkercad Circuits: Realistic Solderless Breadboard,
- * Arduino Uno R3, Multi-Point Orthogonal Wiring, Right-Hand Component Drawer,
- * Rotate/Delete Tools, Wire Color Dropdown & Inspector Dialogs.
+ * Python4Physics - Tinkercad Circuits Pro: Photorealistic Circuit Simulator
+ * =========================================================================
+ * Realistic solderless breadboard with 3D embossed holes, metal contacts,
+ * ABS plastic texture, power rail color stripes, column numbering.
+ * Professional orthogonal wiring with drop shadows.
+ * Drag-and-drop component placement with ghost preview.
+ * Full Tinkercad-faithful UI chrome.
  */
 
+/* ========================================
+   CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+   ======================================== */
 :root {
-    --tc-bg-canvas: #f1f5f9;
-    --tc-grid-color: rgba(100, 116, 139, 0.2);
+    --tc-bg-canvas: #e8ecf1;
+    --tc-grid-color: rgba(100, 116, 139, 0.15);
     --tc-toolbar-bg: #ffffff;
     --tc-toolbar-border: #e2e8f0;
     --tc-panel-bg: #ffffff;
@@ -17,43 +23,64 @@
     --tc-accent-green: #10b981;
     --tc-accent-blue: #0284c7;
     --tc-accent-red: #ef4444;
+    --tc-accent-amber: #f59e0b;
+
+    /* Breadboard Tokens */
+    --bb-board-bg: #f5f0e8;
+    --bb-board-border: #c8bfaf;
+    --bb-hole-bg: #1a1a1a;
+    --bb-hole-ring: #8a8a8a;
+    --bb-hole-inner: #2a2a2a;
+    --bb-trough-bg: #d6cfc2;
+    --bb-rail-red: #dc2626;
+    --bb-rail-blue: #2563eb;
+    --bb-rail-stripe-alpha: 0.25;
+    --bb-label-color: #7c7365;
+    --bb-hole-size: 6px;
+    --bb-hole-gap: 0px;
 }
 
 /* Dark mode compatibility */
 [data-theme="dark"] .tinkercad-studio {
-    --tc-bg-canvas: #0f172a;
-    --tc-grid-color: rgba(255, 255, 255, 0.08);
-    --tc-toolbar-bg: #1e293b;
-    --tc-toolbar-border: rgba(255, 255, 255, 0.1);
-    --tc-panel-bg: #1e293b;
-    --tc-panel-border: rgba(255, 255, 255, 0.1);
-    --tc-text-main: #f8fafc;
+    --tc-bg-canvas: #0c1222;
+    --tc-grid-color: rgba(255, 255, 255, 0.04);
+    --tc-toolbar-bg: #151e30;
+    --tc-toolbar-border: rgba(255, 255, 255, 0.08);
+    --tc-panel-bg: #151e30;
+    --tc-panel-border: rgba(255, 255, 255, 0.08);
+    --tc-text-main: #f1f5f9;
     --tc-text-muted: #94a3b8;
 }
 
-/* Studio Container */
+/* ========================================
+   STUDIO CONTAINER
+   ======================================== */
 .tinkercad-studio {
     background: var(--tc-panel-bg);
     border: 1px solid var(--tc-toolbar-border);
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 0 25px rgba(2, 132, 199, 0.1);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.18),
+        0 0 0 1px rgba(2, 132, 199, 0.06);
     margin-bottom: 3.5rem;
     position: relative;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     user-select: none;
 }
 
-/* Top App Bar */
+/* ========================================
+   TOP APP NAVBAR
+   ======================================== */
 .tc-top-navbar {
     background: var(--tc-toolbar-bg);
     border-bottom: 1px solid var(--tc-toolbar-border);
-    padding: 0.6rem 1.25rem;
+    padding: 0.55rem 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.6rem;
 }
 
 .tc-project-info {
@@ -66,36 +93,39 @@
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
     color: #fff;
     font-weight: 800;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     padding: 4px 10px;
     border-radius: 6px;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
 }
 
 .tc-title-input {
     background: transparent;
     border: 1px solid transparent;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--tc-text-main);
     padding: 3px 8px;
     border-radius: 4px;
     outline: none;
     transition: all 0.2s;
+    min-width: 200px;
 }
 
-.tc-title-input:hover, .tc-title-input:focus {
-    background: rgba(0, 0, 0, 0.05);
+.tc-title-input:hover,
+.tc-title-input:focus {
+    background: rgba(0, 0, 0, 0.04);
     border-color: var(--tc-toolbar-border);
 }
 
-/* View Mode Switcher: Circuits | Schematic | Components */
+/* View Mode Switcher */
 .tc-view-modes {
     display: flex;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.04);
     padding: 3px;
     border-radius: 8px;
     border: 1px solid var(--tc-toolbar-border);
@@ -103,7 +133,7 @@
 
 .tc-view-tab {
     padding: 4px 12px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--tc-text-muted);
     border-radius: 6px;
@@ -112,32 +142,41 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.tc-view-tab:hover {
+    color: var(--tc-text-main);
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .tc-view-tab.active {
     background: #0284c7;
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
 }
 
-/* Second Row: Tinkercad Action Tools Bar */
+/* ========================================
+   ACTION TOOLS BAR
+   ======================================== */
 .tc-tools-bar {
     background: var(--tc-toolbar-bg);
     border-bottom: 1px solid var(--tc-toolbar-border);
-    padding: 0.45rem 1.25rem;
+    padding: 0.4rem 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.6rem;
 }
 
-.tc-tools-left, .tc-tools-right {
+.tc-tools-left,
+.tc-tools-right {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     flex-wrap: wrap;
 }
 
@@ -151,19 +190,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .tc-tool-btn:hover:not(:disabled) {
-    background: rgba(2, 132, 199, 0.1);
+    background: rgba(2, 132, 199, 0.08);
     color: #0284c7;
-    border-color: #0284c7;
+    border-color: #93c5fd;
 }
 
 .tc-tool-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: not-allowed;
 }
 
@@ -173,7 +212,7 @@
     border-color: #0284c7;
 }
 
-/* Wire Color Selector Popover & Button */
+/* Wire Color Button & Palette */
 .tc-wire-color-dropdown {
     position: relative;
 }
@@ -189,46 +228,51 @@
     background: transparent;
     cursor: pointer;
     color: var(--tc-text-main);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
+    transition: border-color 0.15s;
+}
+
+.tc-wire-color-btn:hover {
+    border-color: #93c5fd;
 }
 
 .tc-wire-color-btn .swatch-preview {
     width: 22px;
     height: 14px;
     border-radius: 3px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.18);
 }
 
 .tc-color-palette-popover {
     position: absolute;
-    top: 40px;
+    top: 42px;
     left: 0;
     z-index: 100;
     background: var(--tc-panel-bg);
     border: 1px solid var(--tc-toolbar-border);
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 6px;
-    width: 160px;
+    width: 170px;
 }
 
 .tc-color-option {
-    width: 30px;
-    height: 22px;
-    border-radius: 4px;
-    border: 2px solid transparent;
+    width: 32px;
+    height: 24px;
+    border-radius: 5px;
+    border: 2.5px solid transparent;
     cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s;
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
 }
 
 .tc-color-option:hover {
-    transform: scale(1.15);
-    border-color: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transform: scale(1.18);
+    border-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
 }
 
 .tc-color-option.selected {
@@ -236,7 +280,7 @@
     box-shadow: 0 0 0 2px #38bdf8;
 }
 
-/* Wire Type Dropdown */
+/* Wire Type Button */
 .tc-wire-type-btn {
     display: flex;
     align-items: center;
@@ -248,7 +292,7 @@
     background: transparent;
     cursor: pointer;
     color: var(--tc-text-main);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
 }
 
@@ -256,63 +300,66 @@
     width: 1px;
     height: 24px;
     background: var(--tc-toolbar-border);
-    margin: 0 4px;
+    margin: 0 3px;
 }
 
-/* Simulation Action Buttons */
+/* Simulation Buttons */
 .btn-tc-sim {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 0.45rem 1rem;
+    padding: 0.4rem 1rem;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
     border: none;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .btn-tc-sim.start {
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981, #059669);
     color: #ffffff;
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 3px 12px rgba(16, 185, 129, 0.35);
 }
 
 .btn-tc-sim.start:hover {
-    background: #059669;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 5px 18px rgba(16, 185, 129, 0.5);
     transform: translateY(-1px);
 }
 
 .btn-tc-sim.stop {
-    background: #ef4444;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: #ffffff;
-    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 3px 12px rgba(239, 68, 68, 0.4);
     animation: tcPulse 2s infinite;
 }
 
 @keyframes tcPulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.85; }
+    50% { opacity: 0.82; }
 }
 
 .btn-tc-code-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 0.45rem 0.9rem;
+    gap: 5px;
+    padding: 0.4rem 0.85rem;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     background: transparent;
     color: var(--tc-text-main);
     border: 1px solid var(--tc-toolbar-border);
     cursor: pointer;
     transition: all 0.15s;
+    white-space: nowrap;
 }
 
-.btn-tc-code-toggle:hover, .btn-tc-code-toggle.active {
+.btn-tc-code-toggle:hover,
+.btn-tc-code-toggle.active {
     background: #0284c7;
     color: #ffffff;
     border-color: #0284c7;
@@ -320,20 +367,23 @@
 
 .tc-sim-time-badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     background: #0f172a;
     color: #38bdf8;
-    padding: 0.4rem 0.75rem;
+    padding: 0.35rem 0.7rem;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 85px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    min-width: 88px;
     text-align: center;
+    letter-spacing: 0.02em;
 }
 
-/* Main Studio Layout: Canvas + Right Side Panel */
+/* ========================================
+   MAIN STUDIO LAYOUT
+   ======================================== */
 .tc-workbench-body {
     display: flex;
-    height: 650px;
+    height: 680px;
     position: relative;
     overflow: hidden;
     background: var(--tc-bg-canvas);
@@ -346,26 +396,32 @@
     position: relative;
     overflow: hidden;
     background-color: var(--tc-bg-canvas);
-    background-image: radial-gradient(var(--tc-grid-color) 1.2px, transparent 1.2px);
-    background-size: 20px 20px;
+    background-image:
+        radial-gradient(circle, var(--tc-grid-color) 1px, transparent 1px);
+    background-size: 16px 16px;
     cursor: default;
+}
+
+/* Wiring mode cursor */
+.tc-canvas-container.wiring-mode {
+    cursor: crosshair;
 }
 
 .tc-canvas-stage {
     position: absolute;
     top: 0;
     left: 0;
-    width: 2000px;
+    width: 2400px;
     height: 2000px;
     transform-origin: 0 0;
-    transition: transform 0.05s ease-out;
+    transition: transform 0.06s ease-out;
 }
 
-/* Canvas Zoom Controls (Floating Top-Left) */
+/* Canvas Zoom Controls */
 .tc-canvas-nav {
     position: absolute;
-    top: 15px;
-    left: 15px;
+    top: 12px;
+    left: 12px;
     z-index: 20;
     display: flex;
     flex-direction: column;
@@ -373,21 +429,21 @@
     border: 1px solid var(--tc-toolbar-border);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .tc-nav-btn {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border: none;
     background: transparent;
     color: var(--tc-text-main);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.12s;
     border-bottom: 1px solid var(--tc-toolbar-border);
 }
 
@@ -396,11 +452,13 @@
 }
 
 .tc-nav-btn:hover {
-    background: rgba(2, 132, 199, 0.1);
+    background: rgba(2, 132, 199, 0.08);
     color: #0284c7;
 }
 
-/* Wires SVG Layer */
+/* ========================================
+   SVG WIRES LAYER
+   ======================================== */
 .tc-wires-svg {
     position: absolute;
     top: 0;
@@ -417,36 +475,36 @@
     stroke-linejoin: round;
     cursor: pointer;
     pointer-events: stroke;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-    transition: stroke-width 0.15s;
+    filter: drop-shadow(0 1.5px 2px rgba(0, 0, 0, 0.35));
+    transition: stroke-width 0.12s;
 }
 
 .tc-wire-svg-path:hover {
-    stroke-width: 6px !important;
-    filter: drop-shadow(0 0 8px #38bdf8);
+    stroke-width: 5.5px !important;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
 }
 
 .tc-wire-svg-path.selected {
-    stroke: #38bdf8 !important;
-    stroke-width: 6px !important;
-    filter: drop-shadow(0 0 10px #38bdf8);
+    filter: drop-shadow(0 0 8px #38bdf8) drop-shadow(0 0 3px #38bdf8);
 }
 
+/* Rubberband live drawing wire */
 .tc-rubberband-wire {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-dasharray: 6, 4;
-    animation: tcDashAnim 1s linear infinite;
+    stroke-dasharray: 8, 5;
+    animation: tcDashAnim 0.8s linear infinite;
     pointer-events: none;
+    opacity: 0.85;
 }
 
 @keyframes tcDashAnim {
-    from { stroke-dashoffset: 20; }
+    from { stroke-dashoffset: 26; }
     to { stroke-dashoffset: 0; }
 }
 
-/* Wire Bend Point Node / Waypoint */
+/* Wire Waypoint Handle */
 .tc-wire-waypoint {
     width: 10px;
     height: 10px;
@@ -458,17 +516,25 @@
     z-index: 12;
     cursor: grab;
     pointer-events: all;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s;
+}
+
+.tc-wire-waypoint:hover {
+    transform: translate(-50%, -50%) scale(1.3);
 }
 
 .tc-wire-waypoint:active {
     cursor: grabbing;
+    background: #38bdf8;
 }
 
-/* Terminal Pin Snapping Points */
+/* ========================================
+   TERMINAL PIN SNAPPING POINTS
+   ======================================== */
 .tc-terminal-pin {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: transparent;
     border: 2px solid transparent;
@@ -476,158 +542,279 @@
     position: absolute;
     transform: translate(-50%, -50%);
     z-index: 15;
-    transition: all 0.12s ease;
+    transition: all 0.1s ease;
 }
 
-.tc-terminal-pin:hover, .tc-terminal-pin.active {
-    background: rgba(16, 185, 129, 0.5);
+.tc-terminal-pin:hover,
+.tc-terminal-pin.active {
+    background: rgba(16, 185, 129, 0.45);
     border-color: #10b981;
-    box-shadow: 0 0 10px #10b981;
-    transform: translate(-50%, -50%) scale(1.4);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    transform: translate(-50%, -50%) scale(1.5);
 }
 
 .tc-terminal-pin.snap-candidate {
     border-color: #38bdf8;
-    background: rgba(56, 189, 248, 0.4);
-    box-shadow: 0 0 8px #38bdf8;
+    background: rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    transform: translate(-50%, -50%) scale(1.4);
 }
 
-/* Tooltip for pin name */
+/* Pin Tooltip */
 .tc-pin-tooltip {
     position: absolute;
-    bottom: 18px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     background: #0f172a;
     color: #f8fafc;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 4px;
     white-space: nowrap;
     pointer-events: none;
-    z-index: 25;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    z-index: 30;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
     display: none;
+    letter-spacing: 0.01em;
 }
 
 .tc-terminal-pin:hover .tc-pin-tooltip {
     display: block;
 }
 
-/* Photorealistic Arduino Uno R3 */
+/* ========================================
+   PHOTOREALISTIC ARDUINO UNO R3
+   ======================================== */
 .tc-arduino-uno {
     position: absolute;
     width: 360px;
     height: 250px;
     cursor: grab;
     z-index: 5;
-    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.25));
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.22));
+    transition: filter 0.2s;
+}
+
+.tc-arduino-uno:hover {
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.28));
 }
 
 .tc-arduino-uno:active {
     cursor: grabbing;
 }
 
-/* Photorealistic Half-Size Solderless Breadboard */
+/* ========================================
+   PHOTOREALISTIC SOLDERLESS BREADBOARD
+   ======================================== */
 .tc-breadboard {
     position: absolute;
     width: 600px;
-    height: 220px;
-    background: #fbfbfa;
-    border-radius: 8px;
-    border: 2px solid #d1d5db;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15), inset 0 1px 3px rgba(0,0,0,0.08);
+    height: 330px;
     cursor: grab;
     z-index: 5;
-    padding: 10px 16px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    user-select: none;
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.16));
+    transition: filter 0.2s;
+}
+
+.tc-breadboard:hover {
+    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.22));
 }
 
 .tc-breadboard:active {
     cursor: grabbing;
 }
 
-/* Power Rail Stripes */
+#tcBreadboardSvg {
+    display: block;
+    width: 600px;
+    height: 330px;
+    pointer-events: all;
+}
+
+.tc-bb-bus-rect {
+    fill: rgba(56, 189, 248, 0.32);
+    stroke: #0284c7;
+    stroke-width: 1.5;
+    rx: 4px;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+}
+
+/* Power Rail Containers */
 .tc-bb-power-rail {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    position: relative;
 }
 
+/* Color stripe behind the power rail holes */
 .tc-bb-rail-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    padding: 1px 0;
+}
+
+/* Red line for positive rail */
+.tc-bb-rail-row:first-child {
+    border-top: 2.5px solid var(--bb-rail-red);
+}
+
+/* Blue line for negative rail */
+.tc-bb-rail-row:last-child {
+    border-bottom: 2.5px solid var(--bb-rail-blue);
 }
 
 .tc-bb-sign-plus {
-    color: #dc2626;
-    font-weight: 800;
-    font-size: 0.8rem;
-    width: 14px;
+    color: var(--bb-rail-red);
+    font-weight: 900;
+    font-size: 0.75rem;
+    width: 12px;
     text-align: center;
+    line-height: 1;
 }
 
 .tc-bb-sign-minus {
-    color: #0284c7;
-    font-weight: 800;
-    font-size: 0.9rem;
-    width: 14px;
+    color: var(--bb-rail-blue);
+    font-weight: 900;
+    font-size: 0.85rem;
+    width: 12px;
     text-align: center;
+    line-height: 1;
 }
 
+/* Hole Group Container */
 .tc-bb-holes-group {
     display: flex;
-    gap: 14px;
+    gap: 0px;
     flex: 1;
-    margin: 0 10px;
+    margin: 0 6px;
     justify-content: space-between;
 }
 
+/* ========================================
+   BREADBOARD HOLE - PHOTOREALISTIC 3D
+   ======================================== */
 .tc-bb-hole {
-    width: 7px;
-    height: 7px;
-    background: #0f172a;
-    border-radius: 1px;
-    border: 1px solid #94a3b8;
+    width: var(--bb-hole-size);
+    height: var(--bb-hole-size);
+    background: var(--bb-hole-bg);
+    border-radius: 1.5px;
     position: relative;
     cursor: crosshair;
+    /* 3D embossed effect */
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.7),
+        inset 0 -0.5px 0.5px rgba(255, 255, 255, 0.15),
+        0 0.5px 0 rgba(255, 255, 255, 0.3);
+    border: 0.5px solid rgba(0, 0, 0, 0.25);
+    transition: all 0.08s ease;
 }
 
 .tc-bb-hole:hover {
-    background: #10b981;
+    background: var(--tc-accent-green);
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 0 6px var(--tc-accent-green),
+        0 0 12px rgba(16, 185, 129, 0.3);
     border-color: #059669;
-    box-shadow: 0 0 6px #10b981;
+    transform: scale(1.2);
 }
 
-/* Center Terminal Rows (Columns 1-30, rows a-e, trough, rows f-j) */
+/* Occupied hole - component lead inserted */
+.tc-bb-hole.occupied {
+    background: #059669;
+    box-shadow:
+        inset 0 1px 1px rgba(0, 0, 0, 0.4),
+        0 0 4px rgba(5, 150, 105, 0.4);
+}
+
+/* Connected group highlight */
+.tc-bb-hole.group-highlight {
+    background: rgba(56, 189, 248, 0.5);
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 0 5px rgba(56, 189, 248, 0.4);
+}
+
+/* ========================================
+   CENTER TERMINAL GRID
+   ======================================== */
 .tc-bb-center-grid {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    padding: 6px 0;
+    padding: 5px 0;
 }
 
+/* Row container */
+.tc-bb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Row labels (a, b, c, ... j) */
+.tc-bb-row-label {
+    font-size: 0.6rem;
+    color: var(--bb-label-color);
+    font-weight: 700;
+    width: 11px;
+    text-align: center;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    user-select: none;
+}
+
+/* IC Isolation Trough */
 .tc-bb-trough {
-    height: 10px;
-    background: linear-gradient(180deg, #d1d5db 0%, #e5e7eb 50%, #d1d5db 100%);
-    border-top: 1px solid #9ca3af;
-    border-bottom: 1px solid #9ca3af;
-    margin: 4px 0;
+    height: 12px;
+    background: linear-gradient(
+        180deg,
+        var(--bb-trough-bg) 0%,
+        #e0d9cc 40%,
+        #c4bbaa 50%,
+        #e0d9cc 60%,
+        var(--bb-trough-bg) 100%
+    );
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    margin: 3px 0;
+    border-radius: 1px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Placed Circuit Components (LED, Resistor, Pot, etc.) */
+/* Column numbers along top/bottom */
+.tc-bb-col-numbers {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 17px;
+    padding: 0 0 2px 0;
+}
+
+.tc-bb-col-num {
+    font-size: 0.5rem;
+    color: var(--bb-label-color);
+    font-weight: 700;
+    width: var(--bb-hole-size);
+    text-align: center;
+    user-select: none;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ========================================
+   PLACED CIRCUIT COMPONENTS
+   ======================================== */
 .tc-placed-component {
     position: absolute;
     cursor: grab;
     z-index: 8;
     user-select: none;
-    transition: filter 0.15s ease;
+    transition: filter 0.12s ease;
 }
 
 .tc-placed-component:active {
@@ -635,21 +822,66 @@
 }
 
 .tc-placed-component.selected {
-    filter: drop-shadow(0 0 8px #0284c7);
+    filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.6));
 }
 
-/* Component Inspector Popover */
+/* Selection indicator overlay */
+.tc-placed-component.selected::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 2px dashed #0284c7;
+    border-radius: 4px;
+    pointer-events: none;
+    animation: tcSelectionPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tcSelectionPulse {
+    0%, 100% { border-color: #0284c7; }
+    50% { border-color: #38bdf8; }
+}
+
+/* Drag ghost preview (semi-transparent copy following cursor) */
+.tc-drag-ghost {
+    position: absolute;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 100;
+    filter: drop-shadow(0 4px 12px rgba(2, 132, 199, 0.4));
+    transition: none;
+}
+
+/* Component entrance animation */
+.tc-placed-component.entering {
+    animation: tcComponentDrop 0.3s ease-out;
+}
+
+@keyframes tcComponentDrop {
+    from {
+        opacity: 0;
+        transform: scale(0.6) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ========================================
+   COMPONENT INSPECTOR POPOVER
+   ======================================== */
 .tc-component-inspector {
     position: absolute;
     z-index: 50;
     background: var(--tc-panel-bg);
     border: 1px solid var(--tc-toolbar-border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    font-size: 0.85rem;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+    font-size: 0.84rem;
     color: var(--tc-text-main);
-    min-width: 180px;
+    min-width: 190px;
+    max-width: 260px;
 }
 
 .tc-inspector-title {
@@ -659,7 +891,8 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--tc-toolbar-border);
-    padding-bottom: 4px;
+    padding-bottom: 6px;
+    font-size: 0.88rem;
 }
 
 .tc-inspector-row {
@@ -670,19 +903,35 @@
     margin-bottom: 8px;
 }
 
-.tc-inspector-input {
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--tc-toolbar-border);
-    border-radius: 4px;
-    padding: 3px 6px;
-    font-size: 0.82rem;
-    color: var(--tc-text-main);
-    width: 80px;
+.tc-inspector-row span:first-child {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--tc-text-muted);
 }
 
-/* Right-Hand Drawer (Components Palette & Code Editor) */
+.tc-inspector-input {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--tc-toolbar-border);
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 0.82rem;
+    color: var(--tc-text-main);
+    width: 85px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.tc-inspector-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+/* ========================================
+   RIGHT-HAND DRAWER
+   ======================================== */
 .tc-right-drawer {
-    width: 320px;
+    width: 310px;
+    min-width: 310px;
     height: 100%;
     background: var(--tc-panel-bg);
     border-left: 1px solid var(--tc-toolbar-border);
@@ -694,36 +943,38 @@
 
 .tc-right-drawer.collapsed {
     width: 0;
+    min-width: 0;
     display: none;
 }
 
 .tc-drawer-header {
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 0.85rem;
     border-bottom: 1px solid var(--tc-toolbar-border);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
 }
 
 .tc-comp-category-select {
     width: 100%;
-    padding: 0.45rem 0.75rem;
+    padding: 0.4rem 0.7rem;
     border-radius: 6px;
     border: 1px solid var(--tc-toolbar-border);
     background: var(--tc-toolbar-bg);
     color: var(--tc-text-main);
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
+    outline: none;
 }
 
 .tc-search-box {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.04);
+    background: rgba(0, 0, 0, 0.03);
     border: 1px solid var(--tc-toolbar-border);
     border-radius: 6px;
-    padding: 0.35rem 0.65rem;
+    padding: 0.3rem 0.6rem;
     gap: 6px;
 }
 
@@ -731,60 +982,84 @@
     border: none;
     background: transparent;
     outline: none;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--tc-text-main);
     width: 100%;
 }
 
-/* Components Grid (2 columns like Tinkercad) */
+/* Component Cards Grid */
 .tc-components-grid {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
+    padding: 8px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
     align-content: start;
+}
+
+.tc-components-grid::-webkit-scrollbar {
+    width: 5px;
+}
+
+.tc-components-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tc-components-grid::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 3px;
 }
 
 .tc-component-card {
     background: var(--tc-panel-bg);
-    border: 1px solid var(--tc-toolbar-border);
+    border: 1.5px solid var(--tc-toolbar-border);
     border-radius: 8px;
-    padding: 8px 6px;
+    padding: 8px 5px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    cursor: grab;
+    transition: all 0.12s ease;
     user-select: none;
 }
 
 .tc-component-card:hover {
     border-color: #0284c7;
-    background: rgba(2, 132, 199, 0.05);
+    background: rgba(2, 132, 199, 0.04);
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.tc-component-card:active {
+    cursor: grabbing;
+    transform: translateY(0) scale(0.96);
+}
+
+.tc-component-card.dragging {
+    opacity: 0.3;
 }
 
 .tc-component-card-icon {
     width: 52px;
-    height: 52px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .tc-component-card-name {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--tc-text-main);
-    line-height: 1.2;
+    line-height: 1.15;
 }
 
-/* Right-Hand Code Editor Pane */
+/* ========================================
+   CODE EDITOR PANE
+   ======================================== */
 .tc-code-pane {
     height: 100%;
     display: flex;
@@ -794,13 +1069,14 @@
 
 .tc-code-header {
     background: #1e293b;
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.45rem 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #94a3b8;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 
 .tc-codemirror-holder {
@@ -812,61 +1088,193 @@
 .tc-codemirror-holder .CodeMirror {
     height: 100%;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     background: #0b0f19;
 }
 
-/* Bottom Serial Monitor Drawer */
+/* ========================================
+   BOTTOM SERIAL MONITOR / PLOTTER
+   ======================================== */
 .tc-bottom-serial-drawer {
     border-top: 1px solid var(--tc-toolbar-border);
     background: #090d16;
-    height: 160px;
+    height: 155px;
     display: flex;
     flex-direction: column;
 }
 
 .tc-serial-head {
-    background: #182234;
-    padding: 0.35rem 0.85rem;
+    background: #14203a;
+    padding: 0.3rem 0.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #cbd5e1;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .tc-serial-stream {
     flex: 1;
     overflow-y: auto;
-    padding: 0.5rem 0.75rem;
+    padding: 0.4rem 0.7rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     color: #38bdf8;
-    line-height: 1.4;
+    line-height: 1.35;
     white-space: pre-wrap;
     background: #020617;
 }
 
-/* Active LED Glow */
-.tc-led-lit {
-    filter: drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor);
+.tc-serial-stream::-webkit-scrollbar {
+    width: 5px;
 }
 
-/* Responsive adjustments */
+.tc-serial-stream::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.2);
+    border-radius: 3px;
+}
+
+/* ========================================
+   LED GLOW EFFECT
+   ======================================== */
+.tc-led-lit {
+    filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor) !important;
+}
+
+/* ========================================
+   STATUS BAR (BOTTOM OF CANVAS)
+   ======================================== */
+.tc-status-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    background: var(--tc-toolbar-bg);
+    border-top: 1px solid var(--tc-toolbar-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 0.68rem;
+    color: var(--tc-text-muted);
+    font-weight: 600;
+    z-index: 20;
+    gap: 12px;
+}
+
+.tc-status-bar .tc-status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ========================================
+   CIRCUIT ERROR / WARNING OVERLAY
+   ======================================== */
+.tc-circuit-warning {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 25;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #ef4444;
+    border-radius: 20px;
+    padding: 5px 16px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .tc-circuit-warning {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.tc-circuit-warning.ok {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #059669;
+}
+
+[data-theme="dark"] .tc-circuit-warning.ok {
+    color: #6ee7b7;
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.tc-circuit-warning.visible {
+    display: inline-flex;
+}
+
+/* ========================================
+   VOLTAGE PROBE TOOLTIP
+   ======================================== */
+.tc-voltage-probe {
+    position: absolute;
+    z-index: 35;
+    background: #0f172a;
+    border: 1px solid #38bdf8;
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: #38bdf8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    pointer-events: none;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+}
+
+.tc-voltage-probe.visible {
+    display: block;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
 @media (max-width: 1024px) {
     .tc-workbench-body {
         flex-direction: column;
         height: auto;
     }
+
     .tc-canvas-container {
         height: 480px;
     }
+
     .tc-right-drawer {
         width: 100%;
-        height: 380px;
+        min-width: 100%;
+        height: 360px;
         border-left: none;
         border-top: 1px solid var(--tc-toolbar-border);
+    }
+
+    .tc-status-bar {
+        right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .tc-top-navbar {
+        padding: 0.4rem 0.75rem;
+    }
+
+    .tc-tools-bar {
+        padding: 0.3rem 0.75rem;
+    }
+
+    .tc-view-modes {
+        display: none;
     }
 }
