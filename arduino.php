@@ -151,9 +151,39 @@ require_once __DIR__ . '/include/navbar.php';
                 <div class="tc-sim-time-badge" id="tcSimTimer" title="Simulation Time Elapsed">00:00.000</div>
                 
                 <!-- Code Toggle Button -->
-                <button type="button" class="btn-tc-code-toggle" id="tcToggleCodeBtn">
+                <button type="button" class="btn-tc-code-toggle" id="tcToggleCodeBtn" title="Toggle Code Editor Side-by-Side with Circuit">
                     <i class="fa-solid fa-code"></i> Code
                 </button>
+
+                <!-- Export Dropdown -->
+                <div class="tc-export-dropdown">
+                    <button type="button" class="btn-tc-code-toggle" id="tcExportMenuBtn" title="Export Circuit Image or Arduino Code">
+                        <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-caret-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
+                    </button>
+                    <div class="tc-export-menu" id="tcExportMenu" style="display: none;">
+                        <div class="tc-export-header"><i class="fa-regular fa-image"></i> Export Images</div>
+                        <button type="button" class="tc-export-item" id="tcExportCircuitPngBtn">
+                            <i class="fa-regular fa-image" style="color: #38bdf8;"></i> Circuit Image (.png)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcExportCircuitSvgBtn">
+                            <i class="fa-solid fa-bezier-curve" style="color: #a855f7;"></i> Circuit Vector (.svg)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcExportSchematicBtn">
+                            <i class="fa-solid fa-diagram-project" style="color: #0284c7;"></i> Schematic Vector (.svg)
+                        </button>
+                        <div class="tc-export-divider"></div>
+                        <div class="tc-export-header"><i class="fa-solid fa-code"></i> Export Firmware Code</div>
+                        <button type="button" class="tc-export-item" id="tcExportCodeInoBtn">
+                            <i class="fa-brands fa-cuttlefish" style="color: #10b981;"></i> Download Sketch (.ino)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcExportCodeCppBtn">
+                            <i class="fa-solid fa-file-code" style="color: #f59e0b;"></i> Download C++ Source (.cpp)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcCopyCodeMenuBtn">
+                            <i class="fa-regular fa-copy" style="color: #e2e8f0;"></i> Copy Code to Clipboard
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Start / Stop Simulation -->
                 <button type="button" class="btn-tc-sim start" id="tcStartSimBtn">
@@ -479,6 +509,41 @@ require_once __DIR__ . '/include/navbar.php';
                 <!-- Bottom Status Bar -->
                 <div class="tc-status-bar" id="tcStatusBar"></div>
 
+            </div>
+
+            <!-- Draggable Splitter Divider between Circuit and Code -->
+            <div class="tc-split-resizer" id="tcSplitResizer" style="display: none;" title="Drag left or right to adjust Circuit and Code window width (Double-click to reset 50/50)">
+                <div class="tc-resizer-handle"></div>
+            </div>
+
+            <!-- Code Editor Resizable Pane (side-by-side with Circuit) -->
+            <div class="tc-code-pane" id="tcCodePane" style="display: none; width: 480px; min-width: 280px; max-width: calc(100% - 250px);">
+                <div class="tc-code-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-brands fa-cuttlefish" style="color: #38bdf8;"></i>
+                        <span style="font-weight: 700;">Arduino C++ Sketch (.ino)</span>
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Verify / Check Sketch Syntax">
+                            <i class="fa-solid fa-check" style="color: #10b981;"></i> Verify
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Reset to Preset Sketch">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcDownloadInoBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Download Sketch (.ino)">
+                            <i class="fa-solid fa-download" style="color: #38bdf8;"></i> .ino
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcCopyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Copy to Clipboard">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcCloseCodeBtn" style="padding: 2px 6px; font-size: 0.74rem;" title="Close Code Window">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="tc-codemirror-holder" style="flex: 1; height: calc(100% - 40px); position: relative;">
+                    <textarea id="tcCodeTextarea"></textarea>
+                </div>
             </div>
 
             <!-- Schematic Diagram View Container -->
@@ -928,27 +993,6 @@ require_once __DIR__ . '/include/navbar.php';
                             <span class="tc-starter-card-desc">Hardware INT0 Microsecond Timing</span>
                         </div>
 
-                    </div>
-                </div>
-
-                <!-- Drawer 2: Code Editor Pane (shown when Code toggle is active) -->
-                <div class="tc-code-pane" id="tcCodePane" style="display: none;">
-                    <div class="tc-code-header">
-                        <span><i class="fa-brands fa-cuttlefish" style="color: #38bdf8;"></i> Arduino C++ Sketch (.ino)</span>
-                        <div style="display: flex; gap: 6px;">
-                            <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Verify / Check Sketch Syntax">
-                                <i class="fa-solid fa-check" style="color: #10b981;"></i> Verify
-                            </button>
-                            <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Reset to Preset Sketch">
-                                <i class="fa-solid fa-rotate-left"></i> Reset
-                            </button>
-                            <button type="button" class="btn-tc-code-toggle" style="padding: 2px 7px; font-size: 0.74rem;" onclick="navigator.clipboard.writeText(window.tcCodeEditor ? window.tcCodeEditor.getValue() : ''); alert('Sketch copied to clipboard!');" title="Copy to Clipboard">
-                                <i class="fa-regular fa-copy"></i> Copy
-                            </button>
-                        </div>
-                    </div>
-                    <div class="tc-codemirror-holder">
-                        <textarea id="tcCodeTextarea"></textarea>
                     </div>
                 </div>
 

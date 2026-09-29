@@ -3175,10 +3175,24 @@ void loop() {
         const canvasContainer = document.getElementById('tcCanvasContainer');
         const schematicContainer = document.getElementById('tcSchematicContainer');
         const bomContainer = document.getElementById('tcBomContainer');
+        const codePane = document.getElementById('tcCodePane');
+        const resizer = document.getElementById('tcSplitResizer');
+        const rightDrawer = document.getElementById('tcRightDrawer');
 
         document.getElementById('tcTabCircuits')?.classList.toggle('active', viewName === 'circuits');
         document.getElementById('tcTabSchematic')?.classList.toggle('active', viewName === 'schematic');
         document.getElementById('tcTabBom')?.classList.toggle('active', viewName === 'bom');
+
+        if (viewName !== 'circuits') {
+            if (codePane) codePane.style.display = 'none';
+            if (resizer) resizer.style.display = 'none';
+            if (rightDrawer) rightDrawer.style.display = 'none';
+            document.getElementById('tcToggleCodeBtn')?.classList.remove('active');
+        } else {
+            if (rightDrawer && codePane?.style.display !== 'flex') {
+                rightDrawer.style.display = 'flex';
+            }
+        }
 
         if (canvasContainer) canvasContainer.style.display = viewName === 'circuits' ? 'block' : 'none';
         if (schematicContainer) schematicContainer.style.display = viewName === 'schematic' ? 'flex' : 'none';
@@ -3273,16 +3287,161 @@ void loop() {
 
     function exportSchematicSvg() {
         const svg = document.getElementById('tcSchematicSvgDoc');
-        if (!svg) return;
+        if (!svg) {
+            renderSchematic();
+        }
+        const freshSvg = document.getElementById('tcSchematicSvgDoc');
+        if (!freshSvg) return;
         const serializer = new XMLSerializer();
-        const src = serializer.serializeToString(svg);
+        const src = serializer.serializeToString(freshSvg);
+        const title = (document.getElementById('tcProjectTitle')?.value || `arduino_schematic_${state.currentPreset}`).replace(/[^a-zA-Z0-9_-]/g, '_');
         const blob = new Blob([src], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `arduino_schematic_${state.currentPreset}.svg`;
+        a.download = `${title}.svg`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    function exportCircuitSvgString() {
+        const uno = document.getElementById('arduinoUno');
+        const bb = document.getElementById('solderlessBreadboard');
+        const wiresSvg = document.getElementById('tcWiresSvg');
+
+        const width = 1100;
+        const height = 650;
+
+        let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">\n`;
+        out += `<defs>\n`;
+        out += `  <pattern id="dotGridExport" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#cbd5e1"/></pattern>\n`;
+        out += `</defs>\n`;
+        out += `<rect width="100%" height="100%" fill="#f8fafc"/>\n`;
+        out += `<rect width="100%" height="100%" fill="url(#dotGridExport)"/>\n`;
+
+        const title = document.getElementById('tcProjectTitle')?.value || 'Arduino Breadboard Physics Circuit';
+        out += `<text x="30" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="16" fill="#0284c7">${title}</text>\n`;
+        out += `<text x="30" y="55" font-family="sans-serif" font-size="11" fill="#64748b">Python4Physics Virtual Circuits Workbench • Autodesk Tinkercad Circuits Clone</text>\n`;
+
+        if (uno) {
+            const left = parseFloat(uno.style.left) || 35;
+            const top = parseFloat(uno.style.top) || 75;
+            const svgContent = uno.querySelector('svg')?.innerHTML || '';
+            out += `<g transform="translate(${left}, ${top})">${svgContent}</g>\n`;
+        }
+
+        if (bb) {
+            const left = parseFloat(bb.style.left) || 450;
+            const top = parseFloat(bb.style.top) || 60;
+            const svgContent = bb.querySelector('svg')?.innerHTML || '';
+            out += `<g transform="translate(${left}, ${top})">${svgContent}</g>\n`;
+        }
+
+        if (wiresSvg) {
+            const wiresGroup = document.getElementById('tcWiresGroup');
+            if (wiresGroup) {
+                out += `<g>${wiresGroup.innerHTML}</g>\n`;
+            }
+        }
+
+        state.components.forEach(comp => {
+            const el = document.getElementById(comp.id);
+            if (el) {
+                const left = parseFloat(el.style.left) || comp.x;
+                const top = parseFloat(el.style.top) || comp.y;
+                const rot = comp.rotation || 0;
+                const compSvg = el.querySelector('svg')?.outerHTML || '';
+                out += `<g transform="translate(${left}, ${top}) rotate(${rot})">${compSvg}</g>\n`;
+            }
+        });
+
+        out += `</svg>`;
+        return out;
+    }
+
+    function downloadCircuitSvg() {
+        const svgStr = exportCircuitSvgString();
+        const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function downloadCircuitPng() {
+        const svgStr = exportCircuitSvgString();
+        const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const img = new Image();
+        const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2200;
+            canvas.height = 1300;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+
+            canvas.toBlob(function (pngBlob) {
+                if (!pngBlob) return;
+                const pngUrl = URL.createObjectURL(pngBlob);
+                const a = document.createElement('a');
+                a.href = pngUrl;
+                a.download = `${title}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(pngUrl);
+            }, 'image/png');
+        };
+        img.src = url;
+    }
+
+    function exportCodeIno() {
+        const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
+        const title = (document.getElementById('tcProjectTitle')?.value || 'sketch').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.ino`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportCodeCpp() {
+        const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
+        const title = (document.getElementById('tcProjectTitle')?.value || 'sketch').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const blob = new Blob([code], { type: 'text/x-c++src;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.cpp`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function copyCodeClipboard() {
+        const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
+        navigator.clipboard.writeText(code).then(() => {
+            alert('✓ Arduino C++ sketch copied to clipboard!');
+        }).catch(() => {
+            alert('✓ Arduino C++ sketch copied to clipboard!');
+        });
     }
 
     function renderBom() {
@@ -3530,23 +3689,105 @@ void loop() {
             document.addEventListener('click', () => { popover.style.display = 'none'; });
         }
 
-        document.getElementById('tcToggleCodeBtn')?.addEventListener('click', function () {
+        function toggleCodePane(forceOpen = null) {
             const codePane = document.getElementById('tcCodePane');
-            const compPane = document.getElementById('tcComponentsPalettePane');
-            if (!codePane || !compPane) return;
+            const resizer = document.getElementById('tcSplitResizer');
+            const rightDrawer = document.getElementById('tcRightDrawer');
+            const btn = document.getElementById('tcToggleCodeBtn');
+            if (!codePane || !resizer) return;
+
+            if (state.currentView !== 'circuits') {
+                switchView('circuits');
+            }
 
             const isCode = codePane.style.display === 'flex';
-            if (isCode) {
-                codePane.style.display = 'none';
-                compPane.style.display = 'flex';
-                this.classList.remove('active');
-            } else {
+            const shouldOpen = forceOpen !== null ? forceOpen : !isCode;
+
+            if (shouldOpen) {
                 codePane.style.display = 'flex';
-                compPane.style.display = 'none';
-                this.classList.add('active');
-                if (codeEditor) codeEditor.refresh();
+                resizer.style.display = 'flex';
+                if (rightDrawer) rightDrawer.style.display = 'none';
+                btn?.classList.add('active');
+                if (codeEditor) {
+                    setTimeout(() => codeEditor.refresh(), 50);
+                }
+            } else {
+                codePane.style.display = 'none';
+                resizer.style.display = 'none';
+                if (rightDrawer) rightDrawer.style.display = 'flex';
+                btn?.classList.remove('active');
             }
-        });
+        }
+
+        document.getElementById('tcToggleCodeBtn')?.addEventListener('click', () => toggleCodePane());
+        document.getElementById('tcCloseCodeBtn')?.addEventListener('click', () => toggleCodePane(false));
+
+        function initSplitResizer() {
+            const resizer = document.getElementById('tcSplitResizer');
+            const codePane = document.getElementById('tcCodePane');
+            const workbench = document.getElementById('tcWorkbenchBody') || document.querySelector('.tc-workbench-body');
+            if (!resizer || !codePane || !workbench) return;
+
+            let isDragging = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                resizer.classList.add('dragging');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const workbenchRect = workbench.getBoundingClientRect();
+                const newWidth = workbenchRect.right - e.clientX;
+                const minWidth = 280;
+                const maxWidth = workbenchRect.width - 250;
+
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    codePane.style.width = `${newWidth}px`;
+                    if (codeEditor) codeEditor.refresh();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    resizer.classList.remove('dragging');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    if (codeEditor) codeEditor.refresh();
+                }
+            });
+
+            resizer.addEventListener('dblclick', () => {
+                const workbenchRect = workbench.getBoundingClientRect();
+                codePane.style.width = `${Math.round(workbenchRect.width / 2)}px`;
+                if (codeEditor) codeEditor.refresh();
+            });
+        }
+        initSplitResizer();
+
+        // Export Dropdown menu
+        const exportBtn = document.getElementById('tcExportMenuBtn');
+        const exportMenu = document.getElementById('tcExportMenu');
+        if (exportBtn && exportMenu) {
+            exportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenu.style.display = exportMenu.style.display === 'none' ? 'flex' : 'none';
+            });
+            document.addEventListener('click', () => { exportMenu.style.display = 'none'; });
+        }
+
+        document.getElementById('tcExportCircuitPngBtn')?.addEventListener('click', () => downloadCircuitPng());
+        document.getElementById('tcExportCircuitSvgBtn')?.addEventListener('click', () => downloadCircuitSvg());
+        document.getElementById('tcExportSchematicBtn')?.addEventListener('click', () => exportSchematicSvg());
+        document.getElementById('tcExportCodeInoBtn')?.addEventListener('click', () => exportCodeIno());
+        document.getElementById('tcDownloadInoBtn')?.addEventListener('click', () => exportCodeIno());
+        document.getElementById('tcExportCodeCppBtn')?.addEventListener('click', () => exportCodeCpp());
+        document.getElementById('tcCopyCodeMenuBtn')?.addEventListener('click', () => copyCodeClipboard());
+        document.getElementById('tcCopyCodeBtn')?.addEventListener('click', () => copyCodeClipboard());
 
         document.getElementById('tcVerifyCodeBtn')?.addEventListener('click', () => {
             const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');

@@ -1681,4 +1681,128 @@
     background: linear-gradient(135deg, #0369a1, #0284c7);
 }
 
+/* ========================================
+   CIRCUIT / CODE SPLIT RESIZER
+   ======================================== */
+.tc-split-resizer {
+    width: 8px;
+    height: 100%;
+    background: #1e293b;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: col-resize;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 35;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+}
+
+.tc-split-resizer:hover,
+.tc-split-resizer.dragging {
+    background: #0284c7;
+    box-shadow: 0 0 10px rgba(2, 132, 199, 0.5);
+}
+
+.tc-resizer-handle {
+    width: 2px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+.tc-split-resizer:hover .tc-resizer-handle,
+.tc-split-resizer.dragging .tc-resizer-handle {
+    background: #ffffff;
+}
+
+.tc-code-pane {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #0b0f19;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 30;
+    flex-shrink: 0;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.25);
+    position: relative;
+}
+
+.tc-code-pane .CodeMirror {
+    height: 100% !important;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    background: #0b0f19;
+}
+
+/* ========================================
+   EXPORT DROPDOWN MENU
+   ======================================== */
+.tc-export-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.tc-export-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65);
+    padding: 6px;
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    animation: tcPopupFadeIn 0.15s ease-out;
+}
+
+.tc-export-header {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    padding: 6px 10px 3px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tc-export-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
+.tc-export-item {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    transition: all 0.15s;
+    width: 100%;
+}
+
+.tc-export-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+
 
