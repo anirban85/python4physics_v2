@@ -15,7 +15,7 @@ require_once __DIR__ . '/include/navbar.php';
 ?>
 
 <!-- Tinkercad Studio CSS -->
-<link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/tinkercad.css">
+<link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/tinkercad.css?v=<?php echo file_exists(__DIR__ . '/assets/css/tinkercad.css') ? filemtime(__DIR__ . '/assets/css/tinkercad.css') : time(); ?>">
 <!-- CodeMirror for Arduino C++ -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-ocean.min.css">
@@ -1145,6 +1145,6 @@ require_once __DIR__ . '/include/navbar.php';
 </main>
 
 <!-- Tinkercad Simulator JavaScript Engine -->
-<script src="<?php echo $siteurl; ?>assets/js/arduino_simulator.js"></script>
+<script src="<?php echo $siteurl; ?>assets/js/arduino_simulator.js?v=<?php echo file_exists(__DIR__ . '/assets/js/arduino_simulator.js') ? filemtime(__DIR__ . '/assets/js/arduino_simulator.js') : time(); ?>"></script>
 
 <?php require_once __DIR__ . '/include/footer.php'; ?>
