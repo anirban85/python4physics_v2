@@ -70,7 +70,12 @@ require_once __DIR__ . '/include/navbar.php';
                     <option value="pwm_fade">2. PWM Breathing & Effective DC Voltage</option>
                     <option value="potentiometer">3. Potentiometer 10-Bit ADC Voltage Divider</option>
                     <option value="ldr_sensor">4. Photoresistor (LDR) Solar Light Sensor</option>
-                    <option value="ultrasonic">5. Ultrasonic HC-SR04 Speed of Sound</option>
+                    <option value="ultrasonic">5. Ultrasonic HC-SR04 Speed of Sound Range</option>
+                    <option value="pir_alarm">6. PIR Motion Detector & Security Alarm</option>
+                    <option value="tmp36_temp">7. TMP36 Precision Thermometer & Heat Monitor</option>
+                    <option value="servo_sweep">8. Micro Servo Motor 180° Angle Sweeper</option>
+                    <option value="rgb_mixer">9. RGB LED Color Spectrum PWM Mixer</option>
+                    <option value="button_toggle">10. Pushbutton Digital Input & Pullup</option>
                 </select>
             </div>
         </div>
@@ -474,6 +479,52 @@ require_once __DIR__ . '/include/navbar.php';
 
             </div>
 
+            <!-- Schematic Diagram View Container -->
+            <div class="tc-schematic-container" id="tcSchematicContainer" style="display: none; flex: 1; height: 100%; overflow: auto; background: var(--tc-bg-canvas); padding: 1.25rem; position: relative;">
+                <div class="tc-schematic-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--tc-text-main); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-bezier-curve" style="color: #0284c7;"></i> Live Schematic Diagram
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-tc-code-toggle" id="tcExportSchematicBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Download Schematic Diagram as SVG">
+                            <i class="fa-solid fa-download"></i> Export SVG
+                        </button>
+                    </div>
+                </div>
+                <div id="tcSchematicSvgWrapper" style="background: #ffffff; border-radius: 8px; border: 1px solid var(--tc-toolbar-border); padding: 16px; min-height: 480px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; overflow: auto;">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Bill of Materials (BOM) & Components Container -->
+            <div class="tc-bom-container" id="tcBomContainer" style="display: none; flex: 1; height: 100%; overflow: auto; background: var(--tc-panel-bg); padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--tc-text-main); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-list-check" style="color: #10b981;"></i> Bill of Materials (BOM)
+                    </div>
+                    <button type="button" class="btn-tc-code-toggle" id="tcExportBomBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Download BOM Table as CSV">
+                        <i class="fa-solid fa-file-csv"></i> Export CSV
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="tcBomTable">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.03); border-bottom: 2px solid var(--tc-toolbar-border); color: var(--tc-text-muted);">
+                                <th style="padding: 8px 12px; text-align: left;">Item #</th>
+                                <th style="padding: 8px 12px; text-align: left;">Part Name</th>
+                                <th style="padding: 8px 12px; text-align: left;">Designator</th>
+                                <th style="padding: 8px 12px; text-align: left;">Properties / Value</th>
+                                <th style="padding: 8px 12px; text-align: left;">Net Connections</th>
+                                <th style="padding: 8px 12px; text-align: center;">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tcBomTableBody">
+                            <!-- Generated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Right-Hand Drawer: Components Palette OR Code Editor -->
             <div class="tc-right-drawer" id="tcRightDrawer">
                 
@@ -483,6 +534,8 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="tc-drawer-header">
                         <select class="tc-comp-category-select" id="tcCompCategory">
                             <option value="basic">Components: Basic</option>
+                            <option value="sensors">Components: Sensors</option>
+                            <option value="actuators">Components: Actuators / Output</option>
                             <option value="all">Components: All</option>
                             <option value="starters">Starters: Arduino</option>
                         </select>
@@ -496,12 +549,11 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="tc-components-grid" id="tcComponentsGrid">
                         
                         <!-- Resistor -->
-                        <div class="tc-component-card" data-component-type="resistor" title="Click or Drag onto breadboard">
+                        <div class="tc-component-card" data-component-type="resistor" data-category="basic" title="Click or Drag onto breadboard">
                             <div class="tc-component-card-icon">
                                 <svg width="44" height="20" viewBox="0 0 44 20">
                                     <line x1="2" y1="10" x2="12" y2="10" stroke="#94a3b8" stroke-width="2"/>
                                     <rect x="12" y="4" width="20" height="12" rx="4" fill="#fcd34d" stroke="#d97706" stroke-width="1"/>
-                                    <!-- Color bands: Red, Red, Brown, Gold -->
                                     <rect x="15" y="4" width="2" height="12" fill="#dc2626"/>
                                     <rect x="19" y="4" width="2" height="12" fill="#dc2626"/>
                                     <rect x="23" y="4" width="2" height="12" fill="#78350f"/>
@@ -513,26 +565,46 @@ require_once __DIR__ . '/include/navbar.php';
                         </div>
 
                         <!-- 5mm LED -->
-                        <div class="tc-component-card" data-component-type="led" title="Click or Drag onto breadboard">
+                        <div class="tc-component-card" data-component-type="led" data-category="basic" title="Click or Drag onto breadboard">
                             <div class="tc-component-card-icon">
                                 <svg width="34" height="40" viewBox="0 0 34 40">
-                                    <!-- Anode & Cathode leads -->
                                     <line x1="12" y1="24" x2="12" y2="38" stroke="#94a3b8" stroke-width="2"/>
                                     <path d="M 22 24 L 22 30 L 20 33 L 20 38" fill="none" stroke="#94a3b8" stroke-width="2"/>
-                                    <!-- LED Dome (Red by default) -->
                                     <path d="M 8 22 A 9 9 0 0 1 26 22 L 26 24 L 8 24 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
                                 </svg>
                             </div>
                             <span class="tc-component-card-name">LED</span>
                         </div>
 
+                        <!-- RGB LED (Common Cathode) -->
+                        <div class="tc-component-card" data-component-type="rgb_led" data-category="basic" title="4-pin RGB LED (Common Cathode)">
+                            <div class="tc-component-card-icon">
+                                <svg width="36" height="40" viewBox="0 0 36 40">
+                                    <!-- 4 leads -->
+                                    <line x1="8" y1="24" x2="8" y2="38" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="14" y1="24" x2="14" y2="39" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="20" y1="24" x2="20" y2="37" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="26" y1="24" x2="26" y2="36" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <!-- Frosted RGB Dome -->
+                                    <defs>
+                                        <linearGradient id="rgbDomeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#ef4444"/>
+                                            <stop offset="50%" stop-color="#22c55e"/>
+                                            <stop offset="100%" stop-color="#3b82f6"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M 6 22 A 12 12 0 0 1 30 22 L 30 24 L 6 24 Z" fill="url(#rgbDomeGrad)" stroke="#475569" stroke-width="1.2" opacity="0.9"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">RGB LED</span>
+                        </div>
+
                         <!-- Pushbutton -->
-                        <div class="tc-component-card" data-component-type="pushbutton" title="Tactile momentary pushbutton">
+                        <div class="tc-component-card" data-component-type="pushbutton" data-category="basic" title="Tactile momentary pushbutton">
                             <div class="tc-component-card-icon">
                                 <svg width="36" height="36" viewBox="0 0 36 36">
                                     <rect x="6" y="6" width="24" height="24" rx="3" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/>
                                     <circle cx="18" cy="18" r="7" fill="#0f172a"/>
-                                    <!-- 4 pins -->
                                     <line x1="2" y1="10" x2="6" y2="10" stroke="#64748b" stroke-width="2"/>
                                     <line x1="2" y1="26" x2="6" y2="26" stroke="#64748b" stroke-width="2"/>
                                     <line x1="30" y1="10" x2="34" y2="10" stroke="#64748b" stroke-width="2"/>
@@ -543,13 +615,12 @@ require_once __DIR__ . '/include/navbar.php';
                         </div>
 
                         <!-- Potentiometer -->
-                        <div class="tc-component-card" data-component-type="potentiometer" title="10k Rotary Potentiometer">
+                        <div class="tc-component-card" data-component-type="potentiometer" data-category="basic" title="10k Rotary Potentiometer">
                             <div class="tc-component-card-icon">
                                 <svg width="36" height="38" viewBox="0 0 36 38">
                                     <circle cx="18" cy="16" r="14" fill="#0284c7" stroke="#0369a1" stroke-width="1.5"/>
                                     <circle cx="18" cy="16" r="8" fill="#334155"/>
                                     <line x1="18" y1="16" x2="18" y2="10" stroke="#38bdf8" stroke-width="2"/>
-                                    <!-- 3 bottom legs -->
                                     <line x1="10" y1="30" x2="10" y2="36" stroke="#94a3b8" stroke-width="2"/>
                                     <line x1="18" y1="30" x2="18" y2="36" stroke="#94a3b8" stroke-width="2"/>
                                     <line x1="26" y1="30" x2="26" y2="36" stroke="#94a3b8" stroke-width="2"/>
@@ -558,8 +629,48 @@ require_once __DIR__ . '/include/navbar.php';
                             <span class="tc-component-card-name">Potentiometer</span>
                         </div>
 
+                        <!-- Slide Switch (SPDT) -->
+                        <div class="tc-component-card" data-component-type="slide_switch" data-category="basic" title="SPDT Slide Switch">
+                            <div class="tc-component-card-icon">
+                                <svg width="40" height="24" viewBox="0 0 40 24">
+                                    <rect x="4" y="2" width="32" height="14" rx="2" fill="#94a3b8" stroke="#475569" stroke-width="1"/>
+                                    <rect x="8" y="0" width="8" height="18" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+                                    <line x1="10" y1="16" x2="10" y2="22" stroke="#64748b" stroke-width="2"/>
+                                    <line x1="20" y1="16" x2="20" y2="22" stroke="#64748b" stroke-width="2"/>
+                                    <line x1="30" y1="16" x2="30" y2="22" stroke="#64748b" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Slide Switch</span>
+                        </div>
+
+                        <!-- Capacitor -->
+                        <div class="tc-component-card" data-component-type="capacitor" data-category="basic" title="100uF Electrolytic Capacitor">
+                            <div class="tc-component-card-icon">
+                                <svg width="34" height="38" viewBox="0 0 34 38">
+                                    <rect x="8" y="2" width="18" height="22" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1.2"/>
+                                    <rect x="20" y="2" width="6" height="22" rx="0" fill="#94a3b8"/>
+                                    <line x1="12" y1="24" x2="12" y2="36" stroke="#94a3b8" stroke-width="2"/>
+                                    <line x1="22" y1="24" x2="22" y2="33" stroke="#94a3b8" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Capacitor</span>
+                        </div>
+
+                        <!-- Diode (1N4007) -->
+                        <div class="tc-component-card" data-component-type="diode" data-category="basic" title="1N4007 Rectifier Diode">
+                            <div class="tc-component-card-icon">
+                                <svg width="44" height="18" viewBox="0 0 44 18">
+                                    <line x1="2" y1="9" x2="12" y2="9" stroke="#94a3b8" stroke-width="2"/>
+                                    <rect x="12" y="3" width="20" height="12" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+                                    <rect x="27" y="3" width="4" height="12" fill="#cbd5e1"/>
+                                    <line x1="32" y1="9" x2="42" y2="9" stroke="#94a3b8" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Diode</span>
+                        </div>
+
                         <!-- Photoresistor (LDR) -->
-                        <div class="tc-component-card" data-component-type="ldr" title="Light-Dependent Resistor">
+                        <div class="tc-component-card" data-component-type="ldr" data-category="sensors" title="Light-Dependent Resistor">
                             <div class="tc-component-card-icon">
                                 <svg width="36" height="38" viewBox="0 0 36 38">
                                     <circle cx="18" cy="15" r="11" fill="#ea580c" stroke="#c2410c" stroke-width="1.5"/>
@@ -572,7 +683,7 @@ require_once __DIR__ . '/include/navbar.php';
                         </div>
 
                         <!-- Ultrasonic Sensor HC-SR04 -->
-                        <div class="tc-component-card" data-component-type="ultrasonic" title="HC-SR04 Ultrasonic Distance Sensor">
+                        <div class="tc-component-card" data-component-type="ultrasonic" data-category="sensors" title="HC-SR04 Ultrasonic Distance Sensor">
                             <div class="tc-component-card-icon">
                                 <svg width="50" height="28" viewBox="0 0 50 28">
                                     <rect x="2" y="2" width="46" height="24" rx="4" fill="#0284c7" stroke="#0369a1" stroke-width="1"/>
@@ -580,11 +691,95 @@ require_once __DIR__ . '/include/navbar.php';
                                     <circle cx="36" cy="14" r="8" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
                                 </svg>
                             </div>
-                            <span class="tc-component-card-name">Ultrasonic Distance</span>
+                            <span class="tc-component-card-name">Ultrasonic Sensor</span>
+                        </div>
+
+                        <!-- PIR Motion Sensor -->
+                        <div class="tc-component-card" data-component-type="pir" data-category="sensors" title="HC-SR501 PIR Motion Sensor">
+                            <div class="tc-component-card-icon">
+                                <svg width="42" height="36" viewBox="0 0 42 36">
+                                    <rect x="2" y="10" width="38" height="22" rx="3" fill="#15803d" stroke="#166534" stroke-width="1.2"/>
+                                    <!-- White Fresnel Dome -->
+                                    <circle cx="21" cy="14" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+                                    <path d="M 15 14 Q 21 10, 27 14 M 17 17 Q 21 15, 25 17" fill="none" stroke="#94a3b8" stroke-width="0.8"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">PIR Motion Sensor</span>
+                        </div>
+
+                        <!-- Temperature Sensor (TMP36) -->
+                        <div class="tc-component-card" data-component-type="tmp36" data-category="sensors" title="TMP36 Precision Temperature Sensor (-40C to 125C)">
+                            <div class="tc-component-card-icon">
+                                <svg width="34" height="38" viewBox="0 0 34 38">
+                                    <!-- TO-92 Transistor Package Shape -->
+                                    <path d="M 8 18 A 9 9 0 0 1 26 18 L 26 6 L 8 6 Z" fill="#1e293b" stroke="#0f172a" stroke-width="1.2"/>
+                                    <text x="17" y="14" fill="#94a3b8" font-size="5" font-family="monospace" text-anchor="middle">TMP</text>
+                                    <line x1="11" y1="18" x2="11" y2="34" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="17" y1="18" x2="17" y2="34" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="23" y1="18" x2="23" y2="34" stroke="#94a3b8" stroke-width="1.8"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Temperature (TMP36)</span>
+                        </div>
+
+                        <!-- Tilt Sensor -->
+                        <div class="tc-component-card" data-component-type="tilt" data-category="sensors" title="Ball Tilt Switch / Vibration Sensor">
+                            <div class="tc-component-card-icon">
+                                <svg width="34" height="36" viewBox="0 0 34 36">
+                                    <rect x="10" y="2" width="14" height="22" rx="7" fill="#eab308" stroke="#ca8a04" stroke-width="1.2"/>
+                                    <line x1="13" y1="24" x2="13" y2="34" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="21" y1="24" x2="21" y2="34" stroke="#94a3b8" stroke-width="1.8"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Tilt Sensor</span>
+                        </div>
+
+                        <!-- Micro Servo Motor (SG90) -->
+                        <div class="tc-component-card" data-component-type="servo" data-category="actuators" title="SG90 9g Micro Servo Motor (0 to 180 degrees)">
+                            <div class="tc-component-card-icon">
+                                <svg width="44" height="36" viewBox="0 0 44 36">
+                                    <rect x="6" y="8" width="32" height="22" rx="3" fill="#0284c7" stroke="#0369a1" stroke-width="1.2"/>
+                                    <!-- Gear tower -->
+                                    <circle cx="16" cy="10" r="7" fill="#0369a1"/>
+                                    <!-- White rotating horn -->
+                                    <rect x="14" y="2" width="16" height="5" rx="2" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+                                    <circle cx="16" cy="4.5" r="2" fill="#0f172a"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Micro Servo SG90</span>
+                        </div>
+
+                        <!-- Piezo Buzzer -->
+                        <div class="tc-component-card" data-component-type="buzzer" data-category="actuators" title="Piezoelectric Sound Buzzer (tone / noTone)">
+                            <div class="tc-component-card-icon">
+                                <svg width="38" height="38" viewBox="0 0 38 38">
+                                    <circle cx="19" cy="18" r="14" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                                    <circle cx="19" cy="18" r="4" fill="#0284c7"/>
+                                    <line x1="14" y1="32" x2="14" y2="37" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="24" y1="32" x2="24" y2="37" stroke="#94a3b8" stroke-width="1.8"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Piezo Buzzer</span>
+                        </div>
+
+                        <!-- DC Motor with Propeller -->
+                        <div class="tc-component-card" data-component-type="dc_motor" data-category="actuators" title="DC Electric Motor with Propeller">
+                            <div class="tc-component-card-icon">
+                                <svg width="42" height="38" viewBox="0 0 42 38">
+                                    <circle cx="21" cy="20" r="13" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/>
+                                    <!-- Propeller blades -->
+                                    <ellipse cx="21" cy="10" rx="4" ry="7" fill="#ef4444"/>
+                                    <ellipse cx="21" cy="30" rx="4" ry="7" fill="#ef4444"/>
+                                    <ellipse cx="11" cy="20" rx="7" ry="4" fill="#ef4444"/>
+                                    <ellipse cx="31" cy="20" rx="7" ry="4" fill="#ef4444"/>
+                                    <circle cx="21" cy="20" r="3" fill="#0f172a"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">DC Motor / Fan</span>
                         </div>
 
                         <!-- Breadboard Small -->
-                        <div class="tc-component-card" data-component-type="breadboard" title="Solderless Breadboard">
+                        <div class="tc-component-card" data-component-type="breadboard" data-category="basic" title="Solderless Breadboard">
                             <div class="tc-component-card-icon">
                                 <svg width="48" height="28" viewBox="0 0 48 28">
                                     <rect x="2" y="2" width="44" height="24" rx="2" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
@@ -599,7 +794,7 @@ require_once __DIR__ . '/include/navbar.php';
                         </div>
 
                         <!-- Arduino Uno R3 -->
-                        <div class="tc-component-card" data-component-type="arduino" title="Arduino Uno R3 Microcontroller">
+                        <div class="tc-component-card" data-component-type="arduino" data-category="basic" title="Arduino Uno R3 Microcontroller">
                             <div class="tc-component-card-icon">
                                 <svg width="46" height="34" viewBox="0 0 46 34">
                                     <rect x="2" y="2" width="42" height="30" rx="3" fill="#00878a" stroke="#004d50" stroke-width="1"/>
@@ -617,9 +812,17 @@ require_once __DIR__ . '/include/navbar.php';
                 <div class="tc-code-pane" id="tcCodePane" style="display: none;">
                     <div class="tc-code-header">
                         <span><i class="fa-brands fa-cuttlefish" style="color: #38bdf8;"></i> Arduino C++ Sketch (.ino)</span>
-                        <button type="button" class="btn-tc-code-toggle" style="padding: 2px 8px; font-size: 0.75rem;" onclick="navigator.clipboard.writeText(window.tcCodeEditor ? window.tcCodeEditor.getValue() : ''); alert('Sketch copied to clipboard!');">
-                            <i class="fa-regular fa-copy"></i> Copy
-                        </button>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Verify / Check Sketch Syntax">
+                                <i class="fa-solid fa-check" style="color: #10b981;"></i> Verify
+                            </button>
+                            <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Reset to Preset Sketch">
+                                <i class="fa-solid fa-rotate-left"></i> Reset
+                            </button>
+                            <button type="button" class="btn-tc-code-toggle" style="padding: 2px 7px; font-size: 0.74rem;" onclick="navigator.clipboard.writeText(window.tcCodeEditor ? window.tcCodeEditor.getValue() : ''); alert('Sketch copied to clipboard!');" title="Copy to Clipboard">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
                     </div>
                     <div class="tc-codemirror-holder">
                         <textarea id="tcCodeTextarea"></textarea>
@@ -641,8 +844,14 @@ require_once __DIR__ . '/include/navbar.php';
                         <i class="fa-solid fa-chart-line"></i> Serial Plotter
                     </button>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 0.72rem; color: #64748b;">9600 baud</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <select id="tcBaudSelect" style="background: #0f172a; color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.72rem; padding: 2px 6px;">
+                        <option value="9600" selected>9600 baud</option>
+                        <option value="19200">19200 baud</option>
+                        <option value="38400">38400 baud</option>
+                        <option value="57600">57600 baud</option>
+                        <option value="115200">115200 baud</option>
+                    </select>
                     <button type="button" id="tcClearSerialBtn" style="background: none; border: none; color: #94a3b8; font-size: 0.72rem; cursor: pointer;">
                         <i class="fa-solid fa-ban"></i> Clear
                     </button>
