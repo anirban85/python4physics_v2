@@ -768,6 +768,129 @@ void loop() {
   lastButtonState = reading;
   delay(20);
 }`
+        },
+        rc_transient: {
+            title: "11. RC Transient Charging & Discharging Curve",
+            components: [
+                { id: 'res1', type: 'resistor', x: 669, y: 141, rotation: 0, props: { resistance: 10000, unit: 'Ω', name: 'R1' } },
+                { id: 'cap1', type: 'capacitor', x: 745.5, y: 134, rotation: 0, props: { capacitance: 100, unit: 'µF', name: 'C1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-10', to: 'bb-a12', color: '#3b82f6', waypoints: [{ x: 218, y: 40 }, { x: 669, y: 40 }] },
+                { from: 'ard-pin-a0', to: 'bb-a17', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 754, y: 260 }] },
+                { from: 'bb-a18', to: 'bb-bot-neg-18', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Lab 11: RC Circuit Transient Charging & Discharging Curve
+// Time Constant tau = R * C = 10,000 Ohm * 100 uF = 1.00 s
+// ========================================================
+
+const int chargePin = 10;
+const int sensePin = A0;
+
+void setup() {
+  pinMode(chargePin, OUTPUT);
+  digitalWrite(chargePin, LOW);
+  Serial.begin(9600);
+  Serial.println("--- RC Transient Dynamic Analysis Initialized ---");
+}
+
+void loop() {
+  // 1. Charging Phase: V_C(t) = V_0 * (1 - exp(-t / RC))
+  Serial.println(">>> STEP: CHARGING PHASE (Pin 10 HIGH) <<<");
+  digitalWrite(chargePin, HIGH);
+  for (int i = 0; i < 40; i++) {
+    int raw = analogRead(sensePin);
+    float vCap = (raw / 1023.0) * 5.0;
+    Serial.print("Phase: CHARGE | Raw ADC: ");
+    Serial.print(raw);
+    Serial.print(" | V_C: ");
+    Serial.print(vCap, 3);
+    Serial.println(" V");
+    delay(50);
+  }
+
+  // 2. Discharging Phase: V_C(t) = V_0 * exp(-t / RC)
+  Serial.println(">>> STEP: DISCHARGING PHASE (Pin 10 LOW) <<<");
+  digitalWrite(chargePin, LOW);
+  for (int i = 0; i < 40; i++) {
+    int raw = analogRead(sensePin);
+    float vCap = (raw / 1023.0) * 5.0;
+    Serial.print("Phase: DISCHARGE | Raw ADC: ");
+    Serial.print(raw);
+    Serial.print(" | V_C: ");
+    Serial.print(vCap, 3);
+    Serial.println(" V");
+    delay(50);
+  }
+}`
+        },
+        photogate: {
+            title: "12. Simple Pendulum Optical Photogate ('g' Measurement)",
+            components: [
+                { id: 'btn1', type: 'pushbutton', x: 677.5, y: 169, rotation: 0, props: { name: 'BEAM_TRIG', pressed: false } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#10b981', name: 'BEAM_LED' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-2', to: 'bb-d13', color: '#10b981', waypoints: [{ x: 326, y: 40 }, { x: 686, y: 40 }] },
+                { from: 'bb-g13', to: 'bb-bot-neg-13', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Lab 12: Simple Pendulum Optical Photogate Timing ('g' Measurement)
+// Time Period T = 2 * pi * sqrt(L / g) => g = 4 * pi^2 * L / T^2
+// Connect Photogate sensor to Digital Pin 2 (Hardware INT0)
+// ========================================================
+
+const byte photogatePin = 2;
+const byte indicatorLed = 13;
+const float PENDULUM_LENGTH_M = 0.50; // Pendulum Length L = 50 cm
+
+volatile unsigned long t1 = 0;
+volatile unsigned long t2 = 0;
+volatile byte count = 0;
+
+void setup() {
+  pinMode(photogatePin, INPUT_PULLUP);
+  pinMode(indicatorLed, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Optical Photogate Timing System Active ---");
+  Serial.println("Click BEAM_TRIG on breadboard to simulate pendulum beam cuts.");
+}
+
+void loop() {
+  int beamState = digitalRead(photogatePin);
+  
+  if (beamState == LOW) {
+    digitalWrite(indicatorLed, HIGH);
+    unsigned long now = millis();
+    count++;
+    if (count == 1) {
+      t1 = now;
+      Serial.println(">> Beam Cut 1 registered: Timing started <<");
+    } else if (count == 2) {
+      t2 = now;
+      count = 0;
+      float periodSec = (t2 - t1) / 1000.0;
+      if (periodSec > 0.1) {
+        float g = (4.0 * 3.14159265 * 3.14159265 * PENDULUM_LENGTH_M) / (periodSec * periodSec);
+        Serial.print("Oscillation Period T: ");
+        Serial.print(periodSec, 3);
+        Serial.print(" s | Acceleration 'g': ");
+        Serial.print(g, 2);
+        Serial.println(" m/s^2");
+      }
+    }
+    delay(200); // debounce beam cut
+  } else {
+    digitalWrite(indicatorLed, LOW);
+  }
+  delay(20);
+}`
         }
     };
 
@@ -805,7 +928,14 @@ void loop() {
         bindUI();
         bindDragAndDrop();
         setupCanvasPanning();
-        loadPreset('blink');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const presetParam = urlParams.get('preset') || urlParams.get('project') || urlParams.get('exp');
+        if (presetParam && presets[presetParam]) {
+            loadPreset(presetParam);
+        } else {
+            loadPreset('blink');
+        }
         updateStatusBar();
     }
 
@@ -1770,10 +1900,23 @@ void loop() {
             state.selectedCategory = cat;
             document.querySelectorAll('.tc-component-card').forEach(card => {
                 const cardCat = card.getAttribute('data-category') || 'basic';
-                if (cat === 'all' || cat === 'starters') {
+                if (cat === 'all') {
                     card.style.display = '';
+                } else if (cat === 'starters') {
+                    card.style.display = cardCat === 'starters' ? '' : 'none';
                 } else {
-                    card.style.display = cardCat === cat ? '' : 'none';
+                    card.style.display = (cardCat === cat && cardCat !== 'starters') ? '' : 'none';
+                }
+            });
+        });
+
+        // Starter Cards Click to Load
+        document.querySelectorAll('.tc-starter-card').forEach(card => {
+            card.addEventListener('click', function () {
+                const presetKey = this.getAttribute('data-preset');
+                if (presetKey && presets[presetKey]) {
+                    loadPreset(presetKey);
+                    showToast(`🚀 Loaded Project: ${presets[presetKey].title}`);
                 }
             });
         });
@@ -3206,16 +3349,36 @@ void loop() {
         URL.revokeObjectURL(url);
     }
 
+    function showToast(message) {
+        let toast = document.getElementById('tcToastBanner');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'tcToastBanner';
+            toast.className = 'tc-toast-banner';
+            const container = document.getElementById('tcCanvasContainer');
+            if (container) container.appendChild(toast);
+        }
+        toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> ${message}`;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2800);
+    }
+
     // ==========================================
     // 17. PRESET LOADER
     // ==========================================
-    function loadPreset(key) {
+    function loadPreset(key, options = {}) {
         if (!presets[key]) return;
         state.currentPreset = key;
         const p = presets[key];
 
         const sel = document.getElementById('tcPresetSelector');
         if (sel && sel.value !== key) sel.value = key;
+
+        const projTitle = document.getElementById('tcProjectTitle');
+        if (projTitle && p.title) projTitle.value = p.title;
 
         state.components = [];
         state.wires = [];
@@ -3240,7 +3403,12 @@ void loop() {
         }
 
         autoWirePreset();
-        appendSerial(`--- Loaded Preset: ${p.title} ---\n`);
+        appendSerial(`--- Loaded Project: ${p.title} ---\n`);
+        showToast(`🚀 Loaded: ${p.title}`);
+
+        if (options.scroll) {
+            document.getElementById('tcStudio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
 
         if (state.isSimulating) {
             stopSimulation();
@@ -3304,6 +3472,16 @@ void loop() {
     function bindUI() {
         document.getElementById('tcPresetSelector')?.addEventListener('change', function () {
             loadPreset(this.value);
+        });
+
+        // Curriculum "Open in Circuit Simulator" launch buttons
+        document.querySelectorAll('.tc-launch-project-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const presetKey = this.getAttribute('data-preset');
+                if (presetKey && presets[presetKey]) {
+                    loadPreset(presetKey, { scroll: true });
+                }
+            });
         });
 
         document.getElementById('tcTabCircuits')?.addEventListener('click', () => switchView('circuits'));
@@ -3514,7 +3692,10 @@ void loop() {
             }
         }
 
+        const projTitle = presets[state.currentPreset]?.title || state.currentPreset;
+
         bar.innerHTML = `
+            <div class="tc-status-item"><i class="fa-solid fa-diagram-project" style="color:#38bdf8;"></i> Project: <strong>${projTitle}</strong></div>
             <div class="tc-status-item"><i class="fa-solid fa-microchip" style="color:#0284c7;"></i> Components: ${compCount}</div>
             <div class="tc-status-item"><i class="fa-solid fa-plug" style="color:#10b981;"></i> Wires: ${wireCount}</div>
             <div class="tc-status-item"><i class="fa-solid fa-hand-pointer" style="color:#f59e0b;"></i> Selected: ${selText}</div>
@@ -3540,9 +3721,10 @@ void loop() {
     }
 
     window.TinkercadClone = {
-        state, loadPreset, autoWirePreset, clearAllWires,
+        state, presets, loadPreset, autoWirePreset, clearAllWires,
         startSimulation, stopSimulation, rebootMCU, placeComponent,
-        switchView, exportSchematicSvg, exportBomCsv, undo, redo
+        switchView, exportSchematicSvg, exportBomCsv, undo, redo, showToast
     };
+    window.tcSimulator = window.TinkercadClone;
 
 })();

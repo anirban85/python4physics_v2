@@ -76,6 +76,8 @@ require_once __DIR__ . '/include/navbar.php';
                     <option value="servo_sweep">8. Micro Servo Motor 180° Angle Sweeper</option>
                     <option value="rgb_mixer">9. RGB LED Color Spectrum PWM Mixer</option>
                     <option value="button_toggle">10. Pushbutton Digital Input & Pullup</option>
+                    <option value="rc_transient">11. RC Transient Charging & Discharging Curve</option>
+                    <option value="photogate">12. Simple Pendulum Optical Photogate ('g' Measurement)</option>
                 </select>
             </div>
         </div>
@@ -805,6 +807,127 @@ require_once __DIR__ . '/include/navbar.php';
                             <span class="tc-component-card-name">Arduino Uno R3</span>
                         </div>
 
+                        <!-- ================= STARTER PROJECTS (Category: starters) ================= -->
+                        <!-- Starter 1: LED Blink -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="blink" data-category="starters" style="display: none;" title="Click to load complete LED Blink & Timing project">
+                            <span class="tc-starter-badge">Lab 01</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-lightbulb" style="color: #ef4444; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">LED Blink</span>
+                            <span class="tc-starter-card-desc">Pin 13 & 220Ω Resistor</span>
+                        </div>
+
+                        <!-- Starter 2: PWM Breathing -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="pwm_fade" data-category="starters" style="display: none;" title="Click to load PWM LED Breathing project">
+                            <span class="tc-starter-badge">Lab 02</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-wave-square" style="color: #0284c7; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">PWM Breathing</span>
+                            <span class="tc-starter-card-desc">Analog Duty & V_eff</span>
+                        </div>
+
+                        <!-- Starter 3: Potentiometer Divider -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="potentiometer" data-category="starters" style="display: none;" title="Click to load Potentiometer 10-Bit ADC project">
+                            <span class="tc-starter-badge">Lab 03</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-sliders" style="color: #10b981; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">Potentiometer ADC</span>
+                            <span class="tc-starter-card-desc">10-Bit Voltage Divider</span>
+                        </div>
+
+                        <!-- Starter 4: Photoresistor (LDR) -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="ldr_sensor" data-category="starters" style="display: none;" title="Click to load LDR Solar Light Sensor project">
+                            <span class="tc-starter-badge">Lab 04</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-sun" style="color: #f59e0b; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">LDR Solar Sensor</span>
+                            <span class="tc-starter-card-desc">Photoelectric Lux Telemetry</span>
+                        </div>
+
+                        <!-- Starter 5: Ultrasonic Rangefinder -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="ultrasonic" data-category="starters" style="display: none;" title="Click to load Ultrasonic HC-SR04 Rangefinder project">
+                            <span class="tc-starter-badge">Lab 05</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-satellite-dish" style="color: #38bdf8; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">Ultrasonic Range</span>
+                            <span class="tc-starter-card-desc">Speed of Sound & Echo</span>
+                        </div>
+
+                        <!-- Starter 6: PIR Security Alarm -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="pir_alarm" data-category="starters" style="display: none;" title="Click to load PIR Motion Alarm project">
+                            <span class="tc-starter-badge">Lab 06</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-shield-halved" style="color: #ec4899; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">PIR Security Alarm</span>
+                            <span class="tc-starter-card-desc">Pyroelectric & Siren Alert</span>
+                        </div>
+
+                        <!-- Starter 7: TMP36 Thermometer -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="tmp36_temp" data-category="starters" style="display: none;" title="Click to load TMP36 Thermometer project">
+                            <span class="tc-starter-badge">Lab 07</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-temperature-half" style="color: #ef4444; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">TMP36 Thermometer</span>
+                            <span class="tc-starter-card-desc">Linear 10mV/°C Transducer</span>
+                        </div>
+
+                        <!-- Starter 8: Micro Servo Sweeper -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="servo_sweep" data-category="starters" style="display: none;" title="Click to load SG90 Micro Servo Sweeper project">
+                            <span class="tc-starter-badge">Lab 08</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-gear" style="color: #8b5cf6; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">Micro Servo SG90</span>
+                            <span class="tc-starter-card-desc">0-180° Angular Kinematics</span>
+                        </div>
+
+                        <!-- Starter 9: RGB Color Mixer -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="rgb_mixer" data-category="starters" style="display: none;" title="Click to load RGB Spectrum Mixer project">
+                            <span class="tc-starter-badge">Lab 09</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-palette" style="color: #10b981; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">RGB Spectrum Mixer</span>
+                            <span class="tc-starter-card-desc">Trichromatic PWM Color</span>
+                        </div>
+
+                        <!-- Starter 10: Pushbutton Pullup -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="button_toggle" data-category="starters" style="display: none;" title="Click to load Pushbutton Pullup project">
+                            <span class="tc-starter-badge">Lab 10</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-regular fa-circle-dot" style="color: #64748b; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">Pushbutton Pullup</span>
+                            <span class="tc-starter-card-desc">Active-LOW Debounced Logic</span>
+                        </div>
+
+                        <!-- Starter 11: RC Transient Curve -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="rc_transient" data-category="starters" style="display: none;" title="Click to load RC Transient Curve project">
+                            <span class="tc-starter-badge">Lab 11</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-chart-line" style="color: #f59e0b; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">RC Transient Curve</span>
+                            <span class="tc-starter-card-desc">Charging & Decay τ = RC</span>
+                        </div>
+
+                        <!-- Starter 12: Optical Photogate -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="photogate" data-category="starters" style="display: none;" title="Click to load Optical Photogate project">
+                            <span class="tc-starter-badge">Lab 12</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-stopwatch" style="color: #06b6d4; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">Photogate Period 'g'</span>
+                            <span class="tc-starter-card-desc">Hardware INT0 Microsecond Timing</span>
+                        </div>
+
                     </div>
                 </div>
 
@@ -876,12 +999,15 @@ require_once __DIR__ . '/include/navbar.php';
 
         <!-- Module 1: Optical Photogate Timing -->
         <article class="glass-card" style="margin-bottom: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
                 <div>
                     <span class="badge badge-cyan">Experiment 01</span>
                     <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Determination of 'g' via Optical Photogate Timing</h3>
                     <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Measure time period $T$ of a simple pendulum with microsecond accuracy using hardware interrupt Pin 2 (<code>INT0</code>).</p>
                 </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="photogate" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
             </div>
 
             <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
@@ -890,19 +1016,22 @@ require_once __DIR__ . '/include/navbar.php';
                     $$ T = 2\pi \sqrt{\frac{L}{g}} \implies g = 4\pi^2 \frac{L}{T^2} $$
                 </div>
                 <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
-                    When the bob breaks the infrared optical beam twice, a timer calculates the period $\Delta t$. Python reads the serial stream via <code>pyserial</code> for automated data regression.
+                    When the pendulum bob passes through the optical gate twice, the hardware interrupt timer registers period $\Delta t$ in microseconds and calculates local gravitational acceleration $g$.
                 </p>
             </div>
         </article>
 
         <!-- Module 2: RC Transient Curve -->
         <article class="glass-card" style="margin-bottom: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
                 <div>
                     <span class="badge badge-amber">Experiment 02</span>
                     <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">RC Circuit Transient Charging & Discharging Curve</h3>
-                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Capacitor voltage transient response through resistor $R = 10\text{ k}\Omega$, $C = 100\ \mu\text{F}$.</p>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Capacitor voltage transient response through resistor $R = 10\text{ k}\Omega$, $C = 100\ \mu\text{F}$ ($\tau = 1.00\text{ s}$).</p>
                 </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="rc_transient" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
             </div>
 
             <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
@@ -911,7 +1040,103 @@ require_once __DIR__ . '/include/navbar.php';
                     $$ V_C(t) = V_0 \left(1 - e^{-t / RC}\right) \quad (\text{Charging}), \quad V_C(t) = V_0 e^{-t / RC} \quad (\text{Discharging}) $$
                 </div>
                 <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
-                    Digital Pin 10 supplies charging pulses while Analog Pin A0 measures the capacitor voltage every 5 milliseconds to trace the exponential response curve.
+                    Digital Pin 10 drives square-wave charging cycles while Analog Pin A0 measures the capacitor voltage every 50ms, producing real-time exponential curves on the Serial Plotter.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 3: Ultrasonic Rangefinder -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-cyan">Experiment 03</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Speed of Sound & Distance via HC-SR04 Ultrasonic Ping</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Acoustic time-of-flight echo measurement using $40\text{ kHz}$ ultrasonic wave bursts.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="ultrasonic" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-satellite-dish" style="color: #38bdf8;"></i> Acoustic Time-of-Flight</h4>
+                <div class="katex-display">
+                    $$ d = \frac{v_{\text{sound}} \cdot \Delta t}{2} \quad \text{where } v_{\text{sound}} \approx 343\text{ m/s} = 0.0343\text{ cm/}\mu\text{s} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Trigger Pin 9 transmits a $10\,\mu\text{s}$ pulse. The echo duration returned on Echo Pin 8 measures obstacle distance with millimetric resolution.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 4: Potentiometer Voltage Divider -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-emerald">Experiment 04</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Potentiometer Voltage Divider & 10-Bit ADC Telemetry</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Verify Ohm's law and potential divider relation with 1024-step analog digitization.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="potentiometer" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-sliders" style="color: #10b981;"></i> Linear Potential Gradient</h4>
+                <div class="katex-display">
+                    $$ V_{\text{out}} = V_{\text{in}} \cdot \frac{R_2}{R_1 + R_2}, \quad \text{ADC} = \left\lfloor \frac{V_{\text{out}}}{5.0\text{V}} \times 1023 \right\rfloor $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Turning the rotary wiper continuously varies the potential between $0\text{V}$ and $5\text{V}$, providing $4.88\text{ mV}$ precision per ADC step.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 5: LDR Light Sensor -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-amber">Experiment 05</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Photoresistor (LDR) Solar Insolation & Light Sensing</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Semiconductor photoconductivity in CdS photoresistors under variable ambient illumination.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="ldr_sensor" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-sun" style="color: #f59e0b;"></i> Photoconductive Relation</h4>
+                <div class="katex-display">
+                    $$ R_{\text{LDR}} \propto E_{\text{lux}}^{-\gamma}, \quad V_{\text{out}} = 5.0\text{V} \cdot \frac{R_{\text{fixed}}}{R_{\text{LDR}} + R_{\text{fixed}}} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Light photons create electron-hole pairs, reducing LDR resistance from $1\text{ M}\Omega$ (dark) to $500\ \Omega$ (bright light), detected on Analog Pin A1.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 6: Micro Servo Positioner -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-purple">Experiment 06</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Micro Servo SG90 Kinematics & Angular Positioning</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Closed-loop servo positioning mapped from potentiometer ADC across $0^\circ$ to $180^\circ$.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="servo_sweep" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-gear" style="color: #8b5cf6;"></i> Pulse-Width Angular Encoding</h4>
+                <div class="katex-display">
+                    $$ \theta = \frac{\text{ADC}}{1023} \times 180^\circ, \quad \tau_{\text{pulse}} \in [1000\,\mu\text{s}, 2000\,\mu\text{s}] $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Arduino C++ `#include <Servo.h>` sends a $50\text{ Hz}$ PPM train with pulse widths proportional to the target angle, driving the motor horn in real time.
                 </p>
             </div>
         </article>
