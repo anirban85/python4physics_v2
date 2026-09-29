@@ -49,10 +49,13 @@ require_once __DIR__ . '/include/navbar.php';
                 <input type="text" id="tcProjectTitle" class="tc-title-input" value="Arduino & Solderless Breadboard Physics Lab" title="Click to rename project">
             </div>
 
-            <!-- View Modes: Circuits | Schematic | Components -->
+            <!-- View Modes: Circuits | Code | Schematic | Components -->
             <div class="tc-view-modes">
                 <button type="button" class="tc-view-tab active" id="tcTabCircuits" title="Interactive Breadboard Circuit View">
                     <i class="fa-solid fa-diagram-project"></i> Circuits
+                </button>
+                <button type="button" class="tc-view-tab" id="tcTabCode" title="Arduino C++ Code Editor">
+                    <i class="fa-solid fa-code"></i> Code
                 </button>
                 <button type="button" class="tc-view-tab" id="tcTabSchematic" title="Schematic View">
                     <i class="fa-solid fa-bezier-curve"></i> Schematic
@@ -150,9 +153,39 @@ require_once __DIR__ . '/include/navbar.php';
             <div class="tc-tools-right">
                 <div class="tc-sim-time-badge" id="tcSimTimer" title="Simulation Time Elapsed">00:00.000</div>
                 
-                <!-- Code Toggle Button -->
-                <button type="button" class="btn-tc-code-toggle" id="tcToggleCodeBtn">
-                    <i class="fa-solid fa-code"></i> Code
+                <!-- Export Dropdown -->
+                <div class="tc-export-dropdown">
+                    <button type="button" class="btn-tc-code-toggle" id="tcExportMenuBtn" title="Export Circuit Image or Arduino Code">
+                        <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-caret-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
+                    </button>
+                    <div class="tc-export-menu" id="tcExportMenu" style="display: none;">
+                        <div class="tc-export-header"><i class="fa-regular fa-image"></i> Export Images</div>
+                        <button type="button" class="tc-export-item" id="tcExportCircuitPngBtn">
+                            <i class="fa-regular fa-image" style="color: #38bdf8;"></i> Circuit Image (.png)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcExportCircuitSvgBtn">
+                            <i class="fa-solid fa-bezier-curve" style="color: #a855f7;"></i> Circuit Vector (.svg)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcExportSchematicMenuBtn">
+                            <i class="fa-solid fa-diagram-project" style="color: #0284c7;"></i> Schematic Vector (.svg)
+                        </button>
+                        <div class="tc-export-divider"></div>
+                        <div class="tc-export-header"><i class="fa-solid fa-code"></i> Export Firmware Code</div>
+                        <button type="button" class="tc-export-item" id="tcExportCodeInoBtn">
+                            <i class="fa-brands fa-cuttlefish" style="color: #10b981;"></i> Download Sketch (.ino)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcExportCodeCppBtn">
+                            <i class="fa-solid fa-file-code" style="color: #f59e0b;"></i> Download C++ (.cpp)
+                        </button>
+                        <button type="button" class="tc-export-item" id="tcCopyCodeMenuBtn">
+                            <i class="fa-regular fa-copy" style="color: #e2e8f0;"></i> Copy Code to Clipboard
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output Pop-up Toggle Button -->
+                <button type="button" class="btn-tc-code-toggle" id="tcToggleOutputModalBtn" title="Toggle Live Output Pop-up Window">
+                    <i class="fa-solid fa-terminal"></i> Output
                 </button>
 
                 <!-- Start / Stop Simulation -->
@@ -479,6 +512,37 @@ require_once __DIR__ . '/include/navbar.php';
                 <!-- Bottom Status Bar -->
                 <div class="tc-status-bar" id="tcStatusBar"></div>
 
+            </div>
+
+            <!-- Code Editor Full Main View Container (displays where circuit or schematic displays) -->
+            <div class="tc-code-container" id="tcCodeContainer" style="display: none; flex: 1; height: 100%; flex-direction: column; background: #0b1120; padding: 1.25rem; position: relative;">
+                <div class="tc-code-main-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-brands fa-cuttlefish" style="color: #38bdf8;"></i>
+                        <span>Arduino C++ Firmware Sketch (.ino)</span>
+                        <span class="badge badge-purple" style="font-size: 0.72rem; padding: 2px 8px;">ATmega328P • 16 MHz</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Verify Sketch Syntax">
+                            <i class="fa-solid fa-check" style="color: #10b981;"></i> Verify
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Reset to Preset Default">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcDownloadInoBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Download Arduino Sketch (.ino)">
+                            <i class="fa-solid fa-download" style="color: #38bdf8;"></i> Download .ino
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcDownloadCppBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Download C++ Source (.cpp)">
+                            <i class="fa-solid fa-file-code" style="color: #f59e0b;"></i> Download .cpp
+                        </button>
+                        <button type="button" class="btn-tc-code-toggle" id="tcCopyCodeBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Copy Code to Clipboard">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="tc-code-editor-wrapper" style="flex: 1; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); overflow: hidden; background: #020617; box-shadow: 0 4px 16px rgba(0,0,0,0.4); display: flex; flex-direction: column;">
+                    <textarea id="tcCodeTextarea"></textarea>
+                </div>
             </div>
 
             <!-- Schematic Diagram View Container -->
@@ -931,27 +995,6 @@ require_once __DIR__ . '/include/navbar.php';
                     </div>
                 </div>
 
-                <!-- Drawer 2: Code Editor Pane (shown when Code toggle is active) -->
-                <div class="tc-code-pane" id="tcCodePane" style="display: none;">
-                    <div class="tc-code-header">
-                        <span><i class="fa-brands fa-cuttlefish" style="color: #38bdf8;"></i> Arduino C++ Sketch (.ino)</span>
-                        <div style="display: flex; gap: 6px;">
-                            <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Verify / Check Sketch Syntax">
-                                <i class="fa-solid fa-check" style="color: #10b981;"></i> Verify
-                            </button>
-                            <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Reset to Preset Sketch">
-                                <i class="fa-solid fa-rotate-left"></i> Reset
-                            </button>
-                            <button type="button" class="btn-tc-code-toggle" style="padding: 2px 7px; font-size: 0.74rem;" onclick="navigator.clipboard.writeText(window.tcCodeEditor ? window.tcCodeEditor.getValue() : ''); alert('Sketch copied to clipboard!');" title="Copy to Clipboard">
-                                <i class="fa-regular fa-copy"></i> Copy
-                            </button>
-                        </div>
-                    </div>
-                    <div class="tc-codemirror-holder">
-                        <textarea id="tcCodeTextarea"></textarea>
-                    </div>
-                </div>
-
             </div>
 
         </div>
@@ -978,6 +1021,9 @@ require_once __DIR__ . '/include/navbar.php';
                     <button type="button" id="tcClearSerialBtn" style="background: none; border: none; color: #94a3b8; font-size: 0.72rem; cursor: pointer;">
                         <i class="fa-solid fa-ban"></i> Clear
                     </button>
+                    <button type="button" id="tcPopoutSerialBtn" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; border-radius: 4px; font-size: 0.72rem; padding: 2px 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Open as Pop-up Window">
+                        <i class="fa-solid fa-up-right-from-square"></i> Pop up
+                    </button>
                 </div>
             </div>
 
@@ -987,6 +1033,54 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Oscilloscope / Serial Plotter Canvas -->
             <canvas id="tcSerialPlotterCanvas" width="600" height="120" style="display: none; width: 100%; height: 120px; background: #020617;"></canvas>
+        </div>
+
+        <!-- Floating Draggable Live Output Pop-up Window -->
+        <div class="tc-output-popup" id="tcOutputPopup" style="display: none;">
+            <div class="tc-popup-header" id="tcOutputPopupHeader">
+                <div class="tc-popup-title">
+                    <i class="fa-solid fa-terminal" style="color: #38bdf8;"></i>
+                    <span style="font-weight: 700; font-size: 0.82rem; letter-spacing: 0.3px;">Live Output & Telemetry</span>
+                    <span class="tc-popup-live-dot" title="Live stream active"></span>
+                </div>
+                <div class="tc-popup-modes">
+                    <button type="button" class="tc-popup-mode-btn active" id="tcModalTabMonitor">
+                        <i class="fa-solid fa-terminal"></i> Console
+                    </button>
+                    <button type="button" class="tc-popup-mode-btn" id="tcModalTabPlotter">
+                        <i class="fa-solid fa-chart-line"></i> Plotter
+                    </button>
+                </div>
+                <div class="tc-popup-actions">
+                    <select id="tcModalBaudSelect" class="tc-popup-select" title="Baud Rate">
+                        <option value="9600" selected>9600 baud</option>
+                        <option value="19200">19200 baud</option>
+                        <option value="38400">38400 baud</option>
+                        <option value="57600">57600 baud</option>
+                        <option value="115200">115200 baud</option>
+                    </select>
+                    <button type="button" class="tc-popup-btn" id="tcModalClearBtn" title="Clear Console">
+                        <i class="fa-solid fa-ban"></i>
+                    </button>
+                    <button type="button" class="tc-popup-btn" id="tcModalCopyBtn" title="Copy to Clipboard">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <button type="button" class="tc-popup-btn tc-popup-close-btn" id="tcModalCloseBtn" title="Close Pop-up">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="tc-popup-body">
+                <div class="tc-popup-stream" id="tcModalSerialStream">--- Serial Monitor Ready (9600 baud) ---
+</div>
+                <canvas id="tcModalPlotterCanvas" width="560" height="200" style="display: none; width: 100%; height: 200px; background: #020617; border-radius: 6px;"></canvas>
+            </div>
+            <div class="tc-popup-footer">
+                <input type="text" id="tcModalSerialInput" placeholder="Send serial command to sketch (e.g. '1', 'H', 'RESET')..." autocomplete="off">
+                <button type="button" id="tcModalSerialSendBtn" title="Send to Arduino TX/RX">
+                    <i class="fa-solid fa-paper-plane"></i> Send
+                </button>
+            </div>
         </div>
 
     </div>

@@ -2840,6 +2840,7 @@ void loop() {
         if (onLed) onLed.setAttribute('fill', '#22c55e');
 
         appendSerial(`--- ATmega328P Online: 16 MHz Clock • Baud ${state.baudRate} ---\n`);
+        toggleOutputPopup(true);
         triggerCircuitSolve();
 
         const env = {
@@ -3087,10 +3088,18 @@ void loop() {
     function appendSerial(msg) {
         state.serialLogs.push(msg);
         if (state.serialLogs.length > 400) state.serialLogs.shift();
+        const text = state.serialLogs.join('');
+
         const stream = document.getElementById('tcSerialStream');
         if (stream) {
-            stream.textContent = state.serialLogs.join('');
+            stream.textContent = text;
             stream.scrollTop = stream.scrollHeight;
+        }
+
+        const modalStream = document.getElementById('tcModalSerialStream');
+        if (modalStream) {
+            modalStream.textContent = text;
+            modalStream.scrollTop = modalStream.scrollHeight;
         }
     }
 
@@ -3101,70 +3110,76 @@ void loop() {
     }
 
     function drawPlotter() {
-        const canvas = document.getElementById('tcSerialPlotterCanvas');
-        if (!canvas || canvas.style.display === 'none') return;
+        const canvases = [
+            document.getElementById('tcSerialPlotterCanvas'),
+            document.getElementById('tcModalPlotterCanvas')
+        ].filter(c => c && c.style.display !== 'none');
 
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width;
-        const h = canvas.height;
+        if (canvases.length === 0) return;
 
-        ctx.fillStyle = '#020617';
-        ctx.fillRect(0, 0, w, h);
+        canvases.forEach(canvas => {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.lineWidth = 1;
-        for (let y = 20; y < h; y += 25) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-        }
-        for (let x = 0; x < w; x += 40) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-        }
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, w, h);
 
-        if (state.plotterData.length < 2) return;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            for (let y = 20; y < h; y += 25) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+            for (let x = 0; x < w; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
 
-        const minVal = Math.min(...state.plotterData, 0);
-        const maxVal = Math.max(...state.plotterData, 5.0);
-        const range = (maxVal - minVal) || 1;
+            if (state.plotterData.length < 2) return;
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, h);
-        gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
-        gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+            const minVal = Math.min(...state.plotterData, 0);
+            const maxVal = Math.max(...state.plotterData, 5.0);
+            const range = (maxVal - minVal) || 1;
 
-        const stepX = w / 120;
-        ctx.beginPath();
-        state.plotterData.forEach((pt, i) => {
-            const x = i * stepX;
-            const y = h - 15 - ((pt - minVal) / range) * (h - 30);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+            const gradient = ctx.createLinearGradient(0, 0, 0, h);
+            gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+            gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+            const stepX = w / 120;
+            ctx.beginPath();
+            state.plotterData.forEach((pt, i) => {
+                const x = i * stepX;
+                const y = h - 15 - ((pt - minVal) / range) * (h - 30);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            const lastX = (state.plotterData.length - 1) * stepX;
+            ctx.lineTo(lastX, h);
+            ctx.lineTo(0, h);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.beginPath();
+            state.plotterData.forEach((pt, i) => {
+                const x = i * stepX;
+                const y = h - 15 - ((pt - minVal) / range) * (h - 30);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.fillText(`Max: ${maxVal.toFixed(2)}`, 10, 14);
+            ctx.fillText(`Min: ${minVal.toFixed(2)}`, 10, h - 4);
+
+            const latest = state.plotterData[state.plotterData.length - 1];
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '11px "JetBrains Mono", monospace';
+            ctx.fillText(`${latest.toFixed(2)}`, w - 55, 14);
         });
-
-        const lastX = (state.plotterData.length - 1) * stepX;
-        ctx.lineTo(lastX, h);
-        ctx.lineTo(0, h);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-
-        ctx.beginPath();
-        state.plotterData.forEach((pt, i) => {
-            const x = i * stepX;
-            const y = h - 15 - ((pt - minVal) / range) * (h - 30);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.fillStyle = '#64748b';
-        ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.fillText(`Max: ${maxVal.toFixed(2)}`, 10, 14);
-        ctx.fillText(`Min: ${minVal.toFixed(2)}`, 10, h - 4);
-
-        const latest = state.plotterData[state.plotterData.length - 1];
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText(`${latest.toFixed(2)}`, w - 55, 14);
     }
 
     // ==========================================
@@ -3173,14 +3188,22 @@ void loop() {
     function switchView(viewName) {
         state.currentView = viewName;
         const canvasContainer = document.getElementById('tcCanvasContainer');
+        const codeContainer = document.getElementById('tcCodeContainer');
         const schematicContainer = document.getElementById('tcSchematicContainer');
         const bomContainer = document.getElementById('tcBomContainer');
 
         document.getElementById('tcTabCircuits')?.classList.toggle('active', viewName === 'circuits');
+        document.getElementById('tcTabCode')?.classList.toggle('active', viewName === 'code');
         document.getElementById('tcTabSchematic')?.classList.toggle('active', viewName === 'schematic');
         document.getElementById('tcTabBom')?.classList.toggle('active', viewName === 'bom');
 
         if (canvasContainer) canvasContainer.style.display = viewName === 'circuits' ? 'block' : 'none';
+        if (codeContainer) {
+            codeContainer.style.display = viewName === 'code' ? 'flex' : 'none';
+            if (viewName === 'code' && codeEditor) {
+                setTimeout(() => codeEditor.refresh(), 50);
+            }
+        }
         if (schematicContainer) schematicContainer.style.display = viewName === 'schematic' ? 'flex' : 'none';
         if (bomContainer) bomContainer.style.display = viewName === 'bom' ? 'flex' : 'none';
 
@@ -3273,16 +3296,161 @@ void loop() {
 
     function exportSchematicSvg() {
         const svg = document.getElementById('tcSchematicSvgDoc');
-        if (!svg) return;
+        if (!svg) {
+            renderSchematic();
+        }
+        const freshSvg = document.getElementById('tcSchematicSvgDoc');
+        if (!freshSvg) return;
         const serializer = new XMLSerializer();
-        const src = serializer.serializeToString(svg);
+        const src = serializer.serializeToString(freshSvg);
+        const title = (document.getElementById('tcProjectTitle')?.value || `arduino_schematic_${state.currentPreset}`).replace(/[^a-zA-Z0-9_-]/g, '_');
         const blob = new Blob([src], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `arduino_schematic_${state.currentPreset}.svg`;
+        a.download = `${title}.svg`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    function exportCircuitSvgString() {
+        const uno = document.getElementById('arduinoUno');
+        const bb = document.getElementById('solderlessBreadboard');
+        const wiresSvg = document.getElementById('tcWiresSvg');
+
+        const width = 1100;
+        const height = 650;
+
+        let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">\n`;
+        out += `<defs>\n`;
+        out += `  <pattern id="dotGridExport" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#cbd5e1"/></pattern>\n`;
+        out += `</defs>\n`;
+        out += `<rect width="100%" height="100%" fill="#f8fafc"/>\n`;
+        out += `<rect width="100%" height="100%" fill="url(#dotGridExport)"/>\n`;
+
+        const title = document.getElementById('tcProjectTitle')?.value || 'Arduino Breadboard Physics Circuit';
+        out += `<text x="30" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="16" fill="#0284c7">${title}</text>\n`;
+        out += `<text x="30" y="55" font-family="sans-serif" font-size="11" fill="#64748b">Python4Physics Virtual Circuits Workbench • Autodesk Tinkercad Circuits Clone</text>\n`;
+
+        if (uno) {
+            const left = parseFloat(uno.style.left) || 35;
+            const top = parseFloat(uno.style.top) || 75;
+            const svgContent = uno.querySelector('svg')?.innerHTML || '';
+            out += `<g transform="translate(${left}, ${top})">${svgContent}</g>\n`;
+        }
+
+        if (bb) {
+            const left = parseFloat(bb.style.left) || 450;
+            const top = parseFloat(bb.style.top) || 60;
+            const svgContent = bb.querySelector('svg')?.innerHTML || '';
+            out += `<g transform="translate(${left}, ${top})">${svgContent}</g>\n`;
+        }
+
+        if (wiresSvg) {
+            const wiresGroup = document.getElementById('tcWiresGroup');
+            if (wiresGroup) {
+                out += `<g>${wiresGroup.innerHTML}</g>\n`;
+            }
+        }
+
+        state.components.forEach(comp => {
+            const el = document.getElementById(comp.id);
+            if (el) {
+                const left = parseFloat(el.style.left) || comp.x;
+                const top = parseFloat(el.style.top) || comp.y;
+                const rot = comp.rotation || 0;
+                const compSvg = el.querySelector('svg')?.outerHTML || '';
+                out += `<g transform="translate(${left}, ${top}) rotate(${rot})">${compSvg}</g>\n`;
+            }
+        });
+
+        out += `</svg>`;
+        return out;
+    }
+
+    function downloadCircuitSvg() {
+        const svgStr = exportCircuitSvgString();
+        const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function downloadCircuitPng() {
+        const svgStr = exportCircuitSvgString();
+        const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const img = new Image();
+        const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2200;
+            canvas.height = 1300;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+
+            canvas.toBlob(function (pngBlob) {
+                if (!pngBlob) return;
+                const pngUrl = URL.createObjectURL(pngBlob);
+                const a = document.createElement('a');
+                a.href = pngUrl;
+                a.download = `${title}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(pngUrl);
+            }, 'image/png');
+        };
+        img.src = url;
+    }
+
+    function exportCodeIno() {
+        const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
+        const title = (document.getElementById('tcProjectTitle')?.value || 'sketch').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.ino`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportCodeCpp() {
+        const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
+        const title = (document.getElementById('tcProjectTitle')?.value || 'sketch').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const blob = new Blob([code], { type: 'text/x-c++src;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.cpp`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function copyCodeClipboard() {
+        const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
+        navigator.clipboard.writeText(code).then(() => {
+            alert('✓ Arduino C++ sketch copied to clipboard!');
+        }).catch(() => {
+            alert('✓ Arduino C++ sketch copied to clipboard!');
+        });
     }
 
     function renderBom() {
@@ -3530,23 +3698,177 @@ void loop() {
             document.addEventListener('click', () => { popover.style.display = 'none'; });
         }
 
-        document.getElementById('tcToggleCodeBtn')?.addEventListener('click', function () {
-            const codePane = document.getElementById('tcCodePane');
-            const compPane = document.getElementById('tcComponentsPalettePane');
-            if (!codePane || !compPane) return;
+        document.getElementById('tcTabCircuits')?.addEventListener('click', () => switchView('circuits'));
+        document.getElementById('tcTabCode')?.addEventListener('click', () => switchView('code'));
+        document.getElementById('tcTabSchematic')?.addEventListener('click', () => switchView('schematic'));
+        document.getElementById('tcTabBom')?.addEventListener('click', () => switchView('bom'));
 
-            const isCode = codePane.style.display === 'flex';
-            if (isCode) {
-                codePane.style.display = 'none';
-                compPane.style.display = 'flex';
-                this.classList.remove('active');
+        // Export Dropdown menu
+        const exportBtn = document.getElementById('tcExportMenuBtn');
+        const exportMenu = document.getElementById('tcExportMenu');
+        if (exportBtn && exportMenu) {
+            exportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenu.style.display = exportMenu.style.display === 'none' ? 'flex' : 'none';
+            });
+            document.addEventListener('click', () => { exportMenu.style.display = 'none'; });
+        }
+
+        document.getElementById('tcExportCircuitPngBtn')?.addEventListener('click', () => downloadCircuitPng());
+        document.getElementById('tcExportCircuitSvgBtn')?.addEventListener('click', () => downloadCircuitSvg());
+        document.getElementById('tcExportSchematicMenuBtn')?.addEventListener('click', () => exportSchematicSvg());
+        document.getElementById('tcExportSchematicBtn')?.addEventListener('click', () => exportSchematicSvg());
+        document.getElementById('tcExportBomBtn')?.addEventListener('click', exportBomCsv);
+
+        document.getElementById('tcExportCodeInoBtn')?.addEventListener('click', () => exportCodeIno());
+        document.getElementById('tcDownloadInoBtn')?.addEventListener('click', () => exportCodeIno());
+        document.getElementById('tcExportCodeCppBtn')?.addEventListener('click', () => exportCodeCpp());
+        document.getElementById('tcDownloadCppBtn')?.addEventListener('click', () => exportCodeCpp());
+        document.getElementById('tcCopyCodeMenuBtn')?.addEventListener('click', () => copyCodeClipboard());
+        document.getElementById('tcCopyCodeBtn')?.addEventListener('click', () => copyCodeClipboard());
+
+        function toggleOutputPopup(forceOpen = null) {
+            const popup = document.getElementById('tcOutputPopup');
+            const btn = document.getElementById('tcToggleOutputModalBtn');
+            if (!popup) return;
+
+            const isVisible = popup.style.display === 'flex';
+            const shouldShow = forceOpen !== null ? forceOpen : !isVisible;
+
+            if (shouldShow) {
+                popup.style.display = 'flex';
+                btn?.classList.add('active');
+                const stream = document.getElementById('tcModalSerialStream');
+                if (stream) {
+                    stream.textContent = state.serialLogs.join('');
+                    stream.scrollTop = stream.scrollHeight;
+                }
+                const isPlotter = document.getElementById('tcModalTabPlotter')?.classList.contains('active');
+                if (isPlotter) drawPlotter();
             } else {
-                codePane.style.display = 'flex';
-                compPane.style.display = 'none';
-                this.classList.add('active');
-                if (codeEditor) codeEditor.refresh();
+                popup.style.display = 'none';
+                btn?.classList.remove('active');
+            }
+        }
+
+        document.getElementById('tcToggleOutputModalBtn')?.addEventListener('click', () => toggleOutputPopup());
+        document.getElementById('tcPopoutSerialBtn')?.addEventListener('click', () => toggleOutputPopup(true));
+        document.getElementById('tcModalCloseBtn')?.addEventListener('click', () => toggleOutputPopup(false));
+
+        // Pop-up tabs: Console vs Plotter
+        const modalTabMonitor = document.getElementById('tcModalTabMonitor');
+        const modalTabPlotter = document.getElementById('tcModalTabPlotter');
+        const modalStreamEl = document.getElementById('tcModalSerialStream');
+        const modalPlotterCanvas = document.getElementById('tcModalPlotterCanvas');
+
+        if (modalTabMonitor && modalTabPlotter) {
+            modalTabMonitor.addEventListener('click', () => {
+                modalTabMonitor.classList.add('active');
+                modalTabPlotter.classList.remove('active');
+                if (modalStreamEl) modalStreamEl.style.display = 'block';
+                if (modalPlotterCanvas) modalPlotterCanvas.style.display = 'none';
+                if (modalStreamEl) modalStreamEl.scrollTop = modalStreamEl.scrollHeight;
+            });
+
+            modalTabPlotter.addEventListener('click', () => {
+                modalTabPlotter.classList.add('active');
+                modalTabMonitor.classList.remove('active');
+                if (modalStreamEl) modalStreamEl.style.display = 'none';
+                if (modalPlotterCanvas) {
+                    modalPlotterCanvas.style.display = 'block';
+                    drawPlotter();
+                }
+            });
+        }
+
+        // Clear button in modal
+        document.getElementById('tcModalClearBtn')?.addEventListener('click', () => {
+            state.serialLogs = [];
+            const str1 = document.getElementById('tcSerialStream');
+            const str2 = document.getElementById('tcModalSerialStream');
+            if (str1) str1.textContent = '';
+            if (str2) str2.textContent = '';
+            state.plotterData = [];
+            drawPlotter();
+        });
+
+        // Copy button in modal
+        document.getElementById('tcModalCopyBtn')?.addEventListener('click', () => {
+            const text = state.serialLogs.join('');
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Serial output copied to clipboard!');
+            }).catch(() => {
+                alert('Serial output copied to clipboard!');
+            });
+        });
+
+        // Baud rate sync in modal
+        const modalBaud = document.getElementById('tcModalBaudSelect');
+        const bottomBaud = document.getElementById('tcBaudSelect');
+        if (modalBaud) {
+            modalBaud.addEventListener('change', function () {
+                state.baudRate = parseInt(this.value) || 9600;
+                if (bottomBaud) bottomBaud.value = this.value;
+                appendSerial(`--- Serial Baud Rate set to ${state.baudRate} ---\n`);
+            });
+        }
+        if (bottomBaud && modalBaud) {
+            bottomBaud.addEventListener('change', function () {
+                modalBaud.value = this.value;
+            });
+        }
+
+        // Send Serial Input in Modal
+        function sendModalSerial() {
+            const inp = document.getElementById('tcModalSerialInput');
+            if (!inp) return;
+            const val = inp.value.trim();
+            if (!val) return;
+            appendSerial(`> [TX]: ${val}\n`);
+            inp.value = '';
+        }
+        document.getElementById('tcModalSerialSendBtn')?.addEventListener('click', sendModalSerial);
+        document.getElementById('tcModalSerialInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendModalSerial();
             }
         });
+
+        // Draggable Popup window
+        const popupEl = document.getElementById('tcOutputPopup');
+        const popupHeader = document.getElementById('tcOutputPopupHeader');
+        if (popupEl && popupHeader) {
+            let isDragging = false;
+            let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+            popupHeader.addEventListener('mousedown', (e) => {
+                if (['BUTTON', 'SELECT', 'INPUT'].includes(e.target.tagName) || e.target.closest('button')) return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = popupEl.getBoundingClientRect();
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                popupEl.style.bottom = 'auto';
+                popupEl.style.right = 'auto';
+                popupEl.style.left = initialLeft + 'px';
+                popupEl.style.top = initialTop + 'px';
+                e.preventDefault();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const newLeft = Math.max(10, Math.min(window.innerWidth - popupEl.offsetWidth - 10, initialLeft + dx));
+                const newTop = Math.max(10, Math.min(window.innerHeight - popupEl.offsetHeight - 10, initialTop + dy));
+                popupEl.style.left = newLeft + 'px';
+                popupEl.style.top = newTop + 'px';
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+        }
 
         document.getElementById('tcVerifyCodeBtn')?.addEventListener('click', () => {
             const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
