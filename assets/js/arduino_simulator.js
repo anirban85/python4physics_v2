@@ -35,10 +35,12 @@
         selectedCategory: 'basic',
         baudRate: 9600,
 
-        // Wire Configuration (12 Tinkercad Wire Colors)
-        selectedWireColor: '#10b981',
-        selectedWireName: 'Green',
+        // Wire Configuration (12 Tinkercad Wire Colors + Smart Auto)
+        selectedWireColor: 'auto',
+        selectedWireName: 'Auto (Smart)',
         wireType: 'normal',
+        wireStyle: 'curved',
+        snapTarget: null,
 
         // Wire Drawing
         drawingWire: null,
@@ -936,6 +938,9 @@ void loop() {
         } else {
             loadPreset('blink');
         }
+        if (window.innerWidth < 992) {
+            setTimeout(fitToViewport, 150);
+        }
         updateStatusBar();
     }
 
@@ -1060,6 +1065,11 @@ void loop() {
             e.stopPropagation();
             onTerminalClick(id);
         };
+        el.ontouchstart = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onTerminalClick(id);
+        };
     }
 
     // ==========================================
@@ -1069,7 +1079,7 @@ void loop() {
         const group = document.getElementById('tcBbBusHighlightGroup');
         if (!group) return;
         group.innerHTML = '';
-        if (!show || !terminalId.startsWith('bb-')) return;
+        if (!show || !terminalId || !terminalId.startsWith('bb-')) return;
 
         const parts = terminalId.replace('bb-', '').split('-');
         const isTopPos = terminalId.includes('top-pos');
@@ -1138,11 +1148,57 @@ void loop() {
         highlightBreadboardBus(terminalId, false);
     }
 
+    function findSnapTerminal(stageX, stageY, ignoreId = null) {
+        let closest = null;
+        let minDist = 28; // Magnetic snap radius in stage pixels
+        for (const id in terminals) {
+            if (id === ignoreId) continue;
+            const t = terminals[id];
+            const dist = Math.hypot(t.x - stageX, t.y - stageY);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = t;
+            }
+        }
+        return closest;
+    }
+
+    function getSmartWireColor(fromId, toId) {
+        const isGround = (id) => id && (id.includes('neg') || id.includes('gnd'));
+        const isPower = (id) => id && (id.includes('pos') || id.includes('5v') || id.includes('3v3') || id.includes('vin') || id.includes('ioref'));
+        const isAnalog = (id) => id && id.includes('pin-a');
+        const isPwm = (id) => id && ['ard-pin-3', 'ard-pin-5', 'ard-pin-6', 'ard-pin-9', 'ard-pin-10', 'ard-pin-11'].includes(id);
+
+        if (isGround(fromId) || isGround(toId)) return '#0f172a'; // Black (GND)
+        if (isPower(fromId) || isPower(toId)) return '#ef4444'; // Red (5V / Power)
+        if (isAnalog(fromId) || isAnalog(toId)) return '#0284c7'; // Blue (Analog)
+        if (isPwm(fromId) || isPwm(toId)) return '#f59e0b'; // Amber (PWM)
+        return '#10b981'; // Green (Standard Signal)
+    }
+
+    function pulseTerminal(terminalId) {
+        const el = document.getElementById(`term-${terminalId}`);
+        if (!el) return;
+        el.classList.add('tc-pulse-snap');
+        setTimeout(() => el.classList.remove('tc-pulse-snap'), 450);
+    }
+
+    function showConnectionToast(wire) {
+        const t1 = terminals[wire.from];
+        const t2 = terminals[wire.to];
+        if (!t1 || !t2) return;
+        showToast(`Connected ${t1.name} ➔ ${t2.name}`);
+    }
+
     function onTerminalClick(terminalId) {
         if (!state.drawingWire) {
             // Start drawing wire
             const startTerm = terminals[terminalId];
             if (!startTerm) return;
+
+            const initialColor = (state.selectedWireColor === 'auto' || !state.selectedWireColor)
+                ? '#10b981'
+                : state.selectedWireColor;
 
             state.drawingWire = {
                 from: terminalId,
@@ -1150,11 +1206,14 @@ void loop() {
                 waypoints: []
             };
 
+            pulseTerminal(terminalId);
+
             const rubber = document.getElementById('tcRubberbandWire');
             if (rubber) {
                 rubber.style.display = 'block';
-                rubber.setAttribute('stroke', state.selectedWireColor);
+                rubber.setAttribute('stroke', initialColor);
             }
+            updateStatusBar();
         } else {
             // Complete drawing wire
             if (state.drawingWire.from === terminalId) {
@@ -1162,15 +1221,22 @@ void loop() {
                 return;
             }
 
+            const chosenColor = (state.drawingWire.color === 'auto' || !state.drawingWire.color)
+                ? getSmartWireColor(state.drawingWire.from, terminalId)
+                : state.drawingWire.color;
+
             const newWire = {
                 id: `wire_${Date.now()}`,
                 from: state.drawingWire.from,
                 to: terminalId,
-                color: state.drawingWire.color,
+                color: chosenColor,
                 waypoints: [...state.drawingWire.waypoints]
             };
 
             state.wires.push(newWire);
+            pulseTerminal(terminalId);
+            pulseTerminal(state.drawingWire.from);
+
             pushUndo({
                 type: 'addWire',
                 undo: () => { state.wires = state.wires.filter(w => w.id !== newWire.id); renderWires(); triggerCircuitSolve(); },
@@ -1181,13 +1247,18 @@ void loop() {
             renderWires();
             triggerCircuitSolve();
             updateStatusBar();
+            showConnectionToast(newWire);
         }
     }
 
     function cancelWireDrawing() {
         state.drawingWire = null;
+        state.snapTarget = null;
+        document.querySelectorAll('.tc-terminal.snap-candidate').forEach(el => el.classList.remove('snap-candidate'));
+        highlightBreadboardBus(null, false);
         const rubber = document.getElementById('tcRubberbandWire');
         if (rubber) rubber.style.display = 'none';
+        updateStatusBar();
     }
 
     function handleCanvasClick(e) {
@@ -1199,6 +1270,13 @@ void loop() {
         const rect = document.getElementById('tcCanvasStage').getBoundingClientRect();
         const stageX = (e.clientX - rect.left) / state.zoom;
         const stageY = (e.clientY - rect.top) / state.zoom;
+
+        // If clicking on or near a snap candidate, complete wire directly!
+        const snapTerm = findSnapTerminal(stageX, stageY, state.drawingWire.from);
+        if (snapTerm) {
+            onTerminalClick(snapTerm.id);
+            return;
+        }
 
         const snapX = Math.round(stageX / 8) * 8;
         const snapY = Math.round(stageY / 8) * 8;
@@ -1212,7 +1290,33 @@ void loop() {
         const rect = document.getElementById('tcCanvasStage').getBoundingClientRect();
         const stageX = (e.clientX - rect.left) / state.zoom;
         const stageY = (e.clientY - rect.top) / state.zoom;
-        updateRubberband(stageX, stageY);
+
+        const snapTerm = findSnapTerminal(stageX, stageY, state.drawingWire.from);
+
+        document.querySelectorAll('.tc-terminal.snap-candidate').forEach(el => el.classList.remove('snap-candidate'));
+
+        if (snapTerm) {
+            state.snapTarget = snapTerm.id;
+            const termEl = document.getElementById(`term-${snapTerm.id}`);
+            if (termEl) termEl.classList.add('snap-candidate');
+            highlightBreadboardBus(snapTerm.id, true);
+            updateRubberband(snapTerm.x, snapTerm.y);
+
+            if (state.selectedWireColor === 'auto') {
+                const autoColor = getSmartWireColor(state.drawingWire.from, snapTerm.id);
+                const rubber = document.getElementById('tcRubberbandWire');
+                if (rubber) rubber.setAttribute('stroke', autoColor);
+            }
+        } else {
+            state.snapTarget = null;
+            highlightBreadboardBus(null, false);
+            updateRubberband(stageX, stageY);
+
+            if (state.selectedWireColor === 'auto') {
+                const rubber = document.getElementById('tcRubberbandWire');
+                if (rubber) rubber.setAttribute('stroke', '#10b981');
+            }
+        }
     }
 
     function updateRubberband(currentX, currentY) {
@@ -1229,8 +1333,27 @@ void loop() {
 
     function buildWirePathString(points) {
         if (points.length < 2) return '';
+
+        // If direct 2-point wire without manual waypoints, render realistic flexible jumper arch curve
+        if (points.length === 2 && state.wireStyle !== 'straight') {
+            const p1 = points[0];
+            const p2 = points[1];
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const dist = Math.hypot(dx, dy);
+
+            // Natural organic jumper arch (curves upward or outwards)
+            const sag = Math.min(Math.max(dist * 0.18, 22), 85);
+            const cx1 = p1.x + dx * 0.28;
+            const cy1 = p1.y + dy * 0.28 - sag;
+            const cx2 = p1.x + dx * 0.72;
+            const cy2 = p1.y + dy * 0.72 - sag;
+
+            return `M ${p1.x} ${p1.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p2.x} ${p2.y}`;
+        }
+
         let d = `M ${points[0].x} ${points[0].y}`;
-        const radius = 6;
+        const radius = 8;
 
         for (let i = 1; i < points.length; i++) {
             const prev = points[i - 1];
@@ -1271,6 +1394,7 @@ void loop() {
         group.innerHTML = '';
 
         document.querySelectorAll('.tc-wire-waypoint').forEach(w => w.remove());
+        document.querySelectorAll('.tc-wire-floating-action').forEach(w => w.remove());
 
         state.wires.forEach(w => {
             const t1 = terminals[w.from];
@@ -1285,7 +1409,9 @@ void loop() {
             path.setAttribute('d', d);
             path.setAttribute('class', 'tc-wire-svg-path' + (isSelected ? ' selected' : ''));
             path.setAttribute('stroke', w.color);
-            path.setAttribute('stroke-width', isSelected ? '5.5' : '3.5');
+            path.setAttribute('stroke-width', isSelected ? '5.5' : '3.8');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
 
             path.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1294,12 +1420,53 @@ void loop() {
 
             group.appendChild(path);
 
+            // Physical terminal ferrule pins at each end
+            [t1, t2].forEach(t => {
+                const cap = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                cap.setAttribute('cx', t.x);
+                cap.setAttribute('cy', t.y);
+                cap.setAttribute('r', '4');
+                cap.setAttribute('fill', w.color);
+                cap.setAttribute('stroke', '#0f172a');
+                cap.setAttribute('stroke-width', '1.5');
+                cap.style.pointerEvents = 'none';
+                group.appendChild(cap);
+            });
+
             if (isSelected) {
                 w.waypoints.forEach((wp, idx) => {
                     renderWaypointHandle(w.id, idx, wp.x, wp.y);
                 });
+                renderWireFloatingAction(w, (t1.x + t2.x) / 2, (t1.y + t2.y) / 2);
             }
         });
+    }
+
+    function renderWireFloatingAction(wire, centerX, centerY) {
+        const stage = document.getElementById('tcCanvasStage');
+        if (!stage) return;
+
+        const action = document.createElement('div');
+        action.className = 'tc-wire-floating-action';
+        action.style.left = `${centerX}px`;
+        action.style.top = `${centerY}px`;
+        action.innerHTML = `
+            <span style="display:flex; align-items:center; gap:5px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:${wire.color}; display:inline-block; border:1px solid #fff;"></span>
+                Wire
+            </span>
+            <button type="button" title="Delete Wire">
+                <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+        `;
+
+        action.querySelector('button')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteSelected();
+        });
+
+        action.addEventListener('click', (e) => e.stopPropagation());
+        stage.appendChild(action);
     }
 
     function renderWaypointHandle(wireId, wpIndex, x, y) {
@@ -1776,29 +1943,27 @@ void loop() {
         let startX, startY;
         let moved = false;
 
-        el.addEventListener('mousedown', (e) => {
-            if (e.button !== 0 || state.drawingWire) return;
-            if (e.target.id === `${comp.id}_cap` || e.target.id === `${comp.id}_dial` || e.target.id === `${comp.id}_pir_btn`) return;
-
+        function startCompDrag(clientX, clientY) {
+            if (state.drawingWire) return;
             isDragging = true;
             moved = false;
-            startX = e.clientX;
-            startY = e.clientY;
+            startX = clientX;
+            startY = clientY;
 
             const origX = comp.x;
             const origY = comp.y;
 
-            function onMouseMove(moveEvent) {
+            function onMove(curX, curY) {
                 if (!isDragging) return;
-                const dx = (moveEvent.clientX - startX) / state.zoom;
-                const dy = (moveEvent.clientY - startY) / state.zoom;
+                const dx = (curX - startX) / state.zoom;
+                const dy = (curY - startY) / state.zoom;
 
                 if (Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
 
                 comp.x += dx;
                 comp.y += dy;
-                startX = moveEvent.clientX;
-                startY = moveEvent.clientY;
+                startX = curX;
+                startY = curY;
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
@@ -1810,7 +1975,7 @@ void loop() {
                 renderWires();
             }
 
-            function onMouseUp() {
+            function onEnd() {
                 if (moved) {
                     // Check snap to breadboard
                     const lib = COMPONENT_LIBRARY[comp.type];
@@ -1840,11 +2005,39 @@ void loop() {
                 isDragging = false;
                 window.removeEventListener('mousemove', onMouseMove);
                 window.removeEventListener('mouseup', onMouseUp);
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
             }
+
+            function onMouseMove(moveEvent) { onMove(moveEvent.clientX, moveEvent.clientY); }
+            function onMouseUp() { onEnd(); }
+            function onTouchMove(touchEvent) {
+                if (touchEvent.touches.length > 0) {
+                    touchEvent.preventDefault();
+                    onMove(touchEvent.touches[0].clientX, touchEvent.touches[0].clientY);
+                }
+            }
+            function onTouchEnd() { onEnd(); }
 
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('touchend', onTouchEnd);
+        }
+
+        el.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || state.drawingWire) return;
+            if (e.target.id === `${comp.id}_cap` || e.target.id === `${comp.id}_dial` || e.target.id === `${comp.id}_pir_btn`) return;
+            startCompDrag(e.clientX, e.clientY);
         });
+
+        el.addEventListener('touchstart', (e) => {
+            if (state.drawingWire) return;
+            if (e.target.id === `${comp.id}_cap` || e.target.id === `${comp.id}_dial` || e.target.id === `${comp.id}_pir_btn`) return;
+            if (e.touches.length === 1) {
+                startCompDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
     }
 
     // ==========================================
@@ -1949,6 +2142,53 @@ void loop() {
                 state.isPanning = false;
                 container.style.cursor = 'default';
             }
+        });
+
+        // Mobile Touch Pan & Pinch-to-Zoom
+        let touchStartDist = 0;
+        let initialZoom = 1;
+        let touchPanStartX = 0;
+        let touchPanStartY = 0;
+        let isTouchPanning = false;
+
+        container.addEventListener('touchstart', (e) => {
+            if (state.drawingWire) return;
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                touchStartDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                initialZoom = state.zoom;
+            } else if (e.touches.length === 1 && (e.target === container || e.target === stage || e.target.id === 'tcBreadboardSvg' || e.target.id === 'tcWiresSvg')) {
+                isTouchPanning = true;
+                touchPanStartX = e.touches[0].clientX - state.panX;
+                touchPanStartY = e.touches[0].clientY - state.panY;
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchmove', (e) => {
+            if (state.drawingWire) return;
+            if (e.touches.length === 2 && touchStartDist > 0) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const factor = dist / touchStartDist;
+                setZoom(initialZoom * factor);
+                updateStatusBar();
+            } else if (e.touches.length === 1 && isTouchPanning) {
+                e.preventDefault();
+                state.panX = e.touches[0].clientX - touchPanStartX;
+                state.panY = e.touches[0].clientY - touchPanStartY;
+                stage.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) touchStartDist = 0;
+            if (e.touches.length === 0) isTouchPanning = false;
         });
     }
 
@@ -3843,6 +4083,35 @@ void loop() {
         if (stage) {
             stage.addEventListener('click', handleCanvasClick);
             stage.addEventListener('mousemove', handleCanvasMouseMove);
+
+            stage.addEventListener('touchstart', (e) => {
+                if (state.drawingWire && e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const rect = stage.getBoundingClientRect();
+                    const stageX = (touch.clientX - rect.left) / state.zoom;
+                    const stageY = (touch.clientY - rect.top) / state.zoom;
+                    const snapTerm = findSnapTerminal(stageX, stageY, state.drawingWire.from);
+                    if (snapTerm) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onTerminalClick(snapTerm.id);
+                    }
+                }
+            }, { passive: false });
+
+            stage.addEventListener('touchmove', (e) => {
+                if (state.drawingWire && e.touches.length === 1) {
+                    e.preventDefault();
+                    handleCanvasMouseMove(e.touches[0]);
+                }
+            }, { passive: false });
+
+            stage.addEventListener('touchend', (e) => {
+                if (state.drawingWire && state.snapTarget) {
+                    e.preventDefault();
+                    onTerminalClick(state.snapTarget);
+                }
+            });
         }
 
         document.getElementById('tcClearSerialBtn')?.addEventListener('click', () => {
@@ -3884,8 +4153,7 @@ void loop() {
             document.getElementById('tcZoomInBtn')?.addEventListener('click', () => { setZoom(state.zoom + 0.1); updateStatusBar(); });
             document.getElementById('tcZoomOutBtn')?.addEventListener('click', () => { setZoom(state.zoom - 0.1); updateStatusBar(); });
             document.getElementById('tcZoomResetBtn')?.addEventListener('click', () => {
-                state.panX = 0; state.panY = 0;
-                setZoom(1.0); updateStatusBar();
+                fitToViewport();
             });
 
             container.addEventListener('wheel', (e) => {
@@ -3895,6 +4163,26 @@ void loop() {
                 updateStatusBar();
             }, { passive: false });
         }
+
+        // Toggle Wire Style (Curved Flexible Jumper vs Straight)
+        document.getElementById('tcWireTypeBtn')?.addEventListener('click', () => {
+            state.wireStyle = state.wireStyle === 'curved' ? 'straight' : 'curved';
+            const lbl = document.getElementById('tcWireTypeLabel');
+            const icon = document.getElementById('tcWireTypeIcon');
+            if (lbl) lbl.textContent = state.wireStyle === 'curved' ? 'Curved' : 'Straight';
+            if (icon) {
+                icon.className = state.wireStyle === 'curved' ? 'fa-solid fa-bezier-curve' : 'fa-solid fa-grip-lines';
+            }
+            renderWires();
+            showToast(`Wire style: ${state.wireStyle === 'curved' ? 'Curved Flexible Jumper' : 'Straight Direct'}`);
+        });
+
+        // Window resize: auto fit viewport on mobile
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 992) {
+                fitToViewport();
+            }
+        });
     }
 
     function setWireColor(color, name) {
@@ -3904,14 +4192,21 @@ void loop() {
 
         if (state.selectedItem?.type === 'wire') {
             const w = state.wires.find(item => item.id === state.selectedItem.id);
-            if (w) { w.color = color; renderWires(); }
+            if (w) {
+                w.color = color === 'auto' ? getSmartWireColor(w.from, w.to) : color;
+                renderWires();
+            }
         }
     }
 
     function updateWireColorDisplay(color, name) {
         const swatch = document.getElementById('tcCurrentColorSwatch');
         const label = document.getElementById('tcCurrentColorName');
-        if (swatch) swatch.style.background = color;
+        if (swatch) {
+            swatch.style.background = color === 'auto'
+                ? 'linear-gradient(135deg, #ef4444 0%, #10b981 50%, #0284c7 100%)'
+                : color;
+        }
         if (label && name) label.textContent = name;
     }
 
@@ -3944,8 +4239,32 @@ void loop() {
         `;
     }
 
+    function fitToViewport() {
+        const container = document.getElementById('tcCanvasContainer');
+        const stage = document.getElementById('tcCanvasStage');
+        if (!container || !stage) return;
+
+        const rect = container.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+
+        // Content bounding box: Arduino Uno + Breadboard
+        const contentWidth = 1060;
+        const contentHeight = 440;
+
+        const scaleX = (rect.width - 24) / contentWidth;
+        const scaleY = (rect.height - 24) / contentHeight;
+        const bestZoom = Math.min(Math.max(Math.min(scaleX, scaleY), 0.35), 1.05);
+
+        state.zoom = bestZoom;
+        state.panX = Math.max(8, (rect.width - contentWidth * bestZoom) / 2);
+        state.panY = Math.max(8, (rect.height - contentHeight * bestZoom) / 2);
+
+        stage.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+        updateStatusBar();
+    }
+
     function setZoom(val) {
-        state.zoom = Math.max(0.5, Math.min(2.0, val));
+        state.zoom = Math.max(0.35, Math.min(2.2, val));
         const stage = document.getElementById('tcCanvasStage');
         if (stage) {
             stage.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;

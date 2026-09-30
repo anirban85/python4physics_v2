@@ -107,14 +107,15 @@ require_once __DIR__ . '/include/navbar.php';
 
                 <!-- Wire Color Dropdown (Tinkercad Style) -->
                 <div class="tc-wire-color-dropdown">
-                    <button type="button" class="tc-wire-color-btn" id="tcWireColorBtn" title="Select Wire Color">
-                        <span class="swatch-preview" id="tcCurrentColorSwatch" style="background: #10b981;"></span>
-                        <span id="tcCurrentColorName">Green</span>
+                    <button type="button" class="tc-wire-color-btn" id="tcWireColorBtn" title="Select Wire Color (Auto picks GND=Black, 5V=Red, etc.)">
+                        <span class="swatch-preview" id="tcCurrentColorSwatch" style="background: linear-gradient(135deg, #ef4444 0%, #10b981 50%, #0284c7 100%);"></span>
+                        <span id="tcCurrentColorName">Auto</span>
                         <i class="fa-solid fa-caret-down" style="font-size: 0.7rem; margin-left: 2px;"></i>
                     </button>
                     <!-- Color Palette Popover -->
                     <div class="tc-color-palette-popover" id="tcColorPalettePopover" style="display: none;">
-                        <div class="tc-color-option selected" data-color="#10b981" data-name="Green" style="background: #10b981;" title="Green"></div>
+                        <div class="tc-color-option selected" data-color="auto" data-name="Auto (Smart)" style="background: linear-gradient(135deg, #ef4444 0%, #10b981 50%, #0284c7 100%); border-color: #38bdf8;" title="Auto Color (Smart: GND=Black, 5V=Red, Sig=Green/Blue)"></div>
+                        <div class="tc-color-option" data-color="#10b981" data-name="Green" style="background: #10b981;" title="Green"></div>
                         <div class="tc-color-option" data-color="#0f172a" data-name="Black" style="background: #0f172a;" title="Black (GND)"></div>
                         <div class="tc-color-option" data-color="#ef4444" data-name="Red" style="background: #ef4444;" title="Red (5V Power)"></div>
                         <div class="tc-color-option" data-color="#0284c7" data-name="Blue" style="background: #0284c7;" title="Blue"></div>
@@ -129,10 +130,10 @@ require_once __DIR__ . '/include/navbar.php';
                     </div>
                 </div>
 
-                <!-- Wire Type Dropdown -->
-                <button type="button" class="tc-wire-type-btn" id="tcWireTypeBtn" title="Wire Type">
-                    <i class="fa-solid fa-grip-lines"></i>
-                    <span>Normal</span>
+                <!-- Wire Type / Style Toggle Button -->
+                <button type="button" class="tc-wire-type-btn" id="tcWireTypeBtn" title="Toggle Wire Style: Curved (Jumper) vs Straight">
+                    <i class="fa-solid fa-bezier-curve" id="tcWireTypeIcon" style="color: #0284c7;"></i>
+                    <span id="tcWireTypeLabel">Curved</span>
                 </button>
 
                 <div class="tc-divider-v"></div>
