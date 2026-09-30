@@ -520,24 +520,24 @@ require_once __DIR__ . '/include/navbar.php';
             <div class="tc-code-pane" id="tcCodePane" style="display: none; width: 480px; min-width: 280px; max-width: calc(100% - 250px);">
                 <div class="tc-code-header">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-brands fa-cuttlefish" style="color: #38bdf8;"></i>
-                        <span style="font-weight: 700;">Arduino C++ Sketch (.ino)</span>
+                        <i class="fa-brands fa-cuttlefish" style="color: #38bdf8; font-size: 0.95rem;"></i>
+                        <span style="font-weight: 700; color: #f8fafc; letter-spacing: 0.2px;">Arduino C++ Sketch (.ino)</span>
                     </div>
                     <div style="display: flex; gap: 6px; align-items: center;">
-                        <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Verify / Check Sketch Syntax">
-                            <i class="fa-solid fa-check" style="color: #10b981;"></i> Verify
+                        <button type="button" class="btn-tc-code-toggle" id="tcVerifyCodeBtn" style="padding: 3px 8px; font-size: 0.74rem;" title="Verify / Check Sketch Syntax">
+                            <i class="fa-solid fa-check" style="color: #10b981;"></i> <span>Verify</span>
                         </button>
-                        <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Reset to Preset Sketch">
-                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        <button type="button" class="btn-tc-code-toggle" id="tcResetCodeBtn" style="padding: 3px 8px; font-size: 0.74rem;" title="Reset to Preset Sketch">
+                            <i class="fa-solid fa-rotate-left" style="color: #f59e0b;"></i> <span>Reset</span>
                         </button>
-                        <button type="button" class="btn-tc-code-toggle" id="tcDownloadInoBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Download Sketch (.ino)">
-                            <i class="fa-solid fa-download" style="color: #38bdf8;"></i> .ino
+                        <button type="button" class="btn-tc-code-toggle" id="tcDownloadInoBtn" style="padding: 3px 8px; font-size: 0.74rem;" title="Download Sketch (.ino)">
+                            <i class="fa-solid fa-download" style="color: #38bdf8;"></i> <span>.ino</span>
                         </button>
-                        <button type="button" class="btn-tc-code-toggle" id="tcCopyCodeBtn" style="padding: 2px 7px; font-size: 0.74rem;" title="Copy to Clipboard">
-                            <i class="fa-regular fa-copy"></i> Copy
+                        <button type="button" class="btn-tc-code-toggle" id="tcCopyCodeBtn" style="padding: 3px 8px; font-size: 0.74rem;" title="Copy to Clipboard">
+                            <i class="fa-regular fa-copy" style="color: #cbd5e1;"></i> <span>Copy</span>
                         </button>
-                        <button type="button" class="btn-tc-code-toggle" id="tcCloseCodeBtn" style="padding: 2px 6px; font-size: 0.74rem;" title="Close Code Window">
-                            <i class="fa-solid fa-xmark"></i>
+                        <button type="button" class="btn-tc-code-toggle" id="tcCloseCodeBtn" style="padding: 3px 7px; font-size: 0.74rem;" title="Close Code Window">
+                            <i class="fa-solid fa-xmark" style="color: #f43f5e;"></i>
                         </button>
                     </div>
                 </div>
@@ -554,7 +554,7 @@ require_once __DIR__ . '/include/navbar.php';
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button type="button" class="btn-tc-code-toggle" id="tcExportSchematicBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Download Schematic Diagram as SVG">
-                            <i class="fa-solid fa-download"></i> Export SVG
+                            <i class="fa-solid fa-download" style="color: #0284c7;"></i> Export SVG
                         </button>
                     </div>
                 </div>
@@ -570,7 +570,7 @@ require_once __DIR__ . '/include/navbar.php';
                         <i class="fa-solid fa-list-check" style="color: #10b981;"></i> Bill of Materials (BOM)
                     </div>
                     <button type="button" class="btn-tc-code-toggle" id="tcExportBomBtn" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;" title="Download BOM Table as CSV">
-                        <i class="fa-solid fa-file-csv"></i> Export CSV
+                        <i class="fa-solid fa-file-csv" style="color: #10b981;"></i> Export CSV
                     </button>
                 </div>
                 <div style="overflow-x: auto;">
