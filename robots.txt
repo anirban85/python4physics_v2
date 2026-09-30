@@ -1,0 +1,22 @@
+# ==============================================================================
+# Python4Physics (https://python4physics.in / https://v2.python4physics.in)
+# Standard Robots Exclusion Protocol File
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /program/python/
+Allow: /program/gnuplot/
+Allow: /program/latex/
+
+# Disallow administrative and temporary compilation workspaces
+Disallow: /admin/
+Disallow: /include/
+Disallow: /tmp/
+Disallow: /program/gnuplot/user_*
+Disallow: /program/latex/user_*
+
+# Sitemaps
+Sitemap: https://v2.python4physics.in/sitemap.xml
+Sitemap: https://python4physics.in/sitemap.xml

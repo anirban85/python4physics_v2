@@ -8,6 +8,21 @@ if (!isset($siteurl)) {
 
 $page_title_text = isset($page_title) ? $page_title . " | Python4Physics" : "Python4Physics - Computational Physics with Python, GNUplot, LaTeX, Arduino";
 $page_desc_text = isset($page_description) ? $page_description : "Explore 500+ interactive computational physics algorithms, numerical simulations, GNUplot scientific graphs, and LaTeX document templates by Dr. Alorika Chatterjee and Dr. Anirban Shaw.";
+
+// Compute Canonical URL
+$canonical_base = rtrim($siteurl, '/');
+$current_path = ltrim($_SERVER['REQUEST_URI'] ?? '', '/');
+$script_base = trim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
+if (!empty($script_base) && str_starts_with($current_path, $script_base)) {
+    $current_rel = substr($current_path, strlen($script_base));
+} else {
+    $current_rel = '/' . $current_path;
+}
+$canonical_url = isset($page_canonical) ? $page_canonical : rtrim($siteurl, '/') . '/' . ltrim($current_rel, '/');
+$canonical_url_clean = strtok($canonical_url, '?');
+if (isset($_GET['menu_id']) || isset($_GET['submenu_id'])) {
+    $canonical_url_clean = $canonical_url;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -18,12 +33,83 @@ $page_desc_text = isset($page_description) ? $page_description : "Explore 500+ i
     <meta name="description" content="<?php echo htmlspecialchars($page_desc_text); ?>">
     <meta name="keywords" content="computational physics, python for physics, numerical methods, ode, pde, runge kutta, quantum physics simulation, tise, tdse, gnuplot, latex, arduino physics lab">
     <meta name="author" content="Dr. Alorika Chatterjee & Dr. Anirban Shaw">
-    
-    <!-- OpenGraph / Social Sharing -->
+    <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url_clean); ?>">
+
+    <!-- Google Search Console Site Verification -->
+    <meta name="google-site-verification" content="_NAHQtPqFwdwcx50u8ZV2jv8SCkScUd2QwqqYwT2Fbs">
+
+    <!-- Search Engine Indexing Directives -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow">
+
+    <!-- OpenGraph / Social Graph Meta Tags -->
+    <meta property="og:locale" content="en_US">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Python4Physics">
     <meta property="og:title" content="<?php echo htmlspecialchars($page_title_text); ?>">
     <meta property="og:description" content="<?php echo htmlspecialchars($page_desc_text); ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars($canonical_url_clean); ?>">
     <meta property="og:image" content="<?php echo $siteurl; ?>assets/images/logo.png">
+    <meta property="og:image:alt" content="Python4Physics Computational Laboratory">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($page_title_text); ?>">
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($page_desc_text); ?>">
+    <meta name="twitter:image" content="<?php echo $siteurl; ?>assets/images/logo.png">
+
+    <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://v2.python4physics.in/#website",
+          "url": "https://v2.python4physics.in/",
+          "name": "Python4Physics",
+          "description": "500+ Computational Physics Algorithms, Numerical Solvers & Scientific Telemetry",
+          "publisher": {
+            "@id": "https://v2.python4physics.in/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://v2.python4physics.in/index.php?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://v2.python4physics.in/#organization",
+          "name": "Python4Physics",
+          "url": "https://v2.python4physics.in/",
+          "logo": "https://v2.python4physics.in/assets/images/logo.png",
+          "founder": [
+            {
+              "@type": "Person",
+              "name": "Dr. Alorika Chatterjee"
+            },
+            {
+              "@type": "Person",
+              "name": "Dr. Anirban Shaw"
+            }
+          ],
+          "knowsAbout": [
+            "Computational Physics",
+            "Numerical Differential Equations",
+            "Quantum Mechanics Simulation",
+            "GNUplot Scientific Plotting",
+            "LaTeX Document Typesetting",
+            "Arduino Physics Instrumentation"
+          ]
+        }
+      ]
+    }
+    </script>
     
     <!-- Favicon -->
     <link rel="icon" href="<?php echo $siteurl; ?>program/python/python.ico" type="image/x-icon">
