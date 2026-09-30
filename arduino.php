@@ -27,7 +27,7 @@ require_once __DIR__ . '/include/navbar.php';
     <!-- Hero Header -->
     <div style="text-align: center; max-width: 900px; margin: 0 auto 1.75rem auto;">
         <span class="badge badge-cyan" style="font-size: 0.85rem; padding: 4px 12px; margin-bottom: 0.5rem; display: inline-block;">
-            <i class="fa-solid fa-microchip"></i> Autodesk Tinkercad Circuits Style Simulator
+            <i class="fa-solid fa-microchip"></i> Experimental Physics Lab &middot; Arduino Interfacing & Circuit Simulator
         </span>
         <h1 style="font-size: 2.4rem; margin-top: 0.4rem; margin-bottom: 0.6rem;">
             Virtual Arduino <span class="gradient-text">Circuits Workbench</span>

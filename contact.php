@@ -27,7 +27,7 @@ require_once __DIR__ . '/include/navbar.php';
         <!-- Dr. Alorika Chatterjee -->
         <div class="glass-card" style="padding: 2.5rem 2rem;">
             <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem;">
-                <div style="width: 76px; height: 76px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 6px 20px var(--accent-glow);">
+                <div style="width: 76px; height: 76px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); border: 2px solid var(--card-border);">
                     AC
                 </div>
                 <div>
@@ -67,7 +67,7 @@ require_once __DIR__ . '/include/navbar.php';
         <!-- Dr. Anirban Shaw -->
         <div class="glass-card" style="padding: 2.5rem 2rem;">
             <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem;">
-                <div style="width: 76px; height: 76px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);">
+                <div style="width: 76px; height: 76px; border-radius: 50%; background: linear-gradient(135deg, #1d4ed8, #3b82f6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); border: 2px solid var(--card-border);">
                     AS
                 </div>
                 <div>

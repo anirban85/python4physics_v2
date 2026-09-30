@@ -1,93 +1,104 @@
 /* ==========================================================================
-   Python4Physics - Modern Design System & Global Styles
-   Typography: 'Outfit' (Headings), 'Inter' (Body), 'JetBrains Mono' (Code)
+   Python4Physics - Physics Laboratory Design System
+   Typography: 'Outfit' (Headings), 'Inter' (Body), 'JetBrains Mono' (Code), 'STIX Two Text' (Math)
+   Aesthetic: Scholarly, Precise, Laboratory Notebook & Scientific Terminal
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 
 :root {
-  /* Dark Theme (Default) */
-  --bg: #0b1120;
-  --bg-secondary: #0f172a;
-  --bg-tertiary: #1e293b;
-  --card-bg: rgba(19, 31, 55, 0.65);
-  --card-bg-solid: #131f37;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-hover-border: rgba(6, 182, 212, 0.4);
-  --card-hover-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.5), 0 0 25px rgba(6, 182, 212, 0.15);
+  /* Dark Theme (Default) - Scientific Slate / Blackboard Terminal */
+  --bg: #090d16;
+  --bg-secondary: #0f1626;
+  --bg-tertiary: #162035;
+  --card-bg: #0f1626;
+  --card-bg-solid: #131d31;
+  --card-border: rgba(148, 163, 184, 0.12);
+  --card-hover-border: rgba(56, 189, 248, 0.45);
+  --card-hover-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(56, 189, 248, 0.2);
+
+  /* Millimeter Graph Coordinate Grid */
+  --grid-line: rgba(56, 189, 248, 0.035);
+  --grid-major: rgba(56, 189, 248, 0.075);
   
-  --text: #f8fafc;
+  --text: #f1f5f9;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
   
-  --primary: #3b82f6;
-  --primary-glow: rgba(59, 130, 246, 0.3);
-  --accent: #06b6d4;
-  --accent-glow: rgba(6, 182, 212, 0.35);
-  --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
-  --accent-gradient-subtle: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15));
+  /* Physical Emission Lines & Spectroscopy Palette */
+  --primary: #3b82f6;               /* Royal Quantum Blue */
+  --primary-glow: rgba(59, 130, 246, 0.25);
+  --accent: #38bdf8;                /* Laser Cyan / Deuterium */
+  --accent-glow: rgba(56, 189, 248, 0.25);
+  --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  --accent-gradient-subtle: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(37, 99, 235, 0.08));
   
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --purple: #8b5cf6;
+  --success: #10b981;               /* 532nm Nd:YAG Laser Green */
+  --warning: #f59e0b;               /* Sodium-D Line 589nm Gold/Amber */
+  --danger: #f43f5e;                /* 632.8nm He-Ne Laser Crimson */
+  --purple: #8b5cf6;                /* 365nm UV Mercury Line */
   
-  --navbar-bg: rgba(11, 17, 32, 0.85);
-  --navbar-border: rgba(255, 255, 255, 0.08);
-  --dropdown-bg: #131f37;
+  --navbar-bg: rgba(9, 13, 22, 0.92);
+  --navbar-border: rgba(148, 163, 184, 0.12);
+  --dropdown-bg: #131d31;
   
-  --code-bg: #090e17;
-  --code-border: rgba(255, 255, 255, 0.08);
+  --code-bg: #060911;
+  --code-border: rgba(148, 163, 184, 0.12);
   
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 6px 18px -4px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 14px 34px -8px rgba(0, 0, 0, 0.6);
   
-  --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="light"] {
+  /* Light Theme - Archival Scientific Paper / Laboratory Journal */
   --bg: #f8fafc;
   --bg-secondary: #f1f5f9;
   --bg-tertiary: #e2e8f0;
-  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg: #ffffff;
   --card-bg-solid: #ffffff;
-  --card-border: rgba(226, 232, 240, 0.8);
-  --card-hover-border: rgba(2, 132, 199, 0.4);
-  --card-hover-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.1), 0 0 20px rgba(2, 132, 199, 0.12);
+  --card-border: #e2e8f0;
+  --card-hover-border: #2563eb;
+  --card-hover-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(37, 99, 235, 0.18);
   
-  --text: #0f172a;
+  /* Millimeter Graph Coordinate Grid (Paper) */
+  --grid-line: rgba(15, 23, 42, 0.035);
+  --grid-major: rgba(15, 23, 42, 0.075);
+
+  --text: #0f172a;                  /* Oxford Dark Slate */
   --text-muted: #475569;
   --text-dim: #94a3b8;
   
-  --primary: #2563eb;
-  --primary-glow: rgba(37, 99, 235, 0.2);
-  --accent: #0284c7;
-  --accent-glow: rgba(2, 132, 199, 0.25);
-  --accent-gradient: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #7c3aed 100%);
-  --accent-gradient-subtle: linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(37, 99, 235, 0.08));
+  --primary: #1d4ed8;               /* Oxford Blue */
+  --primary-glow: rgba(29, 78, 216, 0.15);
+  --accent: #0284c7;                /* Cobalt Cyan */
+  --accent-glow: rgba(2, 132, 199, 0.15);
+  --accent-gradient: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
+  --accent-gradient-subtle: linear-gradient(135deg, rgba(2, 132, 199, 0.06), rgba(29, 78, 216, 0.06));
   
   --success: #059669;
   --warning: #d97706;
-  --danger: #dc2626;
+  --danger: #e11d48;
   --purple: #7c3aed;
   
-  --navbar-bg: rgba(255, 255, 255, 0.88);
-  --navbar-border: rgba(226, 232, 240, 0.8);
+  --navbar-bg: rgba(255, 255, 255, 0.94);
+  --navbar-border: #e2e8f0;
   --dropdown-bg: #ffffff;
   
-  --code-bg: #1e293b;
-  --code-border: rgba(226, 232, 240, 0.8);
+  --code-bg: #0f172a;
+  --code-border: #e2e8f0;
   
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 6px 18px -4px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 14px 34px -8px rgba(15, 23, 42, 0.12);
 }
 
 /* Base Reset */
@@ -107,6 +118,14 @@ html {
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg);
+  /* Millimeter Graph Coordinate Grid Background (Authentic Lab Notebook Texture) */
+  background-image: 
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px);
+  background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  background-position: center top;
   color: var(--text);
   min-height: 100vh;
   line-height: 1.6;
@@ -116,43 +135,18 @@ body {
   position: relative;
 }
 
-/* Ambient Background Glows */
-body::before {
-  content: '';
-  position: fixed;
-  top: -200px;
-  left: 15%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(59, 130, 246, 0.04) 50%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -200px;
-  right: 10%;
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.03) 50%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 700;
   color: var(--text);
   line-height: 1.25;
 }
 
-h1 { font-size: 2.5rem; letter-spacing: -0.02em; }
-h2 { font-size: 2rem; letter-spacing: -0.015em; }
-h3 { font-size: 1.5rem; }
-h4 { font-size: 1.25rem; }
+h1 { font-size: 2.4rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.9rem; letter-spacing: -0.015em; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.15rem; }
 
 p {
   color: var(--text-muted);
@@ -193,13 +187,11 @@ code, pre, kbd, samp {
   z-index: 1;
 }
 
-/* Glassmorphic Cards */
+/* Scientific Laboratory Module Cards (High Legibility, Precision Borders) */
 .glass-card {
   background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 1.75rem;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
@@ -210,21 +202,22 @@ code, pre, kbd, samp {
 .glass-card:hover {
   border-color: var(--card-hover-border);
   box-shadow: var(--card-hover-shadow);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .glass-card.highlight {
-  border-color: rgba(6, 182, 212, 0.35);
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.06), rgba(19, 31, 55, 0.7));
+  border-color: rgba(56, 189, 248, 0.35);
+  background: var(--card-bg-solid);
 }
 
-/* Gradient Text */
+/* Physics Precision Heading Accent */
 .gradient-text {
   background: var(--accent-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
+  font-weight: 800;
 }
 
 /* Buttons */
@@ -254,27 +247,25 @@ code, pre, kbd, samp {
 .btn-primary {
   background: var(--accent-gradient);
   color: #ffffff !important;
-  box-shadow: 0 4px 18px var(--accent-glow);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 25px var(--accent-glow);
-  transform: translateY(-2px);
-  filter: brightness(1.1);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: var(--card-bg);
+  background: var(--card-bg-solid);
   color: var(--text) !important;
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(8px);
 }
 
 .btn-secondary:hover {
   background: var(--bg-tertiary);
   border-color: var(--accent);
   color: var(--accent) !important;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
@@ -286,48 +277,49 @@ code, pre, kbd, samp {
 .btn-outline:hover {
   background: var(--accent);
   color: #ffffff !important;
-  box-shadow: 0 4px 15px var(--accent-glow);
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
 }
 
 .btn-sm {
-  padding: 0.45rem 0.9rem;
-  font-size: 0.85rem;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.82rem;
   border-radius: var(--radius-sm);
 }
 
 .btn-lg {
-  padding: 0.9rem 1.8rem;
-  font-size: 1.05rem;
-  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.6rem;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
 }
 
 .btn-icon {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Badges & Chips */
+/* Scientific Badges & Notation Chips */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.3rem 0.75rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  border-radius: var(--radius-full);
+  padding: 0.25rem 0.65rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.74rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .badge-cyan {
-  background: rgba(6, 182, 212, 0.12);
+  background: rgba(56, 189, 248, 0.12);
   color: var(--accent);
-  border: 1px solid rgba(6, 182, 212, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.25);
 }
 
 .badge-blue {
@@ -354,7 +346,52 @@ code, pre, kbd, samp {
   border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
-/* Modern Navbar */
+.badge-crimson {
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--danger);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+/* Fundamental Physics Constants Strip */
+.physics-constants-strip {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.65rem 1.25rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  gap: 1.75rem;
+  scrollbar-width: thin;
+}
+
+.physics-constant-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.physics-constant-item .sym {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.physics-constant-item .val {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.physics-constant-item .unit {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+/* Modern Laboratory Header */
 .site-navbar {
   position: sticky;
   top: 0;
@@ -362,8 +399,8 @@ code, pre, kbd, samp {
   right: 0;
   z-index: 1000;
   background: var(--navbar-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--navbar-border);
   transition: var(--transition);
 }
@@ -430,7 +467,7 @@ code, pre, kbd, samp {
 
 .nav-link-item.active {
   color: var(--accent);
-  background: rgba(6, 182, 212, 0.1);
+  background: rgba(56, 189, 248, 0.12);
   font-weight: 600;
 }
 
@@ -462,7 +499,7 @@ code, pre, kbd, samp {
 .nav-search-btn:hover {
   border-color: var(--accent);
   color: var(--text);
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.18);
 }
 
 .nav-search-btn kbd {
@@ -514,7 +551,7 @@ code, pre, kbd, samp {
 .search-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 2000;
@@ -537,7 +574,7 @@ code, pre, kbd, samp {
   border-radius: var(--radius-xl);
   width: 90%;
   max-width: 680px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(6, 182, 212, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   transform: translateY(-15px);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -593,7 +630,7 @@ code, pre, kbd, samp {
 }
 
 .search-result-item:hover, .search-result-item.selected {
-  background: rgba(6, 182, 212, 0.12);
+  background: rgba(56, 189, 248, 0.12);
   border-left: 3px solid var(--accent);
 }
 
@@ -772,4 +809,81 @@ code, pre, kbd, samp {
     gap: 1rem;
     text-align: center;
   }
+}
+
+/* ==========================================================================
+   Physics Laboratory Specialty Components
+   ========================================================================== */
+
+/* Formula Chip & Mathematical Notations */
+.physics-formula-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'STIX Two Text', 'KaTeX_Math', serif;
+  font-size: 0.95rem;
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.08);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.physics-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem;
+  padding: 0.2rem 0.55rem;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+}
+
+/* Simulation Canvas Telemetry Overlay */
+.canvas-telemetry {
+  position: absolute;
+  bottom: 1rem;
+  left: 1.5rem;
+  z-index: 2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  pointer-events: none;
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+[data-theme="light"] .canvas-telemetry {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.canvas-telemetry span.active-val {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Engineering Top Accent on Cards */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: var(--transition);
+}
+
+.glass-card:hover::after {
+  background: var(--accent-gradient);
 }

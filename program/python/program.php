@@ -75,7 +75,7 @@ require_once __DIR__ . '/../../include/navbar.php';
                 ?>
                     <li>
                         <a href="?menu_id=<?php echo $menu_id; ?>&submenu_id=<?php echo $sid; ?>" 
-                           style="display: block; padding: 0.55rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.88rem; text-decoration: none; color: <?php echo $isActive ? 'var(--accent)' : 'var(--text-muted)'; ?>; background: <?php echo $isActive ? 'rgba(6, 182, 212, 0.12)' : 'transparent'; ?>; font-weight: <?php echo $isActive ? '600' : '400'; ?>; border-left: <?php echo $isActive ? '3px solid var(--accent)' : '3px solid transparent'; ?>;">
+                           style="display: block; padding: 0.55rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.88rem; text-decoration: none; color: <?php echo $isActive ? 'var(--accent)' : 'var(--text-muted)'; ?>; background: <?php echo $isActive ? 'rgba(56, 189, 248, 0.12)' : 'transparent'; ?>; font-weight: <?php echo $isActive ? '600' : '400'; ?>; border-left: <?php echo $isActive ? '3px solid var(--accent)' : '3px solid transparent'; ?>;">
                             <?php echo htmlspecialchars($stitle); ?>
                         </a>
                     </li>

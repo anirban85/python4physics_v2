@@ -16,7 +16,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
             <a href="<?php echo $siteurl; ?>" class="brand-link">
                 <i class="fa-brands fa-python" style="color: var(--accent); font-size: 1.6rem;"></i>
                 <span>Python<span style="color: var(--accent);">4</span>Physics</span>
-                <span class="brand-badge">PRO</span>
+                <span class="brand-badge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.05em;">LAB</span>
             </a>
 
             <!-- Desktop Nav Links -->
@@ -37,7 +37,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
             <div class="nav-actions">
                 <button type="button" class="nav-search-btn trigger-global-search" aria-label="Search Programs">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>Search 500+ Codes</span>
+                    <span>Search Physics Index</span>
                     <kbd>Ctrl+K</kbd>
                 </button>
 

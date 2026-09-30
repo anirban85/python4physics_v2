@@ -48,7 +48,7 @@ require_once __DIR__ . '/../../include/navbar.php';
                 <div class=\"glass-card\" style=\"display: flex; flex-direction: column; justify-content: space-between;\">
                     <div>
                         <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;\">
-                            <span style=\"width: 44px; height: 44px; border-radius: 10px; background: rgba(6, 182, 212, 0.14); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.25rem;\">
+                            <span style=\"width: 44px; height: 44px; border-radius: 10px; background: rgba(56, 189, 248, 0.12); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.25rem;\">
                                 <i class=\"fa-solid {$icon}\"></i>
                             </span>
                             <span class=\"badge badge-cyan\">Chapter {$mid}</span>

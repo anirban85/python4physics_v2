@@ -17,70 +17,102 @@ require_once __DIR__ . '/include/navbar.php';
 <!-- Hero Section with Interactive Physics Canvas Simulation -->
 <section style="position: relative; min-height: 85vh; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4rem 1.5rem;">
     <!-- Interactive Background Canvas -->
-    <div style="position: absolute; inset: 0; z-index: 0; opacity: 0.65;">
+    <div style="position: absolute; inset: 0; z-index: 0; opacity: 0.75;">
         <canvas id="physicsHeroCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
     </div>
 
-    <div class="container" style="position: relative; z-index: 1; text-align: center; max-width: 960px;">
-        <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-            <span class="badge badge-cyan"><i class="fa-solid fa-atom fa-spin"></i> Interactive Physics Portal</span>
-            <span class="badge badge-blue"><i class="fa-brands fa-python"></i> Pyodide WebAssembly Engine</span>
+    <!-- Live Telemetry HUD -->
+    <div class="canvas-telemetry">
+        <span><i class="fa-solid fa-atom"></i> MODEL: <strong class="active-val">N-BODY CENTRAL FIELD</strong></span>
+        <span>INTEGRATOR: <strong class="active-val">SYMPLECTIC VERLET</strong></span>
+        <span>ENERGY: <strong class="active-val">$\mathcal{H} = T + V < 0$</strong></span>
+        <span style="opacity: 0.7;"><i class="fa-solid fa-mouse-pointer"></i> Move cursor to perturb orbits &middot; Click to pulse</span>
+    </div>
+
+    <div class="container" style="position: relative; z-index: 1; text-align: center; max-width: 980px;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center;">
+            <span class="badge badge-cyan"><i class="fa-solid fa-atom"></i> Computational Physics Laboratory</span>
+            <span class="badge badge-amber"><i class="fa-solid fa-square-root-variable"></i> Numerical ODE & PDE Solvers</span>
+            <span class="badge badge-blue"><i class="fa-brands fa-python"></i> Pyodide WASM Runtime</span>
         </div>
 
         <h1 style="font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.5rem;">
             Computational Physics <br>
-            <span class="gradient-text">Reimagined for the Modern Web</span>
+            <span class="gradient-text">Algorithms, Solvers & Scientific Telemetry</span>
         </h1>
 
-        <p style="font-size: clamp(1.05rem, 2vw, 1.3rem); line-height: 1.6; max-width: 780px; margin: 0 auto 2.5rem auto; color: var(--text-muted);">
-            Master numerical physics, differential equations, quantum simulations, and scientific visualization with over <strong>500+ curated algorithms</strong> running directly in your browser.
+        <p style="font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.6; max-width: 820px; margin: 0 auto 2.5rem auto; color: var(--text-muted);">
+            An open academic portal of over <strong>500+ verified computational physics programs</strong>: classical mechanics, coupled differential equations, electrodynamics, quantum state simulations, and Arduino hardware interfacing running natively in your browser.
         </p>
 
         <!-- Main Action Buttons -->
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3.5rem;">
             <a href="<?php echo $siteurl; ?>program/python/index.php" class="btn-modern btn-primary btn-lg">
-                <i class="fa-brands fa-python"></i> Explore 345+ Python Codes
+                <i class="fa-brands fa-python"></i> Explore 345+ Python Programs
             </a>
             <a href="#liveSandboxSection" class="btn-modern btn-secondary btn-lg">
-                <i class="fa-solid fa-play"></i> Live Sandbox
+                <i class="fa-solid fa-wave-square"></i> Live Oscillation Sandbox
             </a>
             <button type="button" class="btn-modern btn-secondary btn-lg trigger-global-search">
-                <i class="fa-solid fa-magnifying-glass"></i> Search (Ctrl+K)
+                <i class="fa-solid fa-magnifying-glass"></i> Search Index (Ctrl+K)
             </button>
         </div>
 
-        <!-- Metric Badges Counter -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.25rem; max-width: 820px; margin: 0 auto;">
+        <!-- Metric Badges Counter with Physics Notation -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1.25rem; max-width: 840px; margin: 0 auto;">
             <div class="glass-card" style="padding: 1.25rem 1rem;">
                 <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent); font-family: 'Outfit';">345+</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Python Programs</div>
+                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">Python Algorithms</div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$N_{\mathrm{algo}} = 345$</div>
             </div>
             <div class="glass-card" style="padding: 1.25rem 1rem;">
                 <div style="font-size: 2.2rem; font-weight: 800; color: var(--warning); font-family: 'Outfit';">49+</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">GNUplot Scripts</div>
+                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">GNUplot Curves</div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$\mathcal{C}_{\mathrm{2D/3D}} = 49$</div>
             </div>
             <div class="glass-card" style="padding: 1.25rem 1rem;">
                 <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary); font-family: 'Outfit';">115+</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">LaTeX Formulations</div>
+                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">LaTeX Papers</div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$\mathrm{TikZ} \cdot \mathrm{AMS}$</div>
             </div>
             <div class="glass-card" style="padding: 1.25rem 1rem;">
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--success); font-family: 'Outfit';">20+</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Physics Domains</div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--success); font-family: 'Outfit';">20</div>
+                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">Physics Chapters</div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$\mathcal{M}_{1\dots 20}$</div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- Fundamental Physics Constants Ticker Ribbon (CODATA Recommended) -->
+<div class="physics-constants-strip" title="Fundamental Physical Constants (CODATA Reference)">
+    <div class="physics-constant-item"><span class="sym">$c$</span><span class="val">$2.9979\times 10^8$</span><span class="unit">$\mathrm{m\cdot s^{-1}}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$\hbar$</span><span class="val">$1.0546\times 10^{-34}$</span><span class="unit">$\mathrm{J\cdot s}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$G$</span><span class="val">$6.6743\times 10^{-11}$</span><span class="unit">$\mathrm{m^3\cdot kg^{-1}\cdot s^{-2}}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$e$</span><span class="val">$1.6022\times 10^{-19}$</span><span class="unit">$\mathrm{C}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$k_B$</span><span class="val">$1.3806\times 10^{-23}$</span><span class="unit">$\mathrm{J\cdot K^{-1}}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$\varepsilon_0$</span><span class="val">$8.8542\times 10^{-12}$</span><span class="unit">$\mathrm{F\cdot m^{-1}}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$\mu_0$</span><span class="val">$4\pi\times 10^{-7}$</span><span class="unit">$\mathrm{H\cdot m^{-1}}$</span></div>
+    <div class="physics-constant-item"><span class="sym">$m_e$</span><span class="val">$9.1094\times 10^{-31}$</span><span class="unit">$\mathrm{kg}$</span></div>
+</div>
+
 
 <!-- Main Portal Body -->
 <main class="container" style="padding-bottom: 5rem;">
 
     <!-- Live In-Browser Physics Sandbox -->
     <section id="liveSandboxSection" class="glass-card highlight" style="margin-bottom: 5rem; padding: 2.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
             <div>
-                <span class="badge badge-cyan"><i class="fa-solid fa-bolt"></i> Instant WebAssembly Runner</span>
-                <h2 style="font-size: 2rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">Interactive Physics Playground</h2>
-                <p style="margin: 0; font-size: 0.95rem;">Test and execute Python physics code in real-time. NumPy and Matplotlib plots render right inside your browser.</p>
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                    <span class="badge badge-cyan"><i class="fa-solid fa-wave-square"></i> Numerical ODE Solver</span>
+                    <span class="physics-formula-tag">$m\frac{d^2 x}{dt^2} + b\frac{dx}{dt} + kx = 0$</span>
+                    <span class="physics-metric-chip">NumPy $\cdot$ Matplotlib</span>
+                </div>
+                <h2 style="font-size: 2rem; margin-top: 0.4rem; margin-bottom: 0.35rem;">Oscillatory Dynamics & Phase-Space Simulator</h2>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">
+                    Execute real-time Python ODE solvers in your browser. Calculate analytical & numerical trajectories, damping envelopes, and phase curves.
+                </p>
             </div>
             <div style="display: flex; gap: 0.75rem;">
                 <button type="button" id="homeRunBtn" class="btn-modern btn-primary">
@@ -92,49 +124,61 @@ require_once __DIR__ . '/include/navbar.php';
             </div>
         </div>
 
+        <!-- Physical Parameters Ribbon -->
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; background: var(--bg-secondary); padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+            <span><strong style="color: var(--text);">Parameters:</strong></span>
+            <span class="physics-metric-chip">$m = 1.0\,\mathrm{kg}$</span>
+            <span class="physics-metric-chip">$k = 16.0\,\mathrm{N/m}$</span>
+            <span class="physics-metric-chip">$b = 0.5\,\mathrm{kg/s}$</span>
+            <span class="physics-metric-chip">$\omega_0 = 4.00\,\mathrm{rad/s}$</span>
+            <span class="physics-metric-chip">$\gamma = 0.25\,\mathrm{s^{-1}}$</span>
+            <span style="color: var(--accent); margin-left: auto;">Regime: Underdamped ($\omega_0 > \gamma$)</span>
+        </div>
+
         <!-- Sandbox Editor & Output Split View -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="homeSandboxGrid">
             <div>
                 <div class="editor-header">
-                    <span class="editor-title"><i class="fa-brands fa-python" style="color: var(--accent);"></i> Simulation: Damped Harmonic Oscillator</span>
+                    <span class="editor-title"><i class="fa-brands fa-python" style="color: var(--accent);"></i> Harmonic Oscillator Trajectory (ODE)</span>
                     <span id="homeExecStatus" class="badge badge-cyan">Ready</span>
                 </div>
                 <div class="editor-wrapper">
                     <textarea id="homeCodeEditor"># Damped Harmonic Oscillator Simulation
-# m*x'' + b*x' + k*x = 0
+# Equation of Motion: m*x'' + b*x' + k*x = 0
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Physical Parameters
+# Physical System Parameters
 m = 1.0     # Mass (kg)
 k = 16.0    # Spring constant (N/m)
 b = 0.5     # Damping coefficient (kg/s)
 omega0 = np.sqrt(k / m)
 gamma = b / (2 * m)
 
-# Time array
+# Time mesh (s)
 t = np.linspace(0, 15, 600)
 x0 = 1.0    # Initial displacement (m)
 v0 = 0.0    # Initial velocity (m/s)
 
-# Underdamped solution
+# Exact analytical solution for underdamped regime
 omega = np.sqrt(omega0**2 - gamma**2)
 x = np.exp(-gamma * t) * (x0 * np.cos(omega * t) + ((v0 + gamma * x0) / omega) * np.sin(omega * t))
 
 print(f"Natural Frequency (omega0): {omega0:.3f} rad/s")
 print(f"Damping Ratio (gamma): {gamma:.3f} s^-1")
 print(f"Oscillation Frequency (omega): {omega:.3f} rad/s")
+print(f"Quality Factor Q: {omega0 / (2 * gamma):.2f}")
 
-# Plot Waveform
+# Scientific Plotting
 plt.figure(figsize=(8, 4.5))
-plt.plot(t, x, label='Displacement x(t)', color='#06b6d4', lw=2)
-plt.plot(t, np.exp(-gamma * t), 'r--', label='Envelope', alpha=0.7)
-plt.plot(t, -np.exp(-gamma * t), 'r--', alpha=0.7)
-plt.title('Damped Harmonic Oscillator Trajectory', fontsize=12)
-plt.xlabel('Time (s)')
-plt.ylabel('Position (m)')
-plt.grid(True, alpha=0.3)
-plt.legend()
+plt.plot(t, x, label='Displacement x(t)', color='#38bdf8', lw=2)
+plt.plot(t, np.exp(-gamma * t), 'r--', label='+ Envelope x_0*exp(-gamma*t)', alpha=0.75)
+plt.plot(t, -np.exp(-gamma * t), 'r--', label='- Envelope', alpha=0.75)
+plt.title('Damped Harmonic Oscillator Trajectory [m=1kg, k=16N/m, b=0.5kg/s]', fontsize=11)
+plt.xlabel('Time t (seconds)')
+plt.ylabel('Displacement x (meters)')
+plt.grid(True, alpha=0.25, linestyle='--')
+plt.legend(loc='upper right')
 plt.tight_layout()
 plt.show()
 </textarea>
@@ -144,8 +188,8 @@ plt.show()
             <!-- Output Side -->
             <div>
                 <div class="tabs-header">
-                    <button class="tab-btn active" id="homeTabConsoleBtn"><i class="fa-solid fa-terminal"></i> Console</button>
-                    <button class="tab-btn" id="homeTabPlotsBtn"><i class="fa-regular fa-image"></i> Rendered Plot</button>
+                    <button class="tab-btn active" id="homeTabConsoleBtn"><i class="fa-solid fa-terminal"></i> Console Log</button>
+                    <button class="tab-btn" id="homeTabPlotsBtn"><i class="fa-regular fa-image"></i> Rendered Trajectory Plot</button>
                 </div>
                 <div id="homeConsolePanel">
                     <pre id="homeConsoleOutput" class="console-output" style="height: 480px;"></pre>
@@ -159,72 +203,90 @@ plt.show()
         </div>
     </section>
 
-    <!-- 5 Core Learning Tracks -->
+    <!-- 6 Core Learning Tracks -->
     <section style="margin-bottom: 5rem;">
-        <div style="text-align: center; max-width: 700px; margin: 0 auto 3rem auto;">
-            <span class="badge badge-cyan">Structured Curriculum</span>
+        <div style="text-align: center; max-width: 760px; margin: 0 auto 3rem auto;">
+            <span class="badge badge-cyan"><i class="fa-solid fa-graduation-cap"></i> Systematic Curriculum</span>
             <h2 style="font-size: 2.2rem; margin-top: 0.5rem; margin-bottom: 0.75rem;">Curated Physics Learning Tracks</h2>
-            <p>From introductory algorithms to advanced quantum differential equations, follow systematically organized learning tracks.</p>
+            <p>From fundamental numerical algorithms to relativistic and quantum simulations, explore systematically structured tracks.</p>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.75rem;">
             <!-- Track 1 -->
             <div class="glass-card">
-                <div style="font-size: 1.8rem; color: var(--accent); margin-bottom: 1rem;"><i class="fa-solid fa-code"></i></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; color: var(--accent);"><i class="fa-solid fa-code"></i></div>
+                    <span class="physics-formula-tag">$\sum x_i \;\vert\; \Delta t$</span>
+                </div>
                 <h3>1. Python Foundations</h3>
-                <p>Variables, control flow, loops, functions, mathematical modules (math & cmath), and robust scientific I/O operations.</p>
+                <p>Variables, control flow, functions, mathematical modules (math & cmath), scientific floating-point precision, and robust file I/O.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=1&submenu_id=1" class="btn-modern btn-outline btn-sm">Start Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=1&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
             <!-- Track 2 -->
             <div class="glass-card">
-                <div style="font-size: 1.8rem; color: var(--primary); margin-bottom: 1rem;"><i class="fa-solid fa-matrix fa-table-cells"></i></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; color: var(--primary);"><i class="fa-solid fa-table-cells"></i></div>
+                    <span class="physics-formula-tag">$\mathbf{A}\mathbf{x} = \lambda\mathbf{x} \;\vert\; \int f(x)dx$</span>
+                </div>
                 <h3>2. Numerical Methods & Matrices</h3>
-                <p>NumPy arrays, SciPy algorithms, root finding, Newton-Raphson, Simpson's integration, and eigenvalue systems.</p>
+                <p>NumPy tensor operations, root-finding (Newton-Raphson, Bisection), Simpson & Gauss quadrature, and matrix eigenvalues.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=7&submenu_id=1" class="btn-modern btn-outline btn-sm">Start Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=7&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
             <!-- Track 3 -->
             <div class="glass-card">
-                <div style="font-size: 1.8rem; color: var(--success); margin-bottom: 1rem;"><i class="fa-solid fa-wave-square"></i></div>
-                <h3>3. Differential Equations</h3>
-                <p>Euler, RK2, RK4 algorithms, coupled ODEs, boundary value problems with the Shooting method, and Fourier transformations.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; color: var(--success);"><i class="fa-solid fa-wave-square"></i></div>
+                    <span class="physics-formula-tag">$\frac{d^2x}{dt^2} + \omega^2 x = 0$</span>
+                </div>
+                <h3>3. Differential Equations & Dynamics</h3>
+                <p>Symplectic Euler, RK2, RK4 integrators, coupled nonlinear oscillators, shooting method for BVPs, and Fourier transformations.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=12&submenu_id=1" class="btn-modern btn-outline btn-sm">Start Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=12&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
             <!-- Track 4 -->
             <div class="glass-card">
-                <div style="font-size: 1.8rem; color: var(--purple); margin-bottom: 1rem;"><i class="fa-solid fa-atom"></i></div>
-                <h3>4. Quantum & Statistical Physics</h3>
-                <p>Solving the Time-Independent (TISE) & Time-Dependent Schrödinger Equation (TDSE), potential wells, and partition functions.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; color: var(--purple);"><i class="fa-solid fa-atom"></i></div>
+                    <span class="physics-formula-tag">$i\hbar\frac{\partial\psi}{\partial t} = \hat{H}\psi$</span>
+                </div>
+                <h3>4. Quantum & Statistical Mechanics</h3>
+                <p>Finite-difference solvers for TISE/TDSE, potential barriers, quantum harmonic oscillators, and partition functions $Z = \sum e^{-\beta E_i}$.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=18&submenu_id=1" class="btn-modern btn-outline btn-sm">Start Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=18&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
             <!-- Track 5 -->
             <div class="glass-card">
-                <div style="font-size: 1.8rem; color: var(--warning); margin-bottom: 1rem;"><i class="fa-solid fa-chart-line"></i></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; color: var(--warning);"><i class="fa-solid fa-chart-line"></i></div>
+                    <span class="physics-formula-tag">$\mathrm{GNUplot} \;\vert\; \mathrm{TikZ}$</span>
+                </div>
                 <h3>5. Visualization & Publication</h3>
-                <p>2D/3D plotting with GNUplot, publication-quality graphics, and complete LaTeX document preparation with TikZ.</p>
+                <p>Publication-quality 2D/3D scientific graphing with GNUplot, vector field streamlines, and LaTeX manuscript typography with TikZ.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="btn-modern btn-outline btn-sm">Start Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
             <!-- Track 6: Arduino Lab -->
             <div class="glass-card">
-                <div style="font-size: 1.8rem; color: #ec4899; margin-bottom: 1rem;"><i class="fa-solid fa-microchip"></i></div>
-                <h3>6. Arduino Physics Lab</h3>
-                <p>Computer-interfaced physics experiments: photogates, RC decay curves, ultrasonic acoustics, and real-time serial plotting.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; color: var(--danger);"><i class="fa-solid fa-microchip"></i></div>
+                    <span class="physics-formula-tag">$V(t) = V_0 e^{-t/RC}$</span>
+                </div>
+                <h3>6. Arduino Experimental Lab</h3>
+                <p>Computer-interfaced physics apparatus: photogate timing, RC transient curves, acoustic resonance, and live serial telemetry.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>arduino.php" class="btn-modern btn-outline btn-sm">Explore Lab &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>arduino.php" class="btn-modern btn-outline btn-sm">Enter Lab &rarr;</a>
                 </div>
             </div>
         </div>
@@ -260,7 +322,7 @@ plt.show()
                     echo "
                     <a href=\"{$siteurl}program/python/program.php?menu_id={$mid}&submenu_id=1\" class=\"glass-card\" style=\"display: block; text-decoration: none; padding: 1.25rem;\">
                         <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;\">
-                            <span style=\"width: 36px; height: 36px; border-radius: 8px; background: rgba(6, 182, 212, 0.12); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem;\">
+                            <span style=\"width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.12); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem;\">
                                 <i class=\"fa-solid {$icon}\"></i>
                             </span>
                             <span class=\"badge badge-cyan\" style=\"font-size: 0.7rem;\">Ch. {$mid}</span>
@@ -281,13 +343,13 @@ plt.show()
         <div style="text-align: center; max-width: 700px; margin: 0 auto 3rem auto;">
             <span class="badge badge-cyan"><i class="fa-solid fa-graduation-cap"></i> Academic Leadership</span>
             <h2 style="font-size: 2.2rem; margin-top: 0.5rem; margin-bottom: 0.75rem;">Platform Authors & Curators</h2>
-            <p>Authored by faculty members dedicated to advancing computational physics pedagogy and open educational resources.</p>
+            <p>Authored by physics faculty members dedicated to computational physics research, simulation pedagogy, and open scientific resources.</p>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem;">
             <!-- Dr. Alorika Chatterjee -->
             <div style="display: flex; gap: 1.5rem; align-items: flex-start;">
-                <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 4px 15px var(--accent-glow);">
+                <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); border: 2px solid var(--card-border);">
                     AC
                 </div>
                 <div>
@@ -305,7 +367,7 @@ plt.show()
 
             <!-- Dr. Anirban Shaw -->
             <div style="display: flex; gap: 1.5rem; align-items: flex-start;">
-                <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+                <div style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #1d4ed8, #3b82f6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); border: 2px solid var(--card-border);">
                     AS
                 </div>
                 <div>
