@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" fill="none">
+  <defs>
+    <style>
+      .eqn-text {
+        font-family: "STIX Two Text", "Cambria Math", "Times New Roman", serif;
+        font-size: 19px;
+        fill: #38bdf8;
+      }
+      .eqn-lg {
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .eqn-sm {
+        font-size: 14px;
+      }
+      .diag-stroke {
+        stroke: #38bdf8;
+        stroke-width: 1.5;
+        fill: none;
+      }
+      .diag-dashed {
+        stroke: #38bdf8;
+        stroke-width: 1.2;
+        stroke-dasharray: 4 4;
+        fill: none;
+      }
+      .diag-fill {
+        fill: #38bdf8;
+      }
+      .accent-gold {
+        fill: #f59e0b;
+        stroke: #f59e0b;
+      }
+      .accent-green {
+        fill: #10b981;
+        stroke: #10b981;
+      }
+    </style>
+  </defs>
+
+  <!-- ================= TOP LEFT: QUANTUM MECHANICS ================= -->
+  <!-- Schrödinger Equation -->
+  <g transform="translate(60, 90)">
+    <text class="eqn-text eqn-lg" x="0" y="0">iℏ ∂ψ/∂t = Ĥψ = (-ℏ²/2m ∇² + V(r))ψ</text>
+    <text class="eqn-text eqn-sm" x="0" y="24">⟨ψ|ψ⟩ = ∫ |ψ(r,t)|² d³r = 1  ·  [x̂, p̂] = iℏ</text>
+    <text class="eqn-text eqn-sm" x="0" y="44">Δx · Δp ≥ ℏ/2  ·  Ĥ|ψₙ⟩ = Eₙ|ψₙ⟩</text>
+  </g>
+
+  <!-- Quantum Harmonic Oscillator Potential Well Diagram -->
+  <g transform="translate(90, 200)">
+    <!-- Parabolic well V(x) = 1/2 k x^2 -->
+    <path class="diag-stroke" d="M 0,0 Q 80,120 160,0" />
+    <line class="diag-dashed" x1="15" y1="90" x2="145" y2="90" />
+    <line class="diag-dashed" x1="30" y1="60" x2="130" y2="60" />
+    <line class="diag-dashed" x1="45" y1="30" x2="115" y2="30" />
+    <text class="eqn-text eqn-sm" x="155" y="93">E₀ = ½ℏω</text>
+    <text class="eqn-text eqn-sm" x="140" y="63">E₁ = ³⁄₂ℏω</text>
+    <text class="eqn-text eqn-sm" x="125" y="33">E₂ = ⁵⁄₂ℏω</text>
+    <!-- Wavefunction Psi_0 ground state Gaussian -->
+    <path class="diag-stroke accent-green" d="M 20,90 Q 80,68 140,90" />
+    <text class="eqn-text eqn-sm" x="70" y="135">V(x) = ½mω²x²</text>
+  </g>
+
+  <!-- Dirac Relativistic Equation -->
+  <g transform="translate(70, 390)">
+    <text class="eqn-text eqn-lg" x="0" y="0">(iγᵘ∂ᵤ - mc/ℏ)ψ = 0</text>
+    <text class="eqn-text eqn-sm" x="0" y="22">{γᵘ, γᵛ} = 2ηᵘᵛ  ·  E² = (pc)² + (m₀c²)²</text>
+  </g>
+
+  <!-- ================= TOP RIGHT: ELECTRODYNAMICS & MAXWELL ================= -->
+  <!-- Maxwell's Equations -->
+  <g transform="translate(980, 80)">
+    <rect class="diag-dashed" x="-15" y="-22" width="560" height="115" rx="8" />
+    <text class="eqn-text eqn-lg" x="0" y="5">∇ · E = ρ/ε₀       ∇ × E = -∂B/∂t</text>
+    <text class="eqn-text eqn-lg" x="0" y="38">∇ · B = 0          ∇ × B = μ₀J + μ₀ε₀ ∂E/∂t</text>
+    <text class="eqn-text eqn-sm" x="0" y="68">Lorentz Force: F = q(E + v × B)  ·  c = 1/√(μ₀ε₀)</text>
+  </g>
+
+  <!-- Electromagnetic Dipole Field Lines Schematic -->
+  <g transform="translate(1180, 240)">
+    <!-- Positive and negative charge nodes -->
+    <circle class="diag-fill accent-gold" cx="60" cy="80" r="5" />
+    <circle class="diag-fill" cx="180" cy="80" r="5" />
+    <text class="eqn-text eqn-sm accent-gold" x="55" y="72">+q</text>
+    <text class="eqn-text eqn-sm" x="177" y="72">-q</text>
+    <!-- Field line arcs -->
+    <path class="diag-stroke" d="M 60,80 C 60,20 180,20 180,80" />
+    <path class="diag-stroke" d="M 60,80 C 60,140 180,140 180,80" />
+    <path class="diag-stroke" d="M 60,80 C 40,-10 200,-10 180,80" />
+    <path class="diag-stroke" d="M 60,80 C 40,170 200,170 180,80" />
+    <line class="diag-stroke" x1="65" y1="80" x2="175" y2="80" />
+    <text class="eqn-text eqn-sm" x="80" y="185">Dipole: V(r) = p̂·r̂ / (4πε₀r²)</text>
+  </g>
+
+  <!-- ================= CENTER: CLASSICAL & HAMILTONIAN MECHANICS ================= -->
+  <!-- Euler-Lagrange & Hamilton's Equations -->
+  <g transform="translate(560, 360)">
+    <text class="eqn-text eqn-lg" x="0" y="0">d/dt(∂L/∂q̇ₖ) - ∂L/∂qₖ = 0</text>
+    <text class="eqn-text" x="0" y="28">q̇ = ∂H/∂p ,   ṗ = -∂H/∂q   ·   H = ∑ pᵢq̇ᵢ - L</text>
+    <text class="eqn-text eqn-sm" x="0" y="52">Poisson Brackets: {f, g} = ∑ (∂f/∂qᵢ ∂g/∂pᵢ - ∂f/∂pᵢ ∂g/∂qᵢ)</text>
+    <text class="eqn-text eqn-sm" x="0" y="74">Conservation: dH/dt = ∂H/∂t = 0  (Energy Conserved)</text>
+  </g>
+
+  <!-- Damped Phase Space Spiral Orbit (x, p) -->
+  <g transform="translate(680, 480)">
+    <line class="diag-dashed" x1="-100" y1="0" x2="100" y2="0" />
+    <line class="diag-dashed" x1="0" y1="-90" x2="0" y2="90" />
+    <text class="eqn-text eqn-sm" x="105" y="4">x</text>
+    <text class="eqn-text eqn-sm" x="4" y="-95">p</text>
+    <!-- Phase Spiral converging to (0,0) -->
+    <path class="diag-stroke accent-green" d="
+      M 90,0 
+      A 90,80 0 0 1 0,80
+      A 75,70 0 0 1 -75,0
+      A 60,55 0 0 1 0,-55
+      A 45,42 0 0 1 45,0
+      A 35,30 0 0 1 0,30
+      A 25,20 0 0 1 -25,0
+      A 15,12 0 0 1 0,-12
+      A 8,6 0 0 1 8,0
+    " />
+    <circle class="diag-fill accent-green" cx="0" cy="0" r="3" />
+    <text class="eqn-text eqn-sm" x="-75" y="110">Phase Space: mẍ + bẋ + kx = 0</text>
+  </g>
+
+  <!-- ================= MIDDLE LEFT: THERMODYNAMICS & STATISTICAL PHYSICS ================= -->
+  <g transform="translate(70, 560)">
+    <text class="eqn-text eqn-lg" x="0" y="0">S = k_B ln Ω   ·   dU = T dS - P dV + μ dN</text>
+    <text class="eqn-text" x="0" y="28">Z = ∑ᵢ e^(-β Eᵢ)   ·   F = -k_B T ln Z</text>
+    <text class="eqn-text eqn-sm" x="0" y="52">Maxwell-Boltzmann: f(v) = 4π(m/2πk_BT)^(3/2) v² e^(-mv²/2k_BT)</text>
+    <text class="eqn-text eqn-sm" x="0" y="74">Bose-Einstein: n(ε) = 1/(e^β(ε-μ) - 1)  ·  Fermi-Dirac: 1/(e^β(ε-μ) + 1)</text>
+  </g>
+
+  <!-- Heat Engine Carnot Cycle Diagram -->
+  <g transform="translate(100, 680)">
+    <!-- Axes P vs V -->
+    <line class="diag-stroke" x1="0" y1="120" x2="160" y2="120" />
+    <line class="diag-stroke" x1="0" y1="120" x2="0" y2="0" />
+    <text class="eqn-text eqn-sm" x="165" y="124">V</text>
+    <text class="eqn-text eqn-sm" x="-4" y="-8">P</text>
+    <!-- Carnot loop (Isothermal & Adiabatic curves) -->
+    <path class="diag-stroke accent-gold" d="
+      M 30,20 
+      Q 70,35 110,60
+      Q 125,85 130,105
+      Q 85,95 45,75
+      Q 32,45 30,20
+      Z" />
+    <text class="eqn-text eqn-sm" x="70" y="25">T_H</text>
+    <text class="eqn-text eqn-sm" x="90" y="105">T_C</text>
+    <text class="eqn-text eqn-sm" x="145" y="60">η = 1 - T_C/T_H</text>
+  </g>
+
+  <!-- ================= MIDDLE RIGHT: GENERAL RELATIVITY & GRAVITATION ================= -->
+  <!-- Einstein Field Equations -->
+  <g transform="translate(1000, 520)">
+    <text class="eqn-text eqn-lg" x="0" y="0">G_μν + Λ g_μν = (8πG / c⁴) T_μν</text>
+    <text class="eqn-text" x="0" y="28">ds² = -(1 - 2GM/rc²) c²dt² + (1 - 2GM/rc²)⁻¹ dr² + r²dΩ²</text>
+    <text class="eqn-text eqn-sm" x="0" y="52">Schwarzschild Radius: r_s = 2GM / c²  ·  Geodesic: d²xᵘ/dλ² + Γᵘ_αβ (dx^α/dλ)(dx^β/dλ) = 0</text>
+  </g>
+
+  <!-- Feynman Diagram: Electron-Positron Scattering (Møller / Bhabha) -->
+  <g transform="translate(1180, 640)">
+    <!-- Ingoing fermions -->
+    <line class="diag-stroke" x1="0" y1="0" x2="60" y2="40" />
+    <line class="diag-stroke" x1="0" y1="80" x2="60" y2="40" />
+    <!-- Photon exchange wavy line -->
+    <path class="diag-stroke accent-gold" d="M 60,40 Q 75,30 90,40 T 120,40 T 150,40" />
+    <!-- Outgoing fermions -->
+    <line class="diag-stroke" x1="150" y1="40" x2="210" y2="0" />
+    <line class="diag-stroke" x1="150" y1="40" x2="210" y2="80" />
+    <!-- Labels -->
+    <text class="eqn-text eqn-sm" x="-15" y="5">e⁻</text>
+    <text class="eqn-text eqn-sm" x="-15" y="85">e⁻</text>
+    <text class="eqn-text eqn-sm accent-gold" x="100" y="25">γ (Photon)</text>
+    <text class="eqn-text eqn-sm" x="215" y="5">e⁻</text>
+    <text class="eqn-text eqn-sm" x="215" y="85">e⁻</text>
+    <text class="eqn-text eqn-sm" x="50" y="110">Feynman Amplitude: ℳ = -e² [ūγᵘu](1/q²)[ūγ_μu]</text>
+  </g>
+
+  <!-- ================= BOTTOM: WAVE MECHANICS & FOURIER TRANSFORMS ================= -->
+  <!-- Wave Equation & Dispersion -->
+  <g transform="translate(120, 920)">
+    <text class="eqn-text eqn-lg" x="0" y="0">∇²u - (1/v²) ∂²u/∂t² = 0   ·   v = λf = ω/k</text>
+    <text class="eqn-text" x="0" y="28">Fourier Transform: f̂(k) = (2π)^(-1/2) ∫₋∞^∞ f(x) e^(-ikx) dx</text>
+    <text class="eqn-text eqn-sm" x="0" y="52">Dispersion Relation: ω = ω(k)  ·  v_phase = ω/k  ·  v_group = dω/dk</text>
+  </g>
+
+  <!-- Wavepacket Packet Curve -->
+  <g transform="translate(140, 1020)">
+    <!-- Gaussian envelope -->
+    <path class="diag-dashed" d="M 0,40 Q 100,0 200,40 Q 300,80 400,40" />
+    <!-- Carrier wave oscillations modulated by Gaussian -->
+    <path class="diag-stroke" d="
+      M 0,40 
+      Q 25,36 50,40 
+      Q 75,25 100,40 
+      Q 125,10 150,40 
+      Q 175,65 200,40 
+      Q 225,12 250,40 
+      Q 275,60 300,40 
+      Q 325,30 350,40 
+      Q 375,45 400,40" />
+    <text class="eqn-text eqn-sm" x="415" y="44">ψ(x,t) = e^(-(x-vt)²/2σ²) e^(i(kx-ωt))</text>
+  </g>
+
+  <!-- ================= BOTTOM RIGHT: ASTROPHYSICS & ORBITS ================= -->
+  <!-- Kepler's Laws & Orbit Equation -->
+  <g transform="translate(880, 920)">
+    <text class="eqn-text eqn-lg" x="0" y="0">r(θ) = p / (1 + e cos θ)   ·   T² = (4π²/GM) a³</text>
+    <text class="eqn-text" x="0" y="28">Specific Orbital Energy: ε = v²/2 - μ/r = -μ/(2a)</text>
+    <text class="eqn-text eqn-sm" x="0" y="52">Vis-Viva: v² = GM(2/r - 1/a)  ·  Angular Momentum: h = r × v = const</text>
+  </g>
+
+  <!-- Lissajous Resonance Figure (3:2 frequency ratio) -->
+  <g transform="translate(1320, 1010)">
+    <!-- Parametric loop x = sin(3t), y = sin(2t) -->
+    <path class="diag-stroke accent-green" d="
+      M 0,-40
+      C 40,-40 60,-10 30,10
+      C 0,30 -60,40 -60,0
+      C -60,-30 40,30 60,30
+      C 60,10 -30,-40 0,-40
+    " />
+    <text class="eqn-text eqn-sm" x="-50" y="65">Lissajous: ω_x/ω_y = 3:2</text>
+  </g>
+
+</svg>

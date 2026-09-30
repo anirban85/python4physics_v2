@@ -21,12 +21,23 @@ require_once __DIR__ . '/include/navbar.php';
         <canvas id="physicsHeroCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
     </div>
 
-    <!-- Live Telemetry HUD -->
+    <!-- Ambient Floating Physics Formulas & Equations Watermarks -->
+    <div class="physics-watermark" style="top: 8%; left: 2%; transform: rotate(-5deg);">$i\hbar \frac{\partial\psi}{\partial t} = \hat{H}\psi$</div>
+    <div class="physics-watermark" style="top: 12%; right: 2%; transform: rotate(4deg);">$\nabla \times \mathbf{B} = \mu_0 \mathbf{J} + \frac{1}{c^2}\frac{\partial\mathbf{E}}{\partial t}$</div>
+    <div class="physics-watermark" style="bottom: 14%; left: 3%; transform: rotate(3deg);">$G_{\mu\nu} = \frac{8\pi G}{c^4}T_{\mu\nu}$</div>
+    <div class="physics-watermark" style="bottom: 16%; right: 3%; transform: rotate(-4deg);">$\mathcal{L} = T - V$</div>
+
+    <!-- Live Telemetry HUD & Interactive Model Switcher -->
     <div class="canvas-telemetry">
-        <span><i class="fa-solid fa-atom"></i> MODEL: <strong class="active-val">N-BODY CENTRAL FIELD</strong></span>
+        <span><i class="fa-solid fa-atom"></i> MODEL: <strong id="hudFieldModel" class="active-val">CENTRAL GRAVITY [1/r]</strong></span>
         <span>INTEGRATOR: <strong class="active-val">SYMPLECTIC VERLET</strong></span>
-        <span>ENERGY: <strong class="active-val">$\mathcal{H} = T + V < 0$</strong></span>
-        <span style="opacity: 0.7;"><i class="fa-solid fa-mouse-pointer"></i> Move cursor to perturb orbits &middot; Click to pulse</span>
+        <span>ENERGY: <strong id="hudFieldEnergy" class="active-val">$\mathcal{H} = T + V < 0$</strong></span>
+        <div style="display: flex; gap: 0.35rem; align-items: center; margin-left: auto;">
+            <span style="font-size: 0.68rem; text-transform: uppercase; color: var(--text-dim); margin-right: 2px;">Field:</span>
+            <button type="button" class="potential-mode-btn active" data-mode="kepler" onclick="window.setPhysicsFieldMode('kepler')">Kepler $1/r$</button>
+            <button type="button" class="potential-mode-btn" data-mode="harmonic" onclick="window.setPhysicsFieldMode('harmonic')">Harmonic $r^2$</button>
+            <button type="button" class="potential-mode-btn" data-mode="dipole" onclick="window.setPhysicsFieldMode('dipole')">Dipole</button>
+        </div>
     </div>
 
     <div class="container" style="position: relative; z-index: 1; text-align: center; max-width: 980px;">
@@ -316,16 +327,40 @@ plt.show()
                     17 => 'fa-crosshairs', 18 => 'fa-atom', 19 => 'fa-circle-nodes', 20 => 'fa-temperature-half'
                 ];
 
+                $chapter_formulas = [
+                    1 => '$\\mathbf{r}(t), \\mathbf{v}(t)$',
+                    2 => '$\\int f(x)dx$',
+                    3 => '$\\sum x_i, \\sigma$',
+                    4 => '$\\mathbf{A}\\mathbf{x} = \\mathbf{b}$',
+                    5 => '$\\sin(\\omega t), e^{i\\theta}$',
+                    6 => '$\\frac{dx}{dt} = f(t,x)$',
+                    7 => '$\\det(\\mathbf{A} - \\lambda\\mathbf{I}) = 0$',
+                    8 => '$f(x) = 0$',
+                    9 => '$\\frac{d^2y}{dx^2} + qy = r$',
+                    10 => '$\\nabla \\phi$',
+                    11 => '$\\int_a^b f(x)dx$',
+                    12 => '$\\ddot{x} + \\omega^2 x = 0$',
+                    13 => '$\\hat{f}(k) = \\int f e^{-ikx}$',
+                    14 => '$\\lim_{N\\to\\infty} \\sum$',
+                    15 => '$\\nabla^2 u = \\frac{1}{v^2}\\ddot{u}$',
+                    16 => '$\\nabla \\cdot \\mathbf{v} = 0$',
+                    17 => '$\\mathbf{F} = q(\\mathbf{E}+\\mathbf{v}\\times\\mathbf{B})$',
+                    18 => '$i\\hbar \\partial_t \\psi = \\hat{H}\\psi$',
+                    19 => '$N(t) = N_0 e^{-\\lambda t}$',
+                    20 => '$dU = TdS - PdV$'
+                ];
+
                 foreach ($menu_titles as $mid => $mtitle) {
                     $icon = $icons[$mid] ?? 'fa-folder';
                     $subCount = isset($sub_menu_titles[$mid]) ? count($sub_menu_titles[$mid]) : 0;
+                    $cFormula = $chapter_formulas[$mid] ?? "Ch. {$mid}";
                     echo "
                     <a href=\"{$siteurl}program/python/program.php?menu_id={$mid}&submenu_id=1\" class=\"glass-card\" style=\"display: block; text-decoration: none; padding: 1.25rem;\">
                         <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;\">
                             <span style=\"width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.12); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem;\">
                                 <i class=\"fa-solid {$icon}\"></i>
                             </span>
-                            <span class=\"badge badge-cyan\" style=\"font-size: 0.7rem;\">Ch. {$mid}</span>
+                            <span class=\"physics-formula-tag\" style=\"font-size: 0.76rem; padding: 0.15rem 0.5rem;\">{$cFormula}</span>
                         </div>
                         <h4 style=\"font-size: 1.05rem; margin-bottom: 0.4rem; color: var(--text);\">" . htmlspecialchars($mtitle) . "</h4>
                         <div style=\"font-size: 0.8rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.4rem;\">
