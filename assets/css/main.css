@@ -511,7 +511,8 @@ code, pre, kbd, samp {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 /* Quick Search Trigger in Navbar */
@@ -547,26 +548,83 @@ code, pre, kbd, samp {
   border: 1px solid var(--card-border);
 }
 
-/* Theme Toggle Button */
+/* Theme Toggle Button - Modern Lab Interactive Switch */
 .theme-toggle-btn {
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);
-  color: var(--text-muted);
-  width: 40px;
+  color: var(--text);
   height: 40px;
+  padding: 0 0.75rem;
   border-radius: var(--radius-md);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
   transition: var(--transition);
+  flex-shrink: 0;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .theme-toggle-btn:hover {
   color: var(--accent);
   border-color: var(--accent);
-  transform: rotate(15deg);
+  background: rgba(56, 189, 248, 0.12);
+  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.22);
+}
+
+.theme-toggle-btn i {
+  font-size: 1rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:hover i {
+  transform: rotate(20deg) scale(1.15);
+}
+
+.theme-toggle-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.theme-toggle-btn:hover .theme-toggle-label {
+  color: var(--text);
+}
+
+/* Mobile Drawer Theme Row */
+.mobile-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-theme-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-theme-toggle-btn {
+  padding: 0.4rem 0.95rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  font-size: 0.84rem;
 }
 
 /* Mobile Hamburger */
@@ -580,6 +638,7 @@ code, pre, kbd, samp {
   border-radius: var(--radius-md);
   font-size: 1.25rem;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* Global Command Palette / Search Modal */
@@ -814,18 +873,37 @@ code, pre, kbd, samp {
   color: var(--text-dim);
 }
 
-/* Responsive Rules */
-@media (max-width: 1280px) {
+/* Responsive Rules - Zero Horizontal Scroll & Guaranteed Theme Switcher Visibility */
+@media (max-width: 1440px) {
   .nav-search-btn span, .nav-search-btn kbd {
     display: none;
   }
+  .nav-search-btn {
+    padding: 0.4rem 0.6rem;
+  }
   .nav-link-item {
-    padding: 0.4rem 0.5rem;
+    padding: 0.4rem 0.45rem;
     font-size: 0.82rem;
+    gap: 0.2rem;
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1260px) {
+  .theme-toggle-label {
+    display: none;
+  }
+  .theme-toggle-btn {
+    padding: 0;
+    width: 40px;
+    height: 40px;
+  }
+  .nav-link-item {
+    padding: 0.35rem 0.4rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 1160px) {
   .nav-links {
     display: none;
   }
@@ -833,6 +911,14 @@ code, pre, kbd, samp {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  .theme-toggle-label {
+    display: none;
+  }
+  .theme-toggle-btn {
+    padding: 0;
+    width: 40px;
+    height: 40px;
   }
   .nav-search-btn span, .nav-search-btn kbd {
     display: none;
@@ -844,6 +930,33 @@ code, pre, kbd, samp {
 }
 
 @media (max-width: 640px) {
+  .site-navbar .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .navbar-inner {
+    height: 62px;
+    gap: 0.4rem;
+  }
+  .brand-link {
+    font-size: 1.1rem;
+    gap: 0.4rem;
+  }
+  .brand-link i {
+    font-size: 1.3rem !important;
+  }
+  .brand-badge {
+    display: none;
+  }
+  .nav-actions {
+    gap: 0.35rem;
+  }
+  .nav-search-btn, .theme-toggle-btn, .mobile-nav-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+    padding: 0;
+  }
   h1 { font-size: 2rem; }
   h2 { font-size: 1.6rem; }
   .footer-grid {
@@ -1131,4 +1244,311 @@ code, pre, kbd, samp {
   color: var(--warning);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
+
+/* ==========================================================================
+   Hero Interactive Physics Domain Pillars (Flagship Discovery Modules)
+   ========================================================================== */
+.p4p-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+@media (max-width: 1100px) {
+  .p4p-pillars-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .p4p-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.p4p-pillar-card {
+  background: var(--card-bg-solid, #131d31);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.p4p-pillar-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.25s ease;
+}
+
+/* Card Specific Theming */
+.p4p-pillar-card.card-python:hover {
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 12px 30px -6px rgba(56, 189, 248, 0.22), 0 0 0 1px rgba(56, 189, 248, 0.35);
+  transform: translateY(-6px);
+}
+.p4p-pillar-card.card-python::before {
+  background: linear-gradient(90deg, #38bdf8, #2563eb);
+}
+
+.p4p-pillar-card.card-gnuplot:hover {
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 12px 30px -6px rgba(245, 158, 11, 0.22), 0 0 0 1px rgba(245, 158, 11, 0.35);
+  transform: translateY(-6px);
+}
+.p4p-pillar-card.card-gnuplot::before {
+  background: linear-gradient(90deg, #f59e0b, #ea580c);
+}
+
+.p4p-pillar-card.card-latex:hover {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 12px 30px -6px rgba(168, 85, 247, 0.22), 0 0 0 1px rgba(168, 85, 247, 0.35);
+  transform: translateY(-6px);
+}
+.p4p-pillar-card.card-latex::before {
+  background: linear-gradient(90deg, #a855f7, #6366f1);
+}
+
+.p4p-pillar-card.card-arduino:hover {
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 12px 30px -6px rgba(16, 185, 129, 0.22), 0 0 0 1px rgba(16, 185, 129, 0.35);
+  transform: translateY(-6px);
+}
+.p4p-pillar-card.card-arduino::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+/* Header with Icon and Badge */
+.p4p-pillar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+}
+
+.p4p-pillar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: transform 0.25s ease;
+}
+.p4p-pillar-card:hover .p4p-pillar-icon {
+  transform: scale(1.1);
+}
+
+.py-icon { background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25); }
+.gnu-icon { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); }
+.tex-icon { background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); }
+.ard-icon { background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); }
+
+.p4p-pillar-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.py-badge { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); }
+.gnu-badge { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+.tex-badge { background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2); }
+.ard-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+/* Typography */
+.p4p-pillar-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+  line-height: 1.25;
+}
+
+.p4p-pillar-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 0.85rem;
+  min-height: 2.8em;
+}
+
+/* Micro-Preview Visual Container */
+.p4p-pillar-preview {
+  background: rgba(6, 9, 17, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  margin-bottom: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .p4p-pillar-preview {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.p4p-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding-bottom: 0.3rem;
+}
+
+.p4p-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 3px;
+}
+.dot-red { background: #ef4444; }
+.dot-yellow { background: #f59e0b; }
+.dot-green { background: #10b981; }
+
+.p4p-code-line {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  font-size: 0.7rem;
+}
+.p4p-code-line .c-kw { color: #f43f5e; font-weight: 600; }
+.p4p-code-line .c-fn { color: #38bdf8; font-weight: 600; }
+.p4p-code-line .c-var { color: #f59e0b; }
+.p4p-code-line .c-num { color: #10b981; }
+
+.p4p-formula-display {
+  font-size: 0.92rem;
+  color: #e9d5ff;
+  text-align: center;
+  margin: 3px 0;
+  font-family: 'STIX Two Text', serif;
+}
+
+[data-theme="light"] .p4p-formula-display {
+  color: #6b21a8 !important;
+}
+
+[data-theme="light"] .p4p-pillar-preview .p4p-code-line {
+  color: #334155;
+}
+
+[data-theme="light"] .p4p-pillar-preview .p4p-preview-header {
+  color: #64748b;
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+/* SVG Animated Wave / Orbit */
+.p4p-curve-svg {
+  width: 100%;
+  height: 38px;
+  display: block;
+}
+.p4p-animated-orbit {
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation: p4pTraceOrbit 3.5s ease-in-out infinite alternate;
+}
+@keyframes p4pTraceOrbit {
+  0% { stroke-dashoffset: 220; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* Pulsing Hardware Telemetry */
+.p4p-live-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  display: inline-block;
+  animation: p4pBlink 1.4s infinite;
+}
+@keyframes p4pBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.p4p-scope-trace {
+  stroke-dasharray: 200;
+  animation: p4pScopeTrace 2.2s linear infinite;
+}
+@keyframes p4pScopeTrace {
+  from { stroke-dashoffset: 200; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Micro-Tags Ribbon */
+.p4p-pillar-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+.p4p-mini-chip {
+  font-size: 0.68rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--text-dim);
+}
+.p4p-pillar-card:hover .p4p-mini-chip {
+  color: var(--text-muted);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* Footer Action */
+.p4p-pillar-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  transition: color 0.2s ease;
+}
+.p4p-pillar-action i {
+  transition: transform 0.2s ease;
+}
+.p4p-pillar-card:hover .p4p-pillar-action i {
+  transform: translateX(5px);
+}
+.card-python .p4p-pillar-action { color: #38bdf8; }
+.card-gnuplot .p4p-pillar-action { color: #f59e0b; }
+.card-latex .p4p-pillar-action { color: #c084fc; }
+.card-arduino .p4p-pillar-action { color: #10b981; }
 

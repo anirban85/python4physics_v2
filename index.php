@@ -40,7 +40,7 @@ require_once __DIR__ . '/include/navbar.php';
         </div>
     </div>
 
-    <div class="container" style="position: relative; z-index: 1; text-align: center; max-width: 980px;">
+    <div class="container" style="position: relative; z-index: 1; text-align: center; max-width: 1140px;">
         <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center;">
             <span class="badge badge-cyan"><i class="fa-solid fa-atom"></i> Computational Physics Laboratory</span>
             <span class="badge badge-amber"><i class="fa-solid fa-square-root-variable"></i> Numerical ODE & PDE Solvers</span>
@@ -69,28 +69,149 @@ require_once __DIR__ . '/include/navbar.php';
             </button>
         </div>
 
-        <!-- Metric Badges Counter with Physics Notation -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1.25rem; max-width: 840px; margin: 0 auto;">
-            <div class="glass-card" style="padding: 1.25rem 1rem;">
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent); font-family: 'Outfit';">345+</div>
-                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">Python Algorithms</div>
-                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$N_{\mathrm{algo}} = 345$</div>
-            </div>
-            <div class="glass-card" style="padding: 1.25rem 1rem;">
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--warning); font-family: 'Outfit';">49+</div>
-                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">GNUplot Curves</div>
-                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$\mathcal{C}_{\mathrm{2D/3D}} = 49$</div>
-            </div>
-            <div class="glass-card" style="padding: 1.25rem 1rem;">
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary); font-family: 'Outfit';">115+</div>
-                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">LaTeX Papers</div>
-                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$\mathrm{TikZ} \cdot \mathrm{AMS}$</div>
-            </div>
-            <div class="glass-card" style="padding: 1.25rem 1rem;">
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--success); font-family: 'Outfit';">20</div>
-                <div style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin-bottom: 2px;">Physics Chapters</div>
-                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">$\mathcal{M}_{1\dots 20}$</div>
-            </div>
+        <!-- Interactive Physics Domain Discovery Pillars -->
+        <div class="p4p-pillars-grid">
+            
+            <!-- Pillar 1: Python In-Browser WASM Solvers -->
+            <a href="<?php echo $siteurl; ?>program/python/index.php" class="p4p-pillar-card card-python" title="Open Interactive Python Physics Programs">
+                <div>
+                    <div class="p4p-pillar-head">
+                        <div class="p4p-pillar-icon py-icon"><i class="fa-brands fa-python"></i></div>
+                        <span class="p4p-pillar-badge py-badge"><i class="fa-solid fa-play"></i> In-Browser WASM</span>
+                    </div>
+                    <div class="p4p-pillar-title">Python ODE & PDE Solvers</div>
+                    <div class="p4p-pillar-desc">Real-time numerical solvers for coupled ODEs, chaotic orbits, and quantum wavefunctions.</div>
+                    
+                    <div class="p4p-pillar-preview">
+                        <div class="p4p-preview-header">
+                            <div><span class="p4p-dot dot-red"></span><span class="p4p-dot dot-yellow"></span><span class="p4p-dot dot-green"></span>rk4_integrator.py</div>
+                            <span style="color: #38bdf8;"><i class="fa-solid fa-bolt"></i> Pyodide</span>
+                        </div>
+                        <div class="p4p-code-line"><span class="c-kw">def</span> <span class="c-fn">rk4_step</span>(f, x, t, dt):</div>
+                        <div class="p4p-code-line" style="padding-left: 8px;"><span class="c-var">k1</span> = f(x, t); <span class="c-var">k2</span> = f(x+dt*<span class="c-num">0.5</span>*k1)</div>
+                    </div>
+
+                    <div class="p4p-pillar-chips">
+                        <span class="p4p-mini-chip">Symplectic Verlet</span>
+                        <span class="p4p-mini-chip">NumPy · SciPy</span>
+                        <span class="p4p-mini-chip">345+ Programs</span>
+                    </div>
+                </div>
+
+                <div class="p4p-pillar-action">
+                    <span>Explore Solvers</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Pillar 2: GNUplot Phase-Space Visualizer -->
+            <a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="p4p-pillar-card card-gnuplot" title="Open Scientific GNUplot 2D & 3D Curves">
+                <div>
+                    <div class="p4p-pillar-head">
+                        <div class="p4p-pillar-icon gnu-icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <span class="p4p-pillar-badge gnu-badge"><i class="fa-solid fa-compass-drafting"></i> 2D & 3D Curves</span>
+                    </div>
+                    <div class="p4p-pillar-title">Phase Portraits & Vectors</div>
+                    <div class="p4p-pillar-desc">Parametric phase portraits, vector fields, electrostatic equipotentials, and 3D surface meshes.</div>
+
+                    <div class="p4p-pillar-preview">
+                        <div class="p4p-preview-header">
+                            <div><i class="fa-solid fa-wave-square" style="color: #f59e0b; margin-right: 4px;"></i> Phase Orbit [p vs q]</div>
+                            <span style="color: #f59e0b;">Lissajous</span>
+                        </div>
+                        <svg viewBox="0 0 200 38" class="p4p-curve-svg">
+                            <defs>
+                                <linearGradient id="gnuGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#f59e0b"/>
+                                    <stop offset="50%" stop-color="#fbbf24"/>
+                                    <stop offset="100%" stop-color="#f97316"/>
+                                </linearGradient>
+                            </defs>
+                            <path class="p4p-animated-orbit" d="M 10,19 Q 35,0 60,19 T 110,19 T 160,19 Q 185,38 160,19 T 110,19 T 60,19 Z" fill="none" stroke="url(#gnuGrad)" stroke-width="2"/>
+                            <circle cx="110" cy="19" r="3" fill="#f59e0b"/>
+                        </svg>
+                    </div>
+
+                    <div class="p4p-pillar-chips">
+                        <span class="p4p-mini-chip">Phase Space</span>
+                        <span class="p4p-mini-chip">Equipotentials</span>
+                        <span class="p4p-mini-chip">49+ Curves</span>
+                    </div>
+                </div>
+
+                <div class="p4p-pillar-action">
+                    <span>Explore GNUplot</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Pillar 3: LaTeX Analytical Formulations -->
+            <a href="<?php echo $siteurl; ?>program/latex/index.php" class="p4p-pillar-card card-latex" title="Open LaTeX Academic Formulations">
+                <div>
+                    <div class="p4p-pillar-head">
+                        <div class="p4p-pillar-icon tex-icon"><i class="fa-solid fa-square-root-variable"></i></div>
+                        <span class="p4p-pillar-badge tex-badge"><i class="fa-solid fa-feather-pointed"></i> AMS-LaTeX</span>
+                    </div>
+                    <div class="p4p-pillar-title">Mathematical Derivations</div>
+                    <div class="p4p-pillar-desc">Analytical proofs, Hamiltonian dynamics, and vector diagrams with LaTeX source code.</div>
+
+                    <div class="p4p-pillar-preview" style="display: flex; flex-direction: column; justify-content: center; min-height: 52px; padding: 0.35rem 0.5rem;">
+                        <div class="p4p-preview-header" style="margin-bottom: 2px;">
+                            <div><i class="fa-solid fa-scroll" style="color: #c084fc; margin-right: 4px;"></i> Canonical Equation</div>
+                            <span style="color: #c084fc;">TikZ · AMS</span>
+                        </div>
+                        <div class="p4p-formula-display">
+                            $\mathcal{H} = \sum p_i \dot{q}_i - \mathcal{L}$
+                        </div>
+                    </div>
+
+                    <div class="p4p-pillar-chips">
+                        <span class="p4p-mini-chip">Hamiltonian</span>
+                        <span class="p4p-mini-chip">TikZ Vector</span>
+                        <span class="p4p-mini-chip">115+ Papers</span>
+                    </div>
+                </div>
+
+                <div class="p4p-pillar-action">
+                    <span>View Formulations</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Pillar 4: Virtual Hardware & Arduino Lab -->
+            <a href="<?php echo $siteurl; ?>arduino.php" class="p4p-pillar-card card-arduino" title="Launch Virtual Arduino & Circuit Simulator">
+                <div>
+                    <div class="p4p-pillar-head">
+                        <div class="p4p-pillar-icon ard-icon"><i class="fa-solid fa-microchip"></i></div>
+                        <span class="p4p-pillar-badge ard-badge"><span class="p4p-live-pulse-dot"></span> Virtual Lab</span>
+                    </div>
+                    <div class="p4p-pillar-title">Arduino & Circuit Lab</div>
+                    <div class="p4p-pillar-desc">Interactive breadboard simulator with 16+ syllabus experiments, sensors, and live oscilloscope.</div>
+
+                    <div class="p4p-pillar-preview">
+                        <div class="p4p-preview-header">
+                            <div><i class="fa-solid fa-wave-square" style="color: #10b981; margin-right: 4px;"></i> Scope CH1</div>
+                            <span style="color: #10b981; font-weight: 700;">16 MHz</span>
+                        </div>
+                        <svg viewBox="0 0 200 38" class="p4p-curve-svg">
+                            <path d="M 0,19 L 200,19 M 50,0 L 50,38 M 100,0 L 100,38 M 150,0 L 150,38" stroke="rgba(16,185,129,0.18)" stroke-width="1" stroke-dasharray="2,2"/>
+                            <path class="p4p-scope-trace" d="M 0,19 L 25,19 L 30,5 L 40,33 L 45,19 L 85,19 L 90,5 L 100,33 L 105,19 L 145,19 L 150,5 L 160,33 L 165,19 L 200,19" fill="none" stroke="#10b981" stroke-width="2"/>
+                        </svg>
+                    </div>
+
+                    <div class="p4p-pillar-chips">
+                        <span class="p4p-mini-chip">Syllabus Exps</span>
+                        <span class="p4p-mini-chip">Sensors & SPI TFT</span>
+                        <span class="p4p-mini-chip">Telemetry</span>
+                    </div>
+                </div>
+
+                <div class="p4p-pillar-action">
+                    <span>Launch Simulator</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
         </div>
     </div>
 </section>

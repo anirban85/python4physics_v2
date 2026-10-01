@@ -41,8 +41,9 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
                     <kbd>Ctrl+K</kbd>
                 </button>
 
-                <button type="button" class="theme-toggle-btn" aria-label="Toggle theme">
-                    <i class="fa-solid fa-sun"></i>
+                <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Dark and Light Mode" title="Toggle Theme (Dark / Light Mode)">
+                    <i class="fa-solid fa-moon"></i>
+                    <span class="theme-toggle-label">Dark</span>
                 </button>
 
                 <button type="button" class="mobile-nav-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation">
@@ -54,6 +55,17 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
 
     <!-- Mobile Drawer Navigation -->
     <div id="mobileDrawer" style="display:none; background: var(--bg-secondary); border-bottom: 1px solid var(--card-border); padding: 1rem 1.5rem;">
+        <!-- Mobile Drawer Color Theme Switcher Option -->
+        <div class="mobile-theme-row">
+            <span class="mobile-theme-title">
+                <i class="fa-solid fa-circle-half-stroke" style="color: var(--accent);"></i> Color Theme
+            </span>
+            <button type="button" class="theme-toggle-btn mobile-theme-toggle-btn" aria-label="Toggle Dark and Light Mode" title="Toggle Theme (Dark / Light Mode)">
+                <i class="fa-solid fa-moon"></i>
+                <span class="theme-toggle-label theme-mode-text">Dark Mode</span>
+            </button>
+        </div>
+
         <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0;">
             <li><a href="<?php echo $siteurl; ?>" class="nav-link-item"><i class="fa-solid fa-house fa-fw"></i> Home</a></li>
             <li><a href="<?php echo $siteurl; ?>program/python/index.php" class="nav-link-item"><i class="fa-brands fa-python fa-fw"></i> Python (345 Codes)</a></li>

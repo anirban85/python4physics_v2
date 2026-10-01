@@ -93,6 +93,12 @@ require_once __DIR__ . '/include/navbar.php';
                         <option value="button_toggle">Starter: Pushbutton Digital Input & Pullup</option>
                     </optgroup>
                 </select>
+
+                <!-- Workbench Quick Theme Toggle Option -->
+                <button type="button" class="theme-toggle-btn tc-tool-btn" id="tcThemeToggleBtn" aria-label="Toggle Dark and Light Mode" title="Toggle Dark / Light Workbench Theme" style="height: 32px; padding: 0 0.6rem; font-size: 0.8rem; background: var(--tc-toolbar-bg); border: 1px solid var(--tc-toolbar-border); color: var(--tc-text-main); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <i class="fa-solid fa-moon"></i>
+                    <span class="theme-toggle-label">Dark</span>
+                </button>
             </div>
         </div>
 

@@ -25,6 +25,9 @@ $base_url = get_base_url();
     <!-- Admin CSS -->
     <link rel="stylesheet" href="<?php echo $base_url; ?>/admin/css/admin.css">
 
+    <!-- Early Theme Applier -->
+    <script src="<?php echo $base_url; ?>/assets/js/theme.js"></script>
+
     <!-- CodeMirror for code editing if on programs or assignments page -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-ocean.min.css">
@@ -61,6 +64,12 @@ $base_url = get_base_url();
         </div>
 
         <div class="admin-nav-actions">
+            <!-- Theme Toggle Option -->
+            <button type="button" class="theme-toggle-btn admin-theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Dark / Light Mode" style="height: 36px; padding: 0 0.65rem; font-size: 0.82rem; background: var(--admin-surface-2); border: 1px solid var(--admin-border); color: var(--admin-text-main); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-moon"></i>
+                <span class="theme-toggle-label">Dark</span>
+            </button>
+
             <a href="<?php echo $base_url; ?>/index.php" target="_blank" class="btn-admin btn-admin-secondary btn-admin-sm" title="View live website in new tab">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Live Site
             </a>

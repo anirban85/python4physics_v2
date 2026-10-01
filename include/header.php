@@ -190,7 +190,7 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
         window.p4p_siteurl = "<?php echo $siteurl; ?>";
     </script>
     <!-- Early Theme Applier (prevents theme flicker) -->
-    <script src="<?php echo $siteurl; ?>assets/js/theme.js"></script>
+    <script src="<?php echo $siteurl; ?>assets/js/theme.js?v=<?php echo file_exists(__DIR__ . '/../assets/js/theme.js') ? filemtime(__DIR__ . '/../assets/js/theme.js') : '1.1'; ?>"></script>
 
     <!-- Global Physics Telemetry & Analytics Event Tracker -->
     <script>
