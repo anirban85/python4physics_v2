@@ -223,6 +223,13 @@ if len(plt.get_fignums()) > 0 and len(_pyodide_captured_frames) == 0:
       }
       if (onStatus) onStatus("Execution complete!");
 
+      if (typeof window.trackPhysicsEvent === 'function') {
+        window.trackPhysicsEvent('python_simulation_execute', {
+          event_category: 'Pyodide WebAssembly',
+          execution_time_seconds: parseFloat(elapsed)
+        });
+      }
+
       return { stdout, stderr, elapsed };
     } catch (err) {
       console.error("Execution error:", err);
@@ -281,6 +288,13 @@ if len(plt.get_fignums()) > 0 and len(_pyodide_captured_frames) == 0:
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    if (typeof window.trackPhysicsEvent === 'function') {
+      window.trackPhysicsEvent('jupyter_export', {
+        event_category: 'Physics Notebook',
+        event_label: title
+      });
+    }
   }
 
   exportPythonScript(filename, code) {
@@ -293,6 +307,13 @@ if len(plt.get_fignums()) > 0 and len(_pyodide_captured_frames) == 0:
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    if (typeof window.trackPhysicsEvent === 'function') {
+      window.trackPhysicsEvent('script_download', {
+        event_category: 'Python Source',
+        event_label: filename
+      });
+    }
   }
 }
 

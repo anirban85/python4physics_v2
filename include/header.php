@@ -35,6 +35,30 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+    <?php if (!empty($gtm_container_id)): ?>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','<?php echo htmlspecialchars($gtm_container_id); ?>');</script>
+    <!-- End Google Tag Manager -->
+    <?php endif; ?>
+
+    <?php if (!empty($ga_measurement_id)): ?>
+    <!-- Google tag (gtag.js) GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo htmlspecialchars($ga_measurement_id); ?>"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '<?php echo htmlspecialchars($ga_measurement_id); ?>', {
+        'anonymize_ip': true,
+        'cookie_flags': 'SameSite=None;Secure'
+      });
+    </script>
+    <?php endif; ?>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title_text); ?></title>
@@ -153,5 +177,27 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     </script>
     <!-- Early Theme Applier (prevents theme flicker) -->
     <script src="<?php echo $siteurl; ?>assets/js/theme.js"></script>
+
+    <!-- Global Physics Telemetry & Analytics Event Tracker -->
+    <script>
+      window.trackPhysicsEvent = function(eventName, params) {
+        try {
+          if (typeof gtag === 'function') {
+            gtag('event', eventName, params || {});
+          }
+          if (window.dataLayer) {
+            window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
+          }
+        } catch (e) {
+          console.warn('[Analytics Telemetry Error]', e);
+        }
+      };
+    </script>
 </head>
 <body>
+    <?php if (!empty($gtm_container_id)): ?>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo htmlspecialchars($gtm_container_id); ?>"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <?php endif; ?>

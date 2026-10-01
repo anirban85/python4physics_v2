@@ -33,3 +33,8 @@ if (!function_exists('get_base_url')) {
 $site_name = "Python4Physics";
 $site_tagline = "Computational Physics & Scientific Computing Portal";
 $site_authors = "Dr. Alorika Chatterjee & Dr. Anirban Shaw";
+
+// Google Analytics 4 & Google Tag Manager Configuration
+$ga_measurement_id = getenv('GA_MEASUREMENT_ID') ?: 'G-LKNBL5PKSH';
+$gtm_container_id  = getenv('GTM_CONTAINER_ID')  ?: 'GTM-NRDD47HL';
+$ga_enabled        = !empty($ga_measurement_id);

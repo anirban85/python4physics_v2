@@ -558,6 +558,13 @@ async function runAssignmentCode(codeId, statusId, consoleId, plotsId) {
     status.innerText = 'Solving ODE/PDE...';
     consoleEl.innerText = "Initializing numerical physics kernel...\n";
 
+    if (typeof window.trackPhysicsEvent === 'function') {
+        window.trackPhysicsEvent('simulation_run', {
+            event_category: 'Computational Lab',
+            event_label: codeId
+        });
+    }
+
     try {
         await window.physicsRunner.run(code, {
             onStatus: function(msg) { status.innerText = msg; },
@@ -580,6 +587,13 @@ function exportAssignmentJupyter(codeId, title) {
     var editor = assignEditors[codeId];
     var rawCode = editor ? editor.getValue() : document.getElementById(codeId).value;
     
+    if (typeof window.trackPhysicsEvent === 'function') {
+        window.trackPhysicsEvent('export_jupyter', {
+            event_category: 'Jupyter Notebook',
+            event_label: title
+        });
+    }
+
     // Wrap code with ipywidgets header for instant interactive slider exploration in JupyterLab
     var jupyterCode = `# Interactive Computational Physics Notebook - Python4Physics
 # Run this notebook in JupyterLab, Google Colab, or VS Code!
@@ -599,6 +613,12 @@ from ipywidgets import interact, FloatSlider, IntSlider
  * Filter Assignments by Syllabus Category
  */
 function filterAssignments(cat, btn) {
+    if (typeof window.trackPhysicsEvent === 'function') {
+        window.trackPhysicsEvent('filter_category', {
+            event_category: 'Syllabus Filter',
+            event_label: cat
+        });
+    }
     document.querySelectorAll('.btn-modern').forEach(b => {
         if (b.innerText.toLowerCase().includes('topic') || 
             b.innerText.toLowerCase().includes('central') || 
