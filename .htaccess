@@ -7,8 +7,7 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Route sitemap.xml to dynamic generator if available
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # Dynamic route for XML sitemap
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
 </IfModule>
 

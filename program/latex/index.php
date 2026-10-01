@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
 include_once __DIR__ . '/menu.php';
 
-$page_title = "LaTeX for Physics - Documentation Catalog";
+$page_title = "LaTeX for Physics - 115 Scientific Typesetting & Math Templates";
 $page_description = "Explore 115 LaTeX scientific documentation templates for physics: article classes, equations, calculus, matrices, tables, TikZ diagrams, and bibliography.";
 
 require_once __DIR__ . '/../../include/header.php';

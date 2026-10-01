@@ -3,6 +3,7 @@
  * Python4Physics - Dedicated Program Uploader & Code Manager
  */
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../include/menu_sync.php';
 require_once __DIR__ . '/auth.php';
 
 $page_title = "Manage & Upload Programs";
@@ -101,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $notice = "New {$lang} program #{$program_id} ('" . htmlspecialchars($algo) . "') published successfully!";
                 }
+                sync_sitemap_xml($conn);
                 $action = 'list';
                 $selected_lang = $lang;
             } catch (PDOException $e) {
@@ -114,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $conn->prepare("DELETE FROM `$del_lang` WHERE `id` = :id");
                 $stmt->execute([':id' => $del_id]);
+                sync_sitemap_xml($conn);
                 $notice = "Program deleted successfully.";
                 $selected_lang = $del_lang;
             } catch (PDOException $e) {

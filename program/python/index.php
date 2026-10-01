@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
 include_once __DIR__ . '/menu.php';
 
-$page_title = "Python for Physics - Chapters Catalog";
+$page_title = "Python for Physics - 20 Chapters & 345 Computational Algorithms";
 $page_description = "Browse all 20 chapters and 345 interactive computational physics programs in Python, covering Kinematics, ODEs, PDEs, Quantum Mechanics, and Numerical Integration.";
 
 require_once __DIR__ . '/../../include/header.php';

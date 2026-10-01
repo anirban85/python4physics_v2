@@ -42,7 +42,33 @@ if (!function_exists('sync_menus_to_file')) {
         $code .= "\$sub_menu_titles = " . var_export($submenus, true) . ";\n";
 
         $target_file = __DIR__ . "/../program/{$lang}/menu.php";
-        return file_put_contents($target_file, $code) !== false;
+        $saved = file_put_contents($target_file, $code) !== false;
+        
+        // Also automatically re-sync dynamic sitemap.xml
+        sync_sitemap_xml($conn);
+
+        return $saved;
+    }
+}
+
+if (!function_exists('sync_sitemap_xml')) {
+    function sync_sitemap_xml($conn = null) {
+        $sitemap_script = __DIR__ . '/../sitemap.php';
+        if (file_exists($sitemap_script)) {
+            // Include functions from sitemap.php if not yet loaded
+            require_once $sitemap_script;
+            if (function_exists('build_sitemap_urls') && function_exists('generate_sitemap_xml_string') && function_exists('sync_sitemap_to_disk')) {
+                $base_url = "https://v2.python4physics.in";
+                if (!empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && !str_starts_with($_SERVER['HTTP_HOST'], '127.0.0.1')) {
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443) ? "https://" : "http://";
+                    $base_url = rtrim($protocol . $_SERVER['HTTP_HOST'], '/');
+                }
+                $urls = build_sitemap_urls($base_url, $conn);
+                $xml = generate_sitemap_xml_string($urls);
+                return sync_sitemap_to_disk($xml);
+            }
+        }
+        return false;
     }
 }
 

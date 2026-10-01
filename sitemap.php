@@ -1,155 +1,185 @@
 <?php
 /**
  * Python4Physics - Dynamic XML Sitemap Generator
- * Automatically catalogs all educational pages, curriculum chapters, GNUplot scripts, and LaTeX templates.
+ * Automatically catalogs all educational pages, curriculum chapters, 
+ * interactive physics labs, GNUplot scripts, and LaTeX templates.
+ * 
+ * Synchronizes with database in real-time and writes fresh sitemap.xml to disk.
  */
 require_once __DIR__ . '/site_config.php';
+require_once __DIR__ . '/db.php';
 
-// Base URL for production
+// Detect canonical production URL
 $base_url = "https://v2.python4physics.in";
-if (!empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost') {
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+if (!empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && !str_starts_with($_SERVER['HTTP_HOST'], '127.0.0.1')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443) ? "https://" : "http://";
     $base_url = rtrim($protocol . $_SERVER['HTTP_HOST'], '/');
 }
 
-$today = date('Y-m-d');
+/**
+ * Builds the full array of sitemap URLs with metadata
+ */
+function build_sitemap_urls($base_url, $conn = null) {
+    $today = date('Y-m-d');
+    $urls = [];
 
-header("Content-Type: application/xml; charset=utf-8");
-echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+    // Helper to add URL cleanly
+    $add_url = function($path, $priority, $changefreq, $lastmod = null) use (&$urls, $base_url, $today) {
+        $loc = rtrim($base_url, '/') . '/' . ltrim($path, '/');
+        $urls[] = [
+            'loc' => $loc,
+            'lastmod' => $lastmod ?: $today,
+            'changefreq' => $changefreq,
+            'priority' => number_format((float)$priority, 2, '.', '')
+        ];
+    };
 
-    <!-- Core Landing Pages -->
-    <url>
-        <loc><?php echo $base_url; ?>/</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/index.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/program/python/index.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/program/gnuplot/index.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.85</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/program/latex/index.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.85</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/arduino.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.85</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/assignments.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/api/docs.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/feedback.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-    </url>
-    <url>
-        <loc><?php echo $base_url; ?>/contact.php</loc>
-        <lastmod><?php echo $today; ?></lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-    </url>
+    // 1. Core Landing & Main Directory Pages
+    $core_pages = [
+        ['path' => '', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
+        ['path' => 'index.php', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
+        ['path' => 'assignments.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'assignments.php'],
+        ['path' => 'program/python/index.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'program/python/index.php'],
+        ['path' => 'program/gnuplot/index.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'program/gnuplot/index.php'],
+        ['path' => 'program/latex/index.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'program/latex/index.php'],
+        ['path' => 'arduino.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'arduino.php'],
+        ['path' => 'api/docs.php', 'priority' => 0.70, 'freq' => 'monthly', 'file' => 'api/docs.php'],
+        ['path' => 'contact.php', 'priority' => 0.65, 'freq' => 'monthly', 'file' => 'contact.php'],
+        ['path' => 'feedback.php', 'priority' => 0.60, 'freq' => 'monthly', 'file' => 'feedback.php'],
+        ['path' => 'privacy.php', 'priority' => 0.50, 'freq' => 'monthly', 'file' => 'privacy.php'],
+    ];
 
-    <!-- Python Physics Programs & Subtopics -->
-    <?php
-    $pyMenuFile = __DIR__ . '/program/python/menu.php';
-    if (file_exists($pyMenuFile)) {
-        include $pyMenuFile;
-        if (isset($menu_titles) && is_array($menu_titles)) {
-            foreach ($menu_titles as $mid => $mtitle) {
-                $subtopics = $sub_menu_titles[$mid] ?? [];
-                foreach ($subtopics as $sid => $stitle) {
-                    $loc = $base_url . "/program/python/program.php?menu_id=" . urlencode($mid) . "&amp;submenu_id=" . urlencode($sid);
-                    echo "    <url>\n";
-                    echo "        <loc>" . htmlspecialchars($loc) . "</loc>\n";
-                    echo "        <lastmod>" . $today . "</lastmod>\n";
-                    echo "        <changefreq>monthly</changefreq>\n";
-                    echo "        <priority>0.75</priority>\n";
-                    echo "    </url>\n";
+    foreach ($core_pages as $cp) {
+        $filePath = __DIR__ . '/' . $cp['file'];
+        $mod = file_exists($filePath) ? date('Y-m-d', filemtime($filePath)) : $today;
+        $add_url($cp['path'], $cp['priority'], $cp['freq'], $mod);
+    }
+
+    // 2. Syllabus & Category Assignment Pages
+    $categories = [
+        'central-force' => 0.85,
+        'scattering' => 0.85,
+        'fluid-mechanics' => 0.85,
+        'mechanics' => 0.80,
+        'electrodynamics' => 0.80,
+        'quantum' => 0.80,
+        'thermo' => 0.80
+    ];
+    foreach ($categories as $cat => $prio) {
+        $add_url("assignments.php?category=" . urlencode($cat), $prio, 'weekly', $today);
+    }
+
+    // Individual Assignment Labs (From Database)
+    if ($conn !== null) {
+        try {
+            $stmt = $conn->query("SELECT id, category, updated_at, created_at FROM `assignments` ORDER BY id ASC");
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $mod = !empty($row['updated_at']) ? date('Y-m-d', strtotime($row['updated_at'])) : $today;
+                $add_url("assignments.php?id=" . urlencode($row['id']), 0.85, 'weekly', $mod);
+            }
+        } catch (Exception $e) {}
+    }
+
+    // 3. Curriculum Chapters & Subtopics (Python, GNUplot, LaTeX)
+    $languages = [
+        'python' => ['prio' => 0.80, 'path' => 'program/python/program.php'],
+        'gnuplot' => ['prio' => 0.75, 'path' => 'program/gnuplot/program.php'],
+        'latex' => ['prio' => 0.75, 'path' => 'program/latex/program.php']
+    ];
+
+    $db_found = false;
+    if ($conn !== null) {
+        try {
+            $stmt = $conn->query("SELECT language, menu_id, submenu_id, created_at FROM `p4p_submenus` ORDER BY language, menu_id, submenu_id");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (!empty($rows)) {
+                $db_found = true;
+                foreach ($rows as $r) {
+                    $lang = strtolower($r['language']);
+                    if (!isset($languages[$lang])) continue;
+                    $cfg = $languages[$lang];
+                    $mod = !empty($r['created_at']) ? date('Y-m-d', strtotime($r['created_at'])) : $today;
+                    $path = $cfg['path'] . "?menu_id=" . urlencode($r['menu_id']) . "&submenu_id=" . urlencode($r['submenu_id']);
+                    $add_url($path, $cfg['prio'], 'monthly', $mod);
+                }
+            }
+        } catch (Exception $e) {}
+    }
+
+    // Fallback to static menu files if DB is empty or unavailable
+    if (!$db_found) {
+        foreach ($languages as $lang => $cfg) {
+            $menuFile = __DIR__ . "/program/{$lang}/menu.php";
+            if (file_exists($menuFile)) {
+                unset($menu_titles, $sub_menu_titles);
+                include $menuFile;
+                if (isset($menu_titles) && is_array($menu_titles)) {
+                    $fileMod = date('Y-m-d', filemtime($menuFile));
+                    foreach ($menu_titles as $mid => $mtitle) {
+                        $subs = $sub_menu_titles[$mid] ?? [];
+                        foreach ($subs as $sid => $stitle) {
+                            $path = $cfg['path'] . "?menu_id=" . urlencode($mid) . "&submenu_id=" . urlencode($sid);
+                            $add_url($path, $cfg['prio'], 'monthly', $fileMod);
+                        }
+                    }
                 }
             }
         }
     }
-    ?>
 
-    <!-- GNUplot Graph Programs -->
-    <?php
-    $gnuMenuFile = __DIR__ . '/program/gnuplot/menu.php';
-    if (file_exists($gnuMenuFile)) {
-        unset($menu_titles, $sub_menu_titles);
-        include $gnuMenuFile;
-        if (isset($menu_titles) && is_array($menu_titles)) {
-            foreach ($menu_titles as $mid => $mtitle) {
-                $subtopics = $sub_menu_titles[$mid] ?? [];
-                foreach ($subtopics as $sid => $stitle) {
-                    $loc = $base_url . "/program/gnuplot/program.php?menu_id=" . urlencode($mid) . "&amp;submenu_id=" . urlencode($sid);
-                    echo "    <url>\n";
-                    echo "        <loc>" . htmlspecialchars($loc) . "</loc>\n";
-                    echo "        <lastmod>" . $today . "</lastmod>\n";
-                    echo "        <changefreq>monthly</changefreq>\n";
-                    echo "        <priority>0.7</priority>\n";
-                    echo "    </url>\n";
-                }
-            }
-        }
+    return $urls;
+}
+
+/**
+ * Generate XML String from URLs
+ */
+function generate_sitemap_xml_string($urls) {
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+    $xml .= '        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n";
+    $xml .= '        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9' . "\n";
+    $xml .= '        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' . "\n";
+
+    foreach ($urls as $u) {
+        $xml .= "    <url>\n";
+        $xml .= "        <loc>" . htmlspecialchars($u['loc'], ENT_XML1, 'UTF-8') . "</loc>\n";
+        $xml .= "        <lastmod>" . htmlspecialchars($u['lastmod'], ENT_XML1, 'UTF-8') . "</lastmod>\n";
+        $xml .= "        <changefreq>" . htmlspecialchars($u['changefreq'], ENT_XML1, 'UTF-8') . "</changefreq>\n";
+        $xml .= "        <priority>" . htmlspecialchars($u['priority'], ENT_XML1, 'UTF-8') . "</priority>\n";
+        $xml .= "    </url>\n";
     }
-    ?>
 
-    <!-- LaTeX Formulations & Document Classes -->
-    <?php
-    $latexMenuFile = __DIR__ . '/program/latex/menu.php';
-    if (file_exists($latexMenuFile)) {
-        unset($menu_titles, $sub_menu_titles);
-        include $latexMenuFile;
-        if (isset($menu_titles) && is_array($menu_titles)) {
-            foreach ($menu_titles as $mid => $mtitle) {
-                $subtopics = $sub_menu_titles[$mid] ?? [];
-                foreach ($subtopics as $sid => $stitle) {
-                    $loc = $base_url . "/program/latex/program.php?menu_id=" . urlencode($mid) . "&amp;submenu_id=" . urlencode($sid);
-                    echo "    <url>\n";
-                    echo "        <loc>" . htmlspecialchars($loc) . "</loc>\n";
-                    echo "        <lastmod>" . $today . "</lastmod>\n";
-                    echo "        <changefreq>monthly</changefreq>\n";
-                    echo "        <priority>0.7</priority>\n";
-                    echo "    </url>\n";
-                }
-            }
-        }
+    $xml .= "</urlset>\n";
+    return $xml;
+}
+
+/**
+ * Synchronize generated XML to physical sitemap.xml on disk atomically
+ */
+function sync_sitemap_to_disk($xml_content) {
+    $target = __DIR__ . '/sitemap.xml';
+    $temp = __DIR__ . '/sitemap.xml.tmp';
+    if (@file_put_contents($temp, $xml_content) !== false) {
+        @rename($temp, $target);
+        return true;
     }
-    ?>
+    return @file_put_contents($target, $xml_content) !== false;
+}
 
-</urlset>
+// Generate sitemap
+$urls = build_sitemap_urls($base_url, $conn ?? null);
+$xml_output = generate_sitemap_xml_string($urls);
+
+// Automatically sync to disk file
+sync_sitemap_to_disk($xml_output);
+
+// Serve response based on SAPI
+if (php_sapi_name() !== 'cli') {
+    header("Content-Type: application/xml; charset=utf-8");
+    header("X-Robots-Tag: noindex, follow");
+    header("Cache-Control: public, max-age=3600");
+    echo $xml_output;
+    exit;
+} else {
+    echo "Dynamic sitemap generated successfully with " . count($urls) . " URLs synced to sitemap.xml.\n";
+}

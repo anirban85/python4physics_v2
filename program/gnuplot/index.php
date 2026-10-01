@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
 include_once __DIR__ . '/menu.php';
 
-$page_title = "GNUplot for Physics - Plotting Catalog";
+$page_title = "GNUplot for Physics - 49 Scientific Graphs & Plotting Recipes";
 $page_description = "Explore 49 GNUplot scientific visualization scripts for physics: 2D functions, piecewise functions, data fitting, and polar/parametric plots.";
 
 require_once __DIR__ . '/../../include/header.php';

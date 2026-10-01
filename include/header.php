@@ -9,6 +9,10 @@ if (!isset($siteurl)) {
 $page_title_text = isset($page_title) ? $page_title . " | Python4Physics" : "Python4Physics - Computational Physics with Python, GNUplot, LaTeX, Arduino";
 $page_desc_text = isset($page_description) ? $page_description : "Explore 500+ interactive computational physics algorithms, numerical simulations, GNUplot scientific graphs, and LaTeX document templates by Dr. Alorika Chatterjee and Dr. Anirban Shaw.";
 
+$page_keywords_text = isset($page_keywords) 
+    ? $page_keywords . ", computational physics, python for physics, numerical methods" 
+    : "computational physics, python for physics, numerical methods, ode, pde, runge kutta, quantum physics simulation, tise, tdse, gnuplot, latex, arduino physics lab";
+
 // Compute Canonical URL
 $canonical_base = rtrim($siteurl, '/');
 $current_path = ltrim($_SERVER['REQUEST_URI'] ?? '', '/');
@@ -20,8 +24,12 @@ if (!empty($script_base) && str_starts_with($current_path, $script_base)) {
 }
 $canonical_url = isset($page_canonical) ? $page_canonical : rtrim($siteurl, '/') . '/' . ltrim($current_rel, '/');
 $canonical_url_clean = strtok($canonical_url, '?');
-if (isset($_GET['menu_id']) || isset($_GET['submenu_id'])) {
+if (isset($_GET['menu_id']) || isset($_GET['submenu_id']) || isset($_GET['category']) || isset($_GET['id'])) {
     $canonical_url_clean = $canonical_url;
+}
+$clean_path = parse_url($canonical_url_clean, PHP_URL_PATH);
+if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/index.php')) {
+    $canonical_url_clean = rtrim($siteurl, '/') . '/';
 }
 ?>
 <!DOCTYPE html>
@@ -31,7 +39,7 @@ if (isset($_GET['menu_id']) || isset($_GET['submenu_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title_text); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($page_desc_text); ?>">
-    <meta name="keywords" content="computational physics, python for physics, numerical methods, ode, pde, runge kutta, quantum physics simulation, tise, tdse, gnuplot, latex, arduino physics lab">
+    <meta name="keywords" content="<?php echo htmlspecialchars($page_keywords_text); ?>">
     <meta name="author" content="Dr. Alorika Chatterjee & Dr. Anirban Shaw">
     <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url_clean); ?>">
 

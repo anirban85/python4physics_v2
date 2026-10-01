@@ -3,6 +3,7 @@
  * Python4Physics - Dedicated Assignment & Lab Manager
  */
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../include/menu_sync.php';
 require_once __DIR__ . '/auth.php';
 
 $page_title = "Manage Assignments & Labs";
@@ -66,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                     $notice = "New Assignment '" . htmlspecialchars($title) . "' created and published to live site!";
                 }
+                sync_sitemap_xml($conn);
                 $action = 'list';
             } catch (PDOException $e) {
                 $error = "Database Error: " . $e->getMessage();
@@ -77,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $conn->prepare("DELETE FROM `assignments` WHERE `id` = :id");
                 $stmt->execute([':id' => $del_id]);
+                sync_sitemap_xml($conn);
                 $notice = "Assignment removed successfully.";
             } catch (PDOException $e) {
                 $error = "Failed to delete assignment: " . $e->getMessage();

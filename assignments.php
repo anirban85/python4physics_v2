@@ -7,12 +7,6 @@
 require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
-$page_title = "Interactive Physics Assignments & Graduate Labs";
-$page_description = "Graduate & undergraduate level computational physics assignments with interactive Python parameter sliders: Central Force orbits, Two-body scattering, and Continuum fluid mechanics.";
-
-require_once __DIR__ . '/include/header.php';
-require_once __DIR__ . '/include/navbar.php';
-
 // Fetch assignments from database
 $db_assignments = [];
 try {
@@ -26,9 +20,7 @@ try {
 
 // Fallback assignments definitions if database is empty or not yet seeded
 if (count($db_assignments) < 9) {
-    // Require the seeding definition file to get the full comprehensive 9-lab catalog
     if (file_exists(__DIR__ . '/seed_assignments_v2.php')) {
-        // Run seed or read array
         try {
             if (isset($conn) && $conn !== null) {
                 include_once __DIR__ . '/seed_assignments_v2.php';
@@ -38,6 +30,63 @@ if (count($db_assignments) < 9) {
         } catch (Exception $e) {}
     }
 }
+
+// Dynamic SEO metadata based on selected assignment or topic category
+$page_title = "Interactive Physics Assignments & Graduate Labs";
+$page_description = "Graduate & undergraduate level computational physics assignments with interactive Python parameter sliders: Central Force orbits, Two-body scattering, and Continuum fluid mechanics.";
+$page_keywords = "computational physics assignments, physics problem bank, kepler orbits python, rutherford scattering simulation, stokes drag python, continuum mechanics simulation";
+
+$category_param = $_GET['category'] ?? '';
+$id_param = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+if ($id_param > 0 && !empty($db_assignments)) {
+    foreach ($db_assignments as $as_item) {
+        if ((int)$as_item['id'] === $id_param) {
+            $page_title = "Lab 0{$id_param}: " . $as_item['title'] . " - Problem Solving with Python";
+            $page_description = "Interactive computational lab: " . strip_tags($as_item['subtitle'] ?: $as_item['title']) . ". Experiment with real-time parameter sliders and live telemetry.";
+            $page_keywords = strtolower($as_item['category']) . ", " . strtolower(substr($as_item['title'], 0, 40)) . ", physics simulation, python ode solver";
+            break;
+        }
+    }
+} elseif (!empty($category_param)) {
+    $cat_seo_map = [
+        'central-force' => [
+            'title' => 'Central Force Orbits & Kepler Gravitation (Topic 4) - Graduate Labs',
+            'desc' => 'Computational assignments on Central Force fields, Kepler laws, relativistic perihelion precession, and Gauss law for gravitation with Python sliders.'
+        ],
+        'scattering' => [
+            'title' => 'Two-Body Classical Scattering & Rutherford Deflection (Topic 5) - Graduate Labs',
+            'desc' => 'Center-of-mass two-body collision simulation, beam tracking across impact parameters, and Rutherford differential cross-section with Python.'
+        ],
+        'fluid-mechanics' => [
+            'title' => 'Mechanics of Continuum & Fluid Dynamics (Topic 6) - Graduate Labs',
+            'desc' => 'Solve Stokes law, non-linear Schiller-Naumann drag, Continuity equation, and Bernoulli Venturi dynamics with interactive Python sliders.'
+        ],
+        'mechanics' => [
+            'title' => 'Classical Mechanics Numerical ODE Trajectories - Graduate Labs',
+            'desc' => 'Solve projectile motion with non-linear quadratic air drag and coupled differential equations with Python and Matplotlib.'
+        ],
+        'electrodynamics' => [
+            'title' => 'Electrodynamics Potential & Field Contours - Graduate Labs',
+            'desc' => '2D electrostatic quadrupole potential fields, gradient vector fields, and equipotential contour maps with Python.'
+        ],
+        'quantum' => [
+            'title' => 'Quantum Mechanics & Wavefunction Solvers - Graduate Labs',
+            'desc' => 'Determine finite square well bound state energies using transcendental bisection root-finding algorithms in Python.'
+        ],
+        'thermo' => [
+            'title' => 'Statistical Thermodynamics & Monte Carlo Simulations - Graduate Labs',
+            'desc' => 'Simulate 2D Ising model phase transitions, spontaneous magnetization, and Metropolis Monte Carlo algorithms with Python.'
+        ]
+    ];
+    if (isset($cat_seo_map[$category_param])) {
+        $page_title = $cat_seo_map[$category_param]['title'];
+        $page_description = $cat_seo_map[$category_param]['desc'];
+    }
+}
+
+require_once __DIR__ . '/include/header.php';
+require_once __DIR__ . '/include/navbar.php';
 
 // Interactive Slider Configuration for Physics Labs
 $SLIDER_CONFIG = [
@@ -574,6 +623,29 @@ function filterAssignments(cat, btn) {
         }
     });
 }
+
+// Deep-linking URL parameter handler (sync with sitemap & direct links)
+document.addEventListener('DOMContentLoaded', function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var cat = urlParams.get('category');
+    var labId = urlParams.get('id');
+
+    if (cat) {
+        var targetBtn = document.querySelector(`button[onclick*="'${cat}'"]`);
+        if (targetBtn) {
+            filterAssignments(cat, targetBtn);
+        }
+    }
+    if (labId) {
+        var labCard = document.getElementById('lab-' + labId);
+        if (labCard) {
+            setTimeout(function() {
+                labCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                labCard.style.boxShadow = '0 0 0 2px var(--accent), 0 8px 32px rgba(6, 182, 212, 0.25)';
+            }, 300);
+        }
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/include/footer.php'; ?>
