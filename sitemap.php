@@ -176,7 +176,6 @@ sync_sitemap_to_disk($xml_output);
 // Serve response based on SAPI
 if (php_sapi_name() !== 'cli') {
     header("Content-Type: application/xml; charset=utf-8");
-    header("X-Robots-Tag: noindex, follow");
     header("Cache-Control: public, max-age=3600");
     echo $xml_output;
     exit;
