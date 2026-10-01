@@ -62,6 +62,12 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     </script>
     <?php endif; ?>
 
+    <?php if (!empty($adsense_client_id)): ?>
+    <!-- Google AdSense (Auto Ads & Publisher Code) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?php echo htmlspecialchars($adsense_client_id); ?>"
+     crossorigin="anonymous"></script>
+    <?php endif; ?>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title_text); ?></title>

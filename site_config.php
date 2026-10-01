@@ -38,3 +38,7 @@ $site_authors = "Dr. Alorika Chatterjee & Dr. Anirban Shaw";
 $ga_measurement_id = getenv('GA_MEASUREMENT_ID') ?: 'G-LKNBL5PKSH';
 $gtm_container_id  = getenv('GTM_CONTAINER_ID')  ?: 'GTM-NRDD47HL';
 $ga_enabled        = !empty($ga_measurement_id);
+
+// Google AdSense Configuration (Publisher ID: pub-1857733312974112)
+$adsense_client_id = getenv('ADSENSE_CLIENT_ID') ?: 'ca-pub-1857733312974112';
+$adsense_enabled   = !empty($adsense_client_id);

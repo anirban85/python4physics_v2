@@ -44,12 +44,19 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h3 style="color: var(--accent); margin-bottom: 0.75rem;">4. Cookies, Local Storage & Academic Analytics</h3>
             <p>
-                We utilize minimal client-side <code>localStorage</code> to remember your theme preference (Dark Mode / Light Mode). For educational telemetry and academic engagement metrics, this portal utilizes <strong>Google Analytics 4 (GA4)</strong> with mandatory <strong>IP Anonymization</strong> (<code>anonymize_ip: true</code>) and Secure SameSite cookie policies. Data collected is strictly aggregated to quantify pedagogical adoption of computational physics simulations, algorithms, and virtual labs. We do not engage in cross-site tracking or behavioral profiling.
+                We utilize minimal client-side <code>localStorage</code> to remember your theme preference (Dark Mode / Light Mode). For educational telemetry and academic engagement metrics, this portal utilizes <strong>Google Analytics 4 (GA4)</strong> with mandatory <strong>IP Anonymization</strong> (<code>anonymize_ip: true</code>) and Secure SameSite cookie policies. Data collected is strictly aggregated to quantify pedagogical adoption of computational physics simulations, algorithms, and virtual labs.
             </p>
         </section>
 
         <section>
-            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">5. Citation & Academic Attribution</h3>
+            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">5. Google AdSense & Advertising Cookies</h3>
+            <p>
+                We partner with <strong>Google AdSense</strong> to display relevant educational and technical advertisements. Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this website or other sites on the Internet. Google's use of advertising cookies enables it and its partners to serve non-intrusive ads based on your visits to our pages. You may opt out of personalized advertising at any time by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Google Ads Settings</a> or <a href="https://www.aboutads.info/" target="_blank" rel="noopener">aboutads.info</a>.
+            </p>
+        </section>
+
+        <section>
+            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">6. Citation & Academic Attribution</h3>
             <p>
                 Educators and researchers utilizing algorithms, assignments, or Arduino laboratory modules from this platform in publications or university coursework are requested to cite:
             </p>
@@ -57,7 +64,7 @@ require_once __DIR__ . '/include/navbar.php';
         </section>
 
         <section>
-            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">6. Contact</h3>
+            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">7. Contact</h3>
             <p>
                 For privacy or curriculum inquiries, please contact: <a href="mailto:anirbanshaw@python4physics.in">anirbanshaw@python4physics.in</a> or visit our <a href="<?php echo $siteurl; ?>contact.php">Faculty page</a>.
             </p>
