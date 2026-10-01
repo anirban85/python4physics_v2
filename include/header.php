@@ -79,6 +79,11 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     <!-- Google Search Console Site Verification -->
     <meta name="google-site-verification" content="_NAHQtPqFwdwcx50u8ZV2jv8SCkScUd2QwqqYwT2Fbs">
 
+    <?php if (!empty($adsense_client_id)): ?>
+    <!-- Google AdSense Account Verification Meta Tag -->
+    <meta name="google-adsense-account" content="<?php echo htmlspecialchars($adsense_client_id); ?>">
+    <?php endif; ?>
+
     <!-- Search Engine Indexing Directives -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
