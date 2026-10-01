@@ -295,6 +295,110 @@
                 { id: 'pos', label: 'Terminal 1 (+)', dx: 15, dy: 48 },
                 { id: 'neg', label: 'Terminal 2 (-)', dx: 35, dy: 48 }
             ]
+        },
+        seven_segment: {
+            name: '7-Segment Display',
+            category: 'actuators',
+            defaultProps: { name: 'DISP', digit: 0, segments: { a:1, b:1, c:1, d:1, e:1, f:1, g:0, dp:0 } },
+            width: 60,
+            height: 85,
+            terminalOffsets: [
+                { id: 'g', label: 'Seg G', dx: 8.5, dy: 10 },
+                { id: 'f', label: 'Seg F', dx: 17, dy: 10 },
+                { id: 'com1', label: 'Common (GND)', dx: 25.5, dy: 10 },
+                { id: 'a', label: 'Seg A', dx: 34, dy: 10 },
+                { id: 'b', label: 'Seg B', dx: 42.5, dy: 10 },
+                { id: 'e', label: 'Seg E', dx: 8.5, dy: 75 },
+                { id: 'd', label: 'Seg D', dx: 17, dy: 75 },
+                { id: 'com2', label: 'Common (GND)', dx: 25.5, dy: 75 },
+                { id: 'c', label: 'Seg C', dx: 34, dy: 75 },
+                { id: 'dp', label: 'Decimal Point', dx: 42.5, dy: 75 }
+            ]
+        },
+        dot_matrix: {
+            name: '8x8 LED Dot Matrix',
+            category: 'actuators',
+            defaultProps: { name: 'MATRIX', char: 'A' },
+            width: 75,
+            height: 75,
+            terminalOffsets: [
+                { id: 'vcc', label: 'VCC (5V)', dx: 10, dy: 68 },
+                { id: 'gnd', label: 'GND', dx: 24, dy: 68 },
+                { id: 'din', label: 'DIN (Data)', dx: 38, dy: 68 },
+                { id: 'cs', label: 'CS (Load)', dx: 52, dy: 68 },
+                { id: 'clk', label: 'CLK (Clock)', dx: 66, dy: 68 }
+            ]
+        },
+        ir_tsop1838: {
+            name: 'IR Sensor (TSOP1838)',
+            category: 'sensors',
+            defaultProps: { name: 'IR', lastCode: '0xFFA25D' },
+            width: 38,
+            height: 42,
+            terminalOffsets: [
+                { id: 'out', label: 'OUT (Signal)', dx: 8.5, dy: 36 },
+                { id: 'gnd', label: 'GND (Ground)', dx: 19, dy: 36 },
+                { id: 'vcc', label: 'VCC (5V Power)', dx: 29.5, dy: 36 }
+            ]
+        },
+        sound_sensor: {
+            name: 'Sound Sensor (LM393)',
+            category: 'sensors',
+            defaultProps: { name: 'MIC', threshold: 500, soundLevel: 200 },
+            width: 55,
+            height: 40,
+            terminalOffsets: [
+                { id: 'vcc', label: 'VCC (5V)', dx: 8.5, dy: 34 },
+                { id: 'gnd', label: 'GND', dx: 20, dy: 34 },
+                { id: 'dout', label: 'Digital OUT (D0)', dx: 32, dy: 34 },
+                { id: 'aout', label: 'Analog OUT (A0)', dx: 44, dy: 34 }
+            ]
+        },
+        stepper_motor: {
+            name: 'Stepper Motor 28BYJ-48',
+            category: 'actuators',
+            defaultProps: { name: 'STEPPER', angle: 0, speedRpm: 15 },
+            width: 65,
+            height: 65,
+            terminalOffsets: [
+                { id: 'in1', label: 'IN1 (D8)', dx: 10, dy: 58 },
+                { id: 'in2', label: 'IN2 (D9)', dx: 20, dy: 58 },
+                { id: 'in3', label: 'IN3 (D10)', dx: 30, dy: 58 },
+                { id: 'in4', label: 'IN4 (D11)', dx: 40, dy: 58 },
+                { id: 'vcc', label: 'Power (+5V)', dx: 50, dy: 58 },
+                { id: 'gnd', label: 'GND', dx: 58, dy: 58 }
+            ]
+        },
+        bluetooth_hc05: {
+            name: 'Bluetooth HC-05',
+            category: 'sensors',
+            defaultProps: { name: 'BT05', state: 'Connected' },
+            width: 48,
+            height: 54,
+            terminalOffsets: [
+                { id: 'state', label: 'STATE', dx: 6, dy: 48 },
+                { id: 'rxd', label: 'RXD (Pin 11)', dx: 14, dy: 48 },
+                { id: 'txd', label: 'TXD (Pin 10)', dx: 22, dy: 48 },
+                { id: 'gnd', label: 'GND', dx: 30, dy: 48 },
+                { id: 'vcc', label: 'VCC (5V)', dx: 38, dy: 48 },
+                { id: 'en', label: 'EN', dx: 44, dy: 48 }
+            ]
+        },
+        tft_lcd: {
+            name: '1.8" Color TFT Display',
+            category: 'actuators',
+            defaultProps: { name: 'TFT', text: 'Physics Lab' },
+            width: 85,
+            height: 65,
+            terminalOffsets: [
+                { id: 'vcc', label: 'VCC', dx: 10, dy: 58 },
+                { id: 'gnd', label: 'GND', dx: 20, dy: 58 },
+                { id: 'cs', label: 'CS (D10)', dx: 30, dy: 58 },
+                { id: 'rst', label: 'RESET (D8)', dx: 40, dy: 58 },
+                { id: 'dc', label: 'A0/DC (D9)', dx: 50, dy: 58 },
+                { id: 'sda', label: 'SDA/MOSI (D11)', dx: 60, dy: 58 },
+                { id: 'sck', label: 'SCK (D13)', dx: 70, dy: 58 }
+            ]
         }
     };
 
@@ -315,8 +419,997 @@
     // 3. 10 COMPREHENSIVE PRESET LABORATORIES
     // ==========================================
     const presets = {
+        // ========================================================
+        // SYLLABUS EXP 01: LDR Light Level Detector & Night Lamp
+        // ========================================================
+        ldr_lamp: {
+            title: "Exp 01: LDR Ambient Light Detector & Lamp Switch",
+            components: [
+                { id: 'ldr1', type: 'ldr', x: 694.5, y: 151, rotation: 0, props: { name: 'LDR1', lux: 450 } },
+                { id: 'res1', type: 'resistor', x: 720, y: 158, rotation: 0, props: { resistance: 10000, unit: 'Ω', name: 'R_DIV' } },
+                { id: 'led1', type: 'led', x: 813.5, y: 147, rotation: 0, props: { color: '#ef4444', name: 'LAMP' } },
+                { id: 'res2', type: 'resistor', x: 839, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R_LED' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-a14', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 703, y: 330 }] },
+                { from: 'ard-pin-a0', to: 'bb-a15', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 720, y: 260 }] },
+                { from: 'bb-a20', to: 'bb-bot-neg-20', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-a21', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 822, y: 40 }] },
+                { from: 'bb-a27', to: 'bb-bot-neg-27', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Exp 01: LDR Ambient Light Detector & Automatic Lamp Switch
+// Detect ambient room lux. When light falls below threshold,
+// activate the lamp (Digital Pin 13).
+// ========================================================
+
+const int ldrPin = A0;
+const int lampPin = 13;
+const int LIGHT_THRESHOLD = 300; // ADC threshold (Night/Dark)
+
+void setup() {
+  pinMode(lampPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 01: LDR Ambient Light Controller Initialized ---");
+  Serial.println("Drag the Flashlight widget on canvas to adjust room lux!");
+}
+
+void loop() {
+  int sensorVal = analogRead(ldrPin);
+  float voltage = sensorVal * (5.0 / 1023.0);
+  
+  Serial.print("Ambient Light ADC: ");
+  Serial.print(sensorVal);
+  Serial.print(" (");
+  Serial.print(voltage, 2);
+  Serial.print(" V) | Status: ");
+  
+  if (sensorVal < LIGHT_THRESHOLD) {
+    digitalWrite(lampPin, HIGH);
+    Serial.println("DARKNESS DETECTED -> LAMP ON [ACTIVE]");
+  } else {
+    digitalWrite(lampPin, LOW);
+    Serial.println("Adequate Light -> Lamp OFF [STANDBY]");
+  }
+  
+  delay(250);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 02: LDR Potential Divider & LED Brightness
+        // ========================================================
+        ldr_sensor: {
+            title: "Exp 02: LDR Potential Divider & LED Brightness Telemetry",
+            components: [
+                { id: 'ldr1', type: 'ldr', x: 694.5, y: 151, rotation: 0, props: { name: 'LDR1', lux: 450 } },
+                { id: 'res1', type: 'resistor', x: 720, y: 158, rotation: 0, props: { resistance: 10000, unit: 'Ω', name: 'R_DIV' } },
+                { id: 'led1', type: 'led', x: 643.5, y: 147, rotation: 0, props: { color: '#0284c7', name: 'OPT_SRC' } },
+                { id: 'res2', type: 'resistor', x: 669, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R_LED' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-9', to: 'bb-a11', color: '#0284c7', waypoints: [{ x: 231, y: 40 }, { x: 652, y: 40 }] },
+                { from: 'bb-a17', to: 'bb-bot-neg-17', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-5v', to: 'bb-a14', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 703, y: 330 }] },
+                { from: 'ard-pin-a1', to: 'bb-a15', color: '#10b981', waypoints: [{ x: 289, y: 260 }, { x: 720, y: 260 }] },
+                { from: 'bb-a20', to: 'bb-bot-neg-20', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Exp 02: Potential Divider Circuit with LDR & LED Brightness
+// Adjust LED facing LDR via PWM. Monitor potential divider
+// voltage changes on Serial Monitor corresponding to brightness.
+// ========================================================
+
+const int ledPwmPin = 9;   // LED facing the LDR
+const int ldrSensePin = A1; // Voltage across divider resistor
+
+void setup() {
+  pinMode(ledPwmPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 02: Photoelectric Potential Divider Online ---");
+}
+
+void loop() {
+  // Sweep optical source brightness from 0 to 255
+  for (int b = 0; b <= 255; b += 25) {
+    analogWrite(ledPwmPin, b);
+    delay(100);
+    
+    int raw = analogRead(ldrSensePin);
+    float vOut = (raw / 1023.0) * 5.0;
+    
+    Serial.print("LED PWM: ");
+    Serial.print(b);
+    Serial.print(" (");
+    Serial.print(Math.round((b / 255.0) * 100));
+    Serial.print("%) | Divider ADC: ");
+    Serial.print(raw);
+    Serial.print(" | V_resistor: ");
+    Serial.print(vOut, 3);
+    Serial.println(" V");
+    
+    delay(200);
+  }
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 03: Ultrasonic HC-SR04 Distance Measurement
+        // ========================================================
+        ultrasonic: {
+            title: "Exp 03: HC-SR04 Ultrasonic Distance Sensor & Real-Time Echo",
+            components: [
+                { id: 'us1', type: 'ultrasonic', x: 683.5, y: 247, rotation: 0, props: { name: 'US1', distance: 25 } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-f14', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 703, y: 330 }] },
+                { from: 'ard-pin-9', to: 'bb-f15', color: '#0284c7', waypoints: [{ x: 231, y: 40 }, { x: 720, y: 40 }] },
+                { from: 'ard-pin-8', to: 'bb-f16', color: '#8b5cf6', waypoints: [{ x: 244, y: 48 }, { x: 737, y: 48 }] },
+                { from: 'ard-pin-gnd1', to: 'bb-f17', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 754, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Exp 03: Ultrasonic HC-SR04 Speed of Sound & Distance
+// Acoustic Time of Flight: distance = (duration * 0.0343) / 2
+// Drag the obstacle on canvas to change target distance!
+// ========================================================
+
+const int trigPin = 9;
+const int echoPin = 8;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 03: HC-SR04 Acoustic Rangefinder Initialized ---");
+  Serial.println("Drag the Obstacle block on canvas to test millimetric range!");
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  long duration = pulseIn(echoPin, HIGH);
+  float distanceCm = duration * 0.0343 / 2.0;
+  float distanceInch = distanceCm / 2.54;
+  
+  Serial.print("Echo Transit: ");
+  Serial.print(duration);
+  Serial.print(" us | Distance: ");
+  Serial.print(distanceCm, 1);
+  Serial.print(" cm (");
+  Serial.print(distanceInch, 1);
+  Serial.println(" in)");
+  
+  delay(250);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 04: TSOP1838 IR Sensor & TV Remote Hex Code
+        // ========================================================
+        ir_remote: {
+            title: "Exp 04: TSOP1838 IR Receiver & TV Remote Hex Code Decoder",
+            components: [
+                { id: 'ir1', type: 'ir_tsop1838', x: 677.5, y: 153, rotation: 0, props: { name: 'TSOP1838', lastCode: '0xFFA25D' } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#0284c7', name: 'DECODE_LED' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-11', to: 'bb-a13', color: '#10b981', waypoints: [{ x: 205, y: 40 }, { x: 686, y: 40 }] },
+                { from: 'ard-pin-gnd1', to: 'bb-a14', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 703, y: 345 }] },
+                { from: 'ard-pin-5v', to: 'bb-a15', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 720, y: 330 }] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd2', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 04: TSOP1838 Infrared Sensor & TV Remote Hex Decoder
+// 38 kHz Carrier Demodulation. Click buttons on the virtual
+// TV Remote on the left of canvas to emit NEC protocol frames!
+// ========================================================
+
+const int RECV_PIN = 11;
+const int STATUS_LED = 13;
+
+void setup() {
+  pinMode(STATUS_LED, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 04: TSOP1838 NEC IR Decoder Active ---");
+  Serial.println("Click the TV Remote buttons on the screen to transmit Hex!");
+}
+
+void loop() {
+  // In the simulator, pressing any remote button triggers an IR frame
+  int sig = digitalRead(RECV_PIN);
+  if (sig == HIGH) {
+    digitalWrite(STATUS_LED, HIGH);
+    Serial.println(">>> IR Burst Received: Valid 38kHz Carrier Detected <<<");
+    delay(100);
+    digitalWrite(STATUS_LED, LOW);
+  }
+  delay(150);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 05: PIR Motion Detector & Security Alarm
+        // ========================================================
+        pir_alarm: {
+            title: "Exp 05: HC-SR501 PIR Motion Sensor & Security Alarm",
+            components: [
+                { id: 'pir1', type: 'pir', x: 654, y: 239, rotation: 0, props: { name: 'PIR1', motion: false } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#ef4444', name: 'ALARM_LED' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } },
+                { id: 'bz1', type: 'buzzer', x: 840, y: 247, rotation: 0, props: { name: 'SIREN', frequency: 1800 } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-2', to: 'bb-f12', color: '#10b981', waypoints: [{ x: 326, y: 40 }, { x: 669, y: 40 }] },
+                { from: 'ard-pin-5v', to: 'bb-f13', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 686, y: 330 }] },
+                { from: 'ard-pin-gnd1', to: 'bb-f14', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 703, y: 345 }] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-f23', color: '#8b5cf6', waypoints: [{ x: 205, y: 40 }, { x: 856, y: 40 }] },
+                { from: 'bb-f24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd2', to: 'bb-bot-neg-4', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 05: HC-SR501 PIR Motion Detector & Security Alarm
+// Pyroelectric sensor detects moving thermal IR signature.
+// Drag the Human Figure on canvas into the 120 deg cone!
+// ========================================================
+
+const int pirSensorPin = 2;
+const int indicatorLed = 13;
+const int sirenBuzzerPin = 11;
+
+void setup() {
+  pinMode(pirSensorPin, INPUT);
+  pinMode(indicatorLed, OUTPUT);
+  pinMode(sirenBuzzerPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 05: Passive Infrared Security System Armed ---");
+  Serial.println("Drag the Human avatar on canvas into the PIR beam to trigger!");
+}
+
+void loop() {
+  int motionDetected = digitalRead(pirSensorPin);
+  
+  if (motionDetected == HIGH) {
+    digitalWrite(indicatorLed, HIGH);
+    tone(sirenBuzzerPin, 1800);
+    Serial.println(">>> INTRUSION DETECTED! Infrared Motion Active -> LED ON <<<");
+  } else {
+    digitalWrite(indicatorLed, LOW);
+    noTone(sirenBuzzerPin);
+    Serial.println("Area Secure - Scanning Infrared Spectrum...");
+  }
+  
+  delay(150);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 06: Simple Pendulum Acceleration due to Gravity
+        // ========================================================
+        photogate: {
+            title: "Exp 06: Simple Pendulum 'g' Measurement with Photogate",
+            components: [
+                { id: 'btn1', type: 'pushbutton', x: 677.5, y: 169, rotation: 0, props: { name: 'BEAM_GATE', pressed: false } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#10b981', name: 'GATE_LED' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-2', to: 'bb-d13', color: '#10b981', waypoints: [{ x: 326, y: 40 }, { x: 686, y: 40 }] },
+                { from: 'bb-g13', to: 'bb-bot-neg-13', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Exp 06: Determination of Acceleration due to Gravity 'g'
+// Simple Pendulum with Optical Photogate Sensor
+// Period T = 2 * pi * sqrt(L / g) => g = 4 * pi^2 * L / T^2
+// ========================================================
+
+const byte photogatePin = 2; // INT0 hardware interrupt pin
+const byte gateLed = 13;
+const float PENDULUM_LENGTH = 0.50; // String length L = 0.50 m (50 cm)
+
+volatile unsigned long tStart = 0;
+volatile unsigned long tEnd = 0;
+volatile byte passCount = 0;
+
+void setup() {
+  pinMode(photogatePin, INPUT_PULLUP);
+  pinMode(gateLed, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 06: Pendulum 'g' Chronometer Online ---");
+  Serial.println("Click BEAM_GATE or drag pendulum bob to break optical beam.");
+}
+
+void loop() {
+  int gateState = digitalRead(photogatePin);
+  
+  if (gateState == LOW) {
+    digitalWrite(gateLed, HIGH);
+    unsigned long now = millis();
+    passCount++;
+    
+    if (passCount == 1) {
+      tStart = now;
+      Serial.println(">> Beam Interruption 1: Timer Started <<");
+    } else if (passCount == 2) {
+      tEnd = now;
+      passCount = 0;
+      float period = (tEnd - tStart) / 1000.0;
+      
+      if (period > 0.1) {
+        float gExp = (4.0 * 3.14159265 * 3.14159265 * PENDULUM_LENGTH) / (period * period);
+        Serial.print("Oscillation Period T: ");
+        Serial.print(period, 3);
+        Serial.print(" s | Measured 'g': ");
+        Serial.print(gExp, 2);
+        Serial.println(" m/s^2 (Std: 9.81 m/s^2)");
+      }
+    }
+    delay(200); // debounce optical crossing
+  } else {
+    digitalWrite(gateLed, LOW);
+  }
+  delay(20);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 07: 7-Segment Display Counter (Start/Stop & Reset)
+        // ========================================================
+        seven_segment: {
+            title: "Exp 07: 7-Segment Display 0-9 Counter (Start/Stop & Reset)",
+            components: [
+                { id: 'disp1', type: 'seven_segment', x: 677.5, y: 153, rotation: 0, props: { name: '7SEG', digit: 0 } },
+                { id: 'btnStart', type: 'pushbutton', x: 779.5, y: 169, rotation: 0, props: { name: 'RUN_HALT', pressed: false } },
+                { id: 'btnReset', type: 'pushbutton', x: 847.5, y: 169, rotation: 0, props: { name: 'RESET', pressed: false } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-2', to: 'bb-a13', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-3', to: 'bb-a14', color: '#f97316', waypoints: [] },
+                { from: 'ard-pin-4', to: 'bb-a15', color: '#eab308', waypoints: [] },
+                { from: 'ard-pin-5', to: 'bb-a16', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-6', to: 'bb-a17', color: '#0284c7', waypoints: [] },
+                { from: 'ard-pin-7', to: 'bb-f13', color: '#8b5cf6', waypoints: [] },
+                { from: 'ard-pin-8', to: 'bb-f14', color: '#ec4899', waypoints: [] },
+                { from: 'bb-a15', to: 'bb-bot-neg-15', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-d19', color: '#10b981', waypoints: [] },
+                { from: 'bb-g19', to: 'bb-bot-neg-19', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-d23', color: '#38bdf8', waypoints: [] },
+                { from: 'bb-g23', to: 'bb-bot-neg-23', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 07: 7-Segment Display Counter (0 to 9) with Control Keys
+// Pauses 2 seconds between increments. Button 1 (Pin 10) halts
+// and resumes counting. Button 2 (Pin 11) resets count to 0.
+// ========================================================
+
+const int segPins[7] = {2, 3, 4, 5, 6, 7, 8}; // a, b, c, d, e, f, g
+const int runHaltKey = 10;
+const int resetKey = 11;
+
+// 7-Segment lookup table for digits 0-9
+const byte digitTable[10] = {
+  0b00111111, // 0
+  0b00000110, // 1
+  0b01011011, // 2
+  0b01001111, // 3
+  0b01100110, // 4
+  0b01101101, // 5
+  0b01111101, // 6
+  0b00000111, // 7
+  0b01111111, // 8
+  0b01101111  // 9
+};
+
+int count = 0;
+bool isRunning = true;
+int lastRunBtn = HIGH;
+int lastRstBtn = HIGH;
+
+void showDigit(int d) {
+  byte pattern = digitTable[d % 10];
+  for (int i = 0; i < 7; i++) {
+    digitalWrite(segPins[i], (pattern >> i) & 1);
+  }
+}
+
+void setup() {
+  for (int i = 0; i < 7; i++) pinMode(segPins[i], OUTPUT);
+  pinMode(runHaltKey, INPUT_PULLUP);
+  pinMode(resetKey, INPUT_PULLUP);
+  Serial.begin(9600);
+  Serial.println("--- Exp 07: 7-Segment Programmable Decade Counter ---");
+  Serial.println("Key 1 (D10): Run/Halt | Key 2 (D11): Reset");
+  showDigit(count);
+}
+
+void loop() {
+  // Check Run/Halt Key
+  int runVal = digitalRead(runHaltKey);
+  if (runVal == LOW && lastRunBtn == HIGH) {
+    isRunning = !isRunning;
+    Serial.println(isRunning ? ">> Counter Resumed <<" : ">> Counter HALTED <<");
+    delay(50);
+  }
+  lastRunBtn = runVal;
+
+  // Check Reset Key
+  int rstVal = digitalRead(resetKey);
+  if (rstVal == LOW && lastRstBtn == HIGH) {
+    count = 0;
+    showDigit(count);
+    Serial.println(">> Counter RESET to 0 <<");
+    delay(50);
+  }
+  lastRstBtn = rstVal;
+
+  // Increment every 2 seconds when running
+  if (isRunning) {
+    showDigit(count);
+    Serial.print("Display Count: ");
+    Serial.println(count);
+    delay(2000); // 2-second pause per syllabus
+    count = (count + 1) % 10;
+  } else {
+    delay(50);
+  }
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 08: 1.8-inch TFT / LCD Display Interfacing
+        // ========================================================
+        tft_lcd: {
+            title: "Exp 08: 1.8\" TFT / LCD Graphics & Data Print",
+            components: [
+                { id: 'tft1', type: 'tft_lcd', x: 670, y: 150, rotation: 0, props: { name: 'TFT1.8', text: 'PHYSICS' } },
+                { id: 'pot1', type: 'potentiometer', x: 790, y: 143, rotation: 0, props: { resistance: 10000, name: 'ADC_POT', position: 0.5 } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-top-pos-10', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-top-neg-10', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-f13', color: '#38bdf8', waypoints: [] },
+                { from: 'ard-pin-9', to: 'bb-f15', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-f16', color: '#f59e0b', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-f17', color: '#ec4899', waypoints: [] },
+                { from: 'ard-pin-a0', to: 'bb-a20', color: '#10b981', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 08: 1.8-inch TFT/LCD Color Display Interfacing (SPI)
+// Print real-time sensor measurements, voltage, and graphical text.
+// ========================================================
+
+const int csPin = 10;
+const int dcPin = 9;
+const int rstPin = 8;
+const int sensorPin = A0;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("--- Exp 08: 1.8-inch Color TFT Display Initialized ---");
+  Serial.println("TFT Screen: 128x160 RGB SPI • ST7735 Controller");
+  Serial.println("[TFT Graphics] Initializing Canvas & Fonts...");
+}
+
+void loop() {
+  int rawADC = analogRead(sensorPin);
+  float voltage = (rawADC / 1023.0) * 5.0;
+  
+  Serial.println("================================");
+  Serial.println("  1.8-INCH TFT DISPLAY TELEMETRY");
+  Serial.println("================================");
+  Serial.println("Physics Lab : Computational Exps");
+  Serial.print("Analog Ch A0: ");
+  Serial.print(voltage, 2);
+  Serial.println(" V");
+  Serial.print("ADC Counts  : ");
+  Serial.println(rawADC);
+  Serial.println("Drawing Bar Graph [##########   ]");
+  
+  delay(1000);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 09: 7-Segment Display Up/Down Decade Counter
+        // ========================================================
+        seven_segment_updown: {
+            title: "Exp 09: 7-Segment Display Up/Down Decade Counter",
+            components: [
+                { id: 'disp1', type: 'seven_segment', x: 677.5, y: 153, rotation: 0, props: { name: '7SEG', digit: 0 } },
+                { id: 'btnDir', type: 'pushbutton', x: 779.5, y: 169, rotation: 0, props: { name: 'DIR_KEY', pressed: false } },
+                { id: 'btnStep', type: 'pushbutton', x: 847.5, y: 169, rotation: 0, props: { name: 'STEP_KEY', pressed: false } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-2', to: 'bb-a13', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-3', to: 'bb-a14', color: '#f97316', waypoints: [] },
+                { from: 'ard-pin-4', to: 'bb-a15', color: '#eab308', waypoints: [] },
+                { from: 'ard-pin-5', to: 'bb-a16', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-6', to: 'bb-a17', color: '#0284c7', waypoints: [] },
+                { from: 'ard-pin-7', to: 'bb-f13', color: '#8b5cf6', waypoints: [] },
+                { from: 'ard-pin-8', to: 'bb-f14', color: '#ec4899', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-d19', color: '#10b981', waypoints: [] },
+                { from: 'bb-g19', to: 'bb-bot-neg-19', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-d23', color: '#38bdf8', waypoints: [] },
+                { from: 'bb-g23', to: 'bb-bot-neg-23', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 09: 7-Segment Display Up/Down Decade Counter
+// Switch direction between UP counting and DOWN counting with
+// control pushbuttons.
+// ========================================================
+
+const int segPins[7] = {2, 3, 4, 5, 6, 7, 8};
+const int dirBtnPin = 10;
+const int stepBtnPin = 11;
+
+const byte digitTable[10] = {
+  0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110,
+  0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01101111
+};
+
+int count = 0;
+bool countUp = true;
+int lastStep = HIGH;
+int lastDir = HIGH;
+
+void showDigit(int d) {
+  byte p = digitTable[(d + 10) % 10];
+  for (int i = 0; i < 7; i++) digitalWrite(segPins[i], (p >> i) & 1);
+}
+
+void setup() {
+  for (int i = 0; i < 7; i++) pinMode(segPins[i], OUTPUT);
+  pinMode(dirBtnPin, INPUT_PULLUP);
+  pinMode(stepBtnPin, INPUT_PULLUP);
+  Serial.begin(9600);
+  Serial.println("--- Exp 09: Up/Down 7-Segment Decade Counter ---");
+  showDigit(count);
+}
+
+void loop() {
+  int dirVal = digitalRead(dirBtnPin);
+  if (dirVal == LOW && lastDir == HIGH) {
+    countUp = !countUp;
+    Serial.println(countUp ? "Direction: UP (+1)" : "Direction: DOWN (-1)");
+    delay(50);
+  }
+  lastDir = dirVal;
+
+  int stepVal = digitalRead(stepBtnPin);
+  if (stepVal == LOW && lastStep == HIGH) {
+    count = countUp ? (count + 1) % 10 : (count + 9) % 10;
+    showDigit(count);
+    Serial.print("Count: ");
+    Serial.println(count);
+    delay(50);
+  }
+  lastStep = stepVal;
+  delay(20);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 10: 8x8 Dot Matrix Alphabet & Numbers
+        // ========================================================
+        dot_matrix: {
+            title: "Exp 10: 8x8 LED Dot Matrix Alphabet & Numbers",
+            components: [
+                { id: 'matrix1', type: 'dot_matrix', x: 677.5, y: 153, rotation: 0, props: { name: 'MAX7219', char: 'A' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-f11', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-f12', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-f13', color: '#38bdf8', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-f14', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-f15', color: '#f59e0b', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 10: 8x8 LED Dot Matrix Display (MAX7219 / Direct)
+// Showcases numbers 0 to 9 and entire English alphabet
+// both in uppercase (A-Z) and lowercase (a-z).
+// ========================================================
+
+const int DIN_PIN = 11;
+const int CS_PIN = 10;
+const int CLK_PIN = 13;
+
+const char testChars[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("--- Exp 10: 8x8 LED Dot Matrix Display Active ---");
+  Serial.println("Cycling alphanumeric glyphs: Numbers 0-9 & Alphabet A-Z / a-z");
+}
+
+void loop() {
+  for (int i = 0; i < strlen(testChars); i++) {
+    char c = testChars[i];
+    Serial.print("Displaying Character: [ ");
+    Serial.print(c);
+    Serial.println(" ] on 8x8 Matrix");
+    delay(400);
+  }
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 11: Temperature & Humidity Sensor Telemetry
+        // ========================================================
+        tmp36_temp: {
+            title: "Exp 11: Temperature & Humidity (DHT11/TMP36) with Serial Plotter",
+            components: [
+                { id: 'tmp1', type: 'tmp36', x: 660.5, y: 147, rotation: 0, props: { name: 'TMP36', tempC: 28.5 } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#ef4444', name: 'HEAT_ALARM' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-a12', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 669, y: 330 }] },
+                { from: 'ard-pin-a0', to: 'bb-a13', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 686, y: 260 }] },
+                { from: 'ard-pin-gnd1', to: 'bb-a14', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 703, y: 345 }] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd2', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 11: Temperature & Humidity Transducer (DHT-11 / TMP36)
+// Transfer Equation: V_out = 0.5V + (10 mV / deg C) * T
+// Switch to 'Serial Plotter' tab below to view the live graph!
+// ========================================================
+
+const int tempSensorPin = A0;
+const int alertLedPin = 13;
+const float TEMP_ALERT_LIMIT = 32.0;
+
+void setup() {
+  pinMode(alertLedPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 11: Thermal Telemetry Online ---");
+  Serial.println("Format: Temp_C, Humidity_Pct");
+}
+
+void loop() {
+  int rawADC = analogRead(tempSensorPin);
+  float voltage = (rawADC / 1023.0) * 5.0;
+  float tempC = (voltage - 0.5) * 100.0;
+  float humidityPct = 45.0 + (tempC - 25.0) * 0.8; // Simulated DHT humidity
+  
+  // Output in Serial Plotter compatible format:
+  Serial.print(tempC, 2);
+  Serial.print(" ");
+  Serial.println(humidityPct, 1);
+  
+  if (tempC > TEMP_ALERT_LIMIT) {
+    digitalWrite(alertLedPin, HIGH);
+  } else {
+    digitalWrite(alertLedPin, LOW);
+  }
+  
+  delay(150);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 12: LM393 Sound Sensor & Threshold Potentiometer
+        // ========================================================
+        sound_lm393: {
+            title: "Exp 12: LM393 Sound Sensor & Threshold Potentiometer",
+            components: [
+                { id: 'snd1', type: 'sound_sensor', x: 660.5, y: 147, rotation: 0, props: { name: 'LM393_MIC', threshold: 500 } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#eab308', name: 'SOUND_LED' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-a12', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-a13', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-2', to: 'bb-a14', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-a0', to: 'bb-a15', color: '#38bdf8', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 12: LM393 Sound Sensor & Threshold Comparator
+// When sound levels surpass threshold set by onboard potentiometer,
+// illuminate LED and report new sound / sound ceased to Serial.
+// ========================================================
+
+const int soundDigitalPin = 2; // DOUT from LM393 comparator
+const int soundAnalogPin = A0;  // AOUT from microphone amplifier
+const int ledPin = 13;
+
+int lastSoundState = LOW;
+
+void setup() {
+  pinMode(soundDigitalPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- Exp 12: Acoustic Decibel Monitoring Online ---");
+  Serial.println("Click the Clap button or adjust sound slider on canvas!");
+}
+
+void loop() {
+  int currentSound = digitalRead(soundDigitalPin);
+  int rawAnalog = analogRead(soundAnalogPin);
+  
+  if (currentSound == HIGH && lastSoundState == LOW) {
+    digitalWrite(ledPin, HIGH);
+    Serial.print(">>> [SOUND DETECTED] Exceeded threshold! Peak Level: ");
+    Serial.print(rawAnalog);
+    Serial.println(" (LED Illuminated) <<<");
+  } else if (currentSound == LOW && lastSoundState == HIGH) {
+    digitalWrite(ledPin, LOW);
+    Serial.println("--- Sound has Ceased (Ambient Quiet) ---");
+  }
+  
+  lastSoundState = currentSound;
+  delay(50);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 13: RS-775 DC Motor Speed Control via L298 Driver
+        // ========================================================
+        dc_motor_l298: {
+            title: "Exp 13: RS-775 DC Motor Speed Control via L298 Driver",
+            components: [
+                { id: 'motor1', type: 'dc_motor', x: 670, y: 150, rotation: 0, props: { name: 'RS-775', speed: 120 } },
+                { id: 'pot1', type: 'potentiometer', x: 790, y: 143, rotation: 0, props: { resistance: 10000, name: 'SPEED_POT', position: 0.5 } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-top-pos-10', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-top-neg-10', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-9', to: 'bb-f13', color: '#38bdf8', waypoints: [] },
+                { from: 'ard-pin-8', to: 'bb-f14', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-7', to: 'bb-f15', color: '#f59e0b', waypoints: [] },
+                { from: 'ard-pin-a0', to: 'bb-a20', color: '#10b981', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 13: RS-775 DC Motor Speed Control with L298 H-Bridge
+// PWM duty cycle controls motor rotational velocity.
+// Adjust Potentiometer on breadboard to vary motor RPM.
+// ========================================================
+
+const int enablePin = 9;  // PWM speed control (ENA)
+const int in1Pin = 8;     // Direction input 1
+const int in2Pin = 7;     // Direction input 2
+const int speedPotPin = A0;
+
+void setup() {
+  pinMode(enablePin, OUTPUT);
+  pinMode(in1Pin, OUTPUT);
+  pinMode(in2Pin, OUTPUT);
+  
+  // Forward rotation
+  digitalWrite(in1Pin, HIGH);
+  digitalWrite(in2Pin, LOW);
+  
+  Serial.begin(9600);
+  Serial.println("--- Exp 13: L298 H-Bridge Motor Speed Controller ---");
+}
+
+void loop() {
+  int potVal = analogRead(speedPotPin);
+  int motorPwm = map(potVal, 0, 1023, 0, 255);
+  int rpmEst = map(motorPwm, 0, 255, 0, 3600);
+  
+  analogWrite(enablePin, motorPwm);
+  
+  Serial.print("Speed Pot: ");
+  Serial.print(potVal);
+  Serial.print(" -> PWM: ");
+  Serial.print(motorPwm);
+  Serial.print(" (");
+  Serial.print(Math.round((motorPwm / 255.0) * 100));
+  Serial.print("%) | Motor RPM: ~");
+  Serial.println(rpmEst);
+  
+  delay(150);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 14: 28BYJ-48 Stepper Motor with ULN2003 Driver
+        // ========================================================
+        stepper_uln2003: {
+            title: "Exp 14: 28BYJ-48 Stepper Motor 10° Angle & ULN2003 Driver",
+            components: [
+                { id: 'step1', type: 'stepper_motor', x: 670, y: 150, rotation: 0, props: { name: '28BYJ-48', angle: 0, speedRpm: 15 } },
+                { id: 'btnStep', type: 'pushbutton', x: 779.5, y: 169, rotation: 0, props: { name: 'STEP_10DEG', pressed: false } },
+                { id: 'btnHalt', type: 'pushbutton', x: 847.5, y: 169, rotation: 0, props: { name: 'HALT_KEY', pressed: false } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-8', to: 'bb-f13', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-9', to: 'bb-f14', color: '#f97316', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-f15', color: '#eab308', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-f16', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-2', to: 'bb-d19', color: '#38bdf8', waypoints: [] },
+                { from: 'bb-g19', to: 'bb-bot-neg-19', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-3', to: 'bb-d23', color: '#ec4899', waypoints: [] },
+                { from: 'bb-g23', to: 'bb-bot-neg-23', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 14: 28BYJ-48 Stepper Motor & ULN2003 Darlington Driver
+// Rotates motor at 10 deg angle increments at 5 second intervals.
+// Key 1 initiates rotation; Key 2 stops rotation.
+// ========================================================
+
+const int stepPins[4] = {8, 9, 10, 11};
+const int startBtn = 2;
+const int stopBtn = 3;
+
+int currentAngle = 0;
+bool motorActive = true;
+int lastStart = HIGH;
+int lastStop = HIGH;
+
+void stepPhase(int p) {
+  const byte seq[4] = {0b1000, 0b0100, 0b0010, 0b0001};
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(stepPins[i], (seq[p % 4] >> (3 - i)) & 1);
+  }
+}
+
+void setup() {
+  for (int i = 0; i < 4; i++) pinMode(stepPins[i], OUTPUT);
+  pinMode(startBtn, INPUT_PULLUP);
+  pinMode(stopBtn, INPUT_PULLUP);
+  Serial.begin(9600);
+  Serial.println("--- Exp 14: 28BYJ-48 Stepper Kinematics Online ---");
+  Serial.println("Step Angle = 10 deg | Interval = 5.0 s");
+}
+
+void loop() {
+  if (digitalRead(startBtn) == LOW) {
+    motorActive = true;
+    Serial.println(">> Stepper Rotation INITIATED <<");
+    delay(50);
+  }
+  if (digitalRead(stopBtn) == LOW) {
+    motorActive = false;
+    Serial.println(">> Stepper Rotation HALTED <<");
+    delay(50);
+  }
+
+  if (motorActive) {
+    currentAngle = (currentAngle + 10) % 360;
+    stepPhase(currentAngle / 10);
+    
+    Serial.print("Stepper Angular Position: ");
+    Serial.print(currentAngle);
+    Serial.println(" deg (Next 10 deg step in 5s...)");
+    
+    delay(5000); // 5-second interval per syllabus requirement
+  } else {
+    delay(100);
+  }
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 15: Bluetooth Module HC-05 & Smartphone Controller
+        // ========================================================
+        bluetooth_hc05: {
+            title: "Exp 15: HC-05 Bluetooth Module & Smartphone Controller",
+            components: [
+                { id: 'bt1', type: 'bluetooth_hc05', x: 670, y: 150, rotation: 0, props: { name: 'HC-05', state: 'Connected' } },
+                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#0284c7', name: 'APPLIANCE' } },
+                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-5v', to: 'bb-top-pos-10', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-top-neg-10', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-f13', color: '#38bdf8', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-f14', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [] },
+                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] }
+            ],
+            code: `// ========================================================
+// Exp 15: HC-05 Bluetooth Wireless Telemetry & Smartphone App
+// Send characters via smartphone Bluetooth terminal:
+// '1' -> Turn ON Appliance/LED | '0' -> Turn OFF Appliance/LED
+// ========================================================
+
+const int applianceLed = 13;
+char receivedChar;
+
+void setup() {
+  pinMode(applianceLed, OUTPUT);
+  Serial.begin(9600); // Standard HC-05 default baud
+  Serial.println("--- Exp 15: HC-05 Bluetooth Controller Online ---");
+  Serial.println("Awaiting wireless smartphone commands ('1'=ON, '0'=OFF)...");
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    receivedChar = Serial.read();
+    
+    if (receivedChar == '1') {
+      digitalWrite(applianceLed, HIGH);
+      Serial.println("[BT COMMAND]: '1' -> APPLIANCE ACTIVATED [ON]");
+    } else if (receivedChar == '0') {
+      digitalWrite(applianceLed, LOW);
+      Serial.println("[BT COMMAND]: '0' -> APPLIANCE DEACTIVATED [OFF]");
+    }
+  }
+  delay(100);
+}`
+        },
+
+        // ========================================================
+        // SYLLABUS EXP 16: RC Circuit Transient Charging & Discharging
+        // ========================================================
+        rc_transient: {
+            title: "Exp 16: RC Circuit Transient Charging & Discharging Data Logger",
+            components: [
+                { id: 'res1', type: 'resistor', x: 669, y: 141, rotation: 0, props: { resistance: 10000, unit: 'Ω', name: 'R1' } },
+                { id: 'cap1', type: 'capacitor', x: 745.5, y: 134, rotation: 0, props: { capacitance: 100, unit: 'µF', name: 'C1' } }
+            ],
+            autoWires: [
+                { from: 'ard-pin-10', to: 'bb-a12', color: '#3b82f6', waypoints: [{ x: 218, y: 40 }, { x: 669, y: 40 }] },
+                { from: 'ard-pin-a0', to: 'bb-a17', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 754, y: 260 }] },
+                { from: 'bb-a18', to: 'bb-bot-neg-18', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+            ],
+            code: `// ========================================================
+// Exp 16: RC Circuit Transient Dynamics Data Logger
+// Time Constant tau = R * C = 10k Ohm * 100 uF = 1.00 s
+// Plots exponential charging & discharging curves in real time.
+// ========================================================
+
+const int drivePin = 10;
+const int voltageSensePin = A0;
+
+void setup() {
+  pinMode(drivePin, OUTPUT);
+  digitalWrite(drivePin, LOW);
+  Serial.begin(9600);
+  Serial.println("--- Exp 16: RC Transient Data Logger Active ---");
+  Serial.println("Switch to 'Serial Plotter' below to view exponential waveform!");
+}
+
+void loop() {
+  // Phase 1: Charging cycle: V_C(t) = V_0 * (1 - e^(-t / RC))
+  Serial.println(">>> STEP: CHARGING CYCLE (Drive Pin HIGH) <<<");
+  digitalWrite(drivePin, HIGH);
+  for (int i = 0; i < 40; i++) {
+    int raw = analogRead(voltageSensePin);
+    float vCap = (raw / 1023.0) * 5.0;
+    Serial.println(vCap, 3);
+    delay(50);
+  }
+
+  // Phase 2: Discharging cycle: V_C(t) = V_0 * e^(-t / RC)
+  Serial.println(">>> STEP: DISCHARGING CYCLE (Drive Pin LOW) <<<");
+  digitalWrite(drivePin, LOW);
+  for (int i = 0; i < 40; i++) {
+    int raw = analogRead(voltageSensePin);
+    float vCap = (raw / 1023.0) * 5.0;
+    Serial.println(vCap, 3);
+    delay(50);
+  }
+}`
+        },
+
+        // ========================================================
+        // ADDITIONAL ELECTRONICS WORKBENCH STARTERS
+        // ========================================================
         blink: {
-            title: "1. LED Blink & Optical Timing",
+            title: "Starter: LED Blink & Optical Timing",
             components: [
                 { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#ef4444', name: 'LED1' } },
                 { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
@@ -326,11 +1419,7 @@
                 { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
                 { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
             ],
-            code: `// ========================================================
-// Lab 01: Standard LED Blink & Optical Timing
-// Digital Pin 13 & Breadboard Red LED with 220 Ohm Resistor
-// ========================================================
-
+            code: `// Standard LED Blink & Optical Timing
 const int ledPin = 13;
 
 void setup() {
@@ -350,7 +1439,7 @@ void loop() {
 }`
         },
         pwm_fade: {
-            title: "2. PWM Breathing & Effective DC Voltage",
+            title: "Starter: PWM Breathing & Effective DC Voltage",
             components: [
                 { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#0284c7', name: 'LED1' } },
                 { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
@@ -360,11 +1449,7 @@ void loop() {
                 { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
                 { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
             ],
-            code: `// ========================================================
-// Lab 02: Pulse-Width Modulation (PWM) LED Breathing
-// Effective DC Voltage: V_eff = 5.0 * (Duty / 255.0)
-// ========================================================
-
+            code: `// Pulse-Width Modulation (PWM) LED Breathing
 const int pwmPin = 9;
 int brightness = 0;
 int fadeStep = 5;
@@ -372,248 +1457,45 @@ int fadeStep = 5;
 void setup() {
   pinMode(pwmPin, OUTPUT);
   Serial.begin(9600);
-  Serial.println("--- PWM Voltage Modulation Active ---");
 }
 
 void loop() {
   analogWrite(pwmPin, brightness);
   float vEff = (brightness / 255.0) * 5.0;
-  
-  Serial.print("Duty Cycle: ");
-  Serial.print(brightness);
-  Serial.print(" | V_eff: ");
-  Serial.print(vEff, 2);
-  Serial.println(" V");
-  
+  Serial.print("Duty: "); Serial.print(brightness);
+  Serial.print(" | V_eff: "); Serial.println(vEff, 2);
   brightness += fadeStep;
-  if (brightness <= 0 || brightness >= 255) {
-    fadeStep = -fadeStep;
-  }
+  if (brightness <= 0 || brightness >= 255) fadeStep = -fadeStep;
   delay(30);
 }`
         },
         potentiometer: {
-            title: "3. Potentiometer 10-Bit ADC Voltage Divider",
+            title: "Starter: Potentiometer 10-Bit ADC Divider",
             components: [
                 { id: 'pot1', type: 'potentiometer', x: 627, y: 143, rotation: 0, props: { resistance: 10000, name: 'POT1', position: 0.5 } }
             ],
             autoWires: [
-                { from: 'ard-pin-5v', to: 'bb-a10', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 635, y: 330 }] },
-                { from: 'ard-pin-gnd1', to: 'bb-a12', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 669, y: 345 }] },
-                { from: 'ard-pin-a0', to: 'bb-a11', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 652, y: 260 }] }
+                { from: 'ard-pin-5v', to: 'bb-a10', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-gnd1', to: 'bb-a12', color: '#0f172a', waypoints: [] },
+                { from: 'ard-pin-a0', to: 'bb-a11', color: '#10b981', waypoints: [] }
             ],
-            code: `// ========================================================
-// Lab 03: Potentiometer Voltage Divider (Ohm's Law)
-// 10-Bit ADC Resolution: 5.0V / 1024 = 4.88 mV per count
-// ========================================================
-
+            code: `// Potentiometer Voltage Divider 10-Bit ADC
 const int potPin = A0;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("--- 10-Bit ADC Acquisition Ready ---");
 }
 
 void loop() {
   int rawADC = analogRead(potPin);
   float voltage = (rawADC / 1023.0) * 5.0;
-  
-  Serial.print("ADC: ");
-  Serial.print(rawADC);
-  Serial.print(" | Voltage: ");
-  Serial.print(voltage, 3);
-  Serial.println(" V");
-  
+  Serial.print("ADC: "); Serial.print(rawADC);
+  Serial.print(" | Voltage: "); Serial.println(voltage, 3);
   delay(100);
 }`
         },
-        ldr_sensor: {
-            title: "4. Photoresistor (LDR) Solar Light Sensor",
-            components: [
-                { id: 'ldr1', type: 'ldr', x: 694.5, y: 151, rotation: 0, props: { name: 'LDR1', lux: 450 } },
-                { id: 'res1', type: 'resistor', x: 720, y: 158, rotation: 0, props: { resistance: 10000, unit: 'Ω', name: 'R1' } }
-            ],
-            autoWires: [
-                { from: 'ard-pin-5v', to: 'bb-a14', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 703, y: 330 }] },
-                { from: 'ard-pin-a1', to: 'bb-a15', color: '#10b981', waypoints: [{ x: 289, y: 260 }, { x: 720, y: 260 }] },
-                { from: 'bb-a20', to: 'bb-bot-neg-20', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
-            ],
-            code: `// ========================================================
-// Lab 04: LDR Photoelectric Sensor & Solar Insolation
-// Semiconductor photo-conductivity increases with lux
-// ========================================================
-
-const int ldrPin = A1;
-
-void setup() {
-  Serial.begin(9600);
-  Serial.println("--- Photometric Telemetry Online ---");
-}
-
-void loop() {
-  int sensorVal = analogRead(ldrPin);
-  float vOut = sensorVal * (5.0 / 1023.0);
-  
-  Serial.print("LDR ADC: ");
-  Serial.print(sensorVal);
-  Serial.print(" | V_out: ");
-  Serial.print(vOut, 2);
-  Serial.println(" V");
-  
-  delay(200);
-}`
-        },
-        ultrasonic: {
-            title: "5. Ultrasonic HC-SR04 Speed of Sound Rangefinder",
-            components: [
-                { id: 'us1', type: 'ultrasonic', x: 683.5, y: 247, rotation: 0, props: { name: 'US1', distance: 25 } }
-            ],
-            autoWires: [
-                { from: 'ard-pin-5v', to: 'bb-f14', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 703, y: 330 }] },
-                { from: 'ard-pin-9', to: 'bb-f15', color: '#0284c7', waypoints: [{ x: 231, y: 40 }, { x: 720, y: 40 }] },
-                { from: 'ard-pin-8', to: 'bb-f16', color: '#8b5cf6', waypoints: [{ x: 244, y: 48 }, { x: 737, y: 48 }] },
-                { from: 'ard-pin-gnd1', to: 'bb-f17', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 754, y: 345 }] }
-            ],
-            code: `// ========================================================
-// Lab 05: Ultrasonic HC-SR04 Speed of Sound & Range
-// Velocity of Sound in Air v = 343 m/s = 0.0343 cm/us
-// ========================================================
-
-const int trigPin = 9;
-const int echoPin = 8;
-
-void setup() {
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  Serial.begin(9600);
-  Serial.println("--- Ultrasonic Acoustic Telemetry Ready ---");
-}
-
-void loop() {
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  
-  long duration = pulseIn(echoPin, HIGH);
-  float distanceCm = duration * 0.0343 / 2.0;
-  
-  Serial.print("Echo Transit: ");
-  Serial.print(duration);
-  Serial.print(" us | Distance: ");
-  Serial.print(distanceCm, 1);
-  Serial.println(" cm");
-  
-  delay(250);
-}`
-        },
-        pir_alarm: {
-            title: "6. PIR Motion Detector & Security Alarm",
-            components: [
-                { id: 'pir1', type: 'pir', x: 654, y: 239, rotation: 0, props: { name: 'PIR1', motion: false } },
-                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#ef4444', name: 'LED1' } },
-                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } },
-                { id: 'bz1', type: 'buzzer', x: 840, y: 247, rotation: 0, props: { name: 'BZ1', frequency: 1500 } }
-            ],
-            autoWires: [
-                { from: 'ard-pin-2', to: 'bb-f12', color: '#10b981', waypoints: [{ x: 326, y: 40 }, { x: 669, y: 40 }] },
-                { from: 'ard-pin-5v', to: 'bb-f13', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 686, y: 330 }] },
-                { from: 'ard-pin-gnd1', to: 'bb-f14', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 703, y: 345 }] },
-                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
-                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-11', to: 'bb-f23', color: '#8b5cf6', waypoints: [{ x: 205, y: 40 }, { x: 856, y: 40 }] },
-                { from: 'bb-f24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd2', to: 'bb-bot-neg-4', color: '#0f172a', waypoints: [] }
-            ],
-            code: `// ========================================================
-// Lab 06: PIR Pyroelectric Infrared Motion Security Alarm
-// Digital Pin 2 Interrupt/Input with Visual & Audio Alert
-// ========================================================
-
-const int pirPin = 2;
-const int ledPin = 13;
-const int buzzerPin = 11;
-
-void setup() {
-  pinMode(pirPin, INPUT);
-  pinMode(ledPin, OUTPUT);
-  pinMode(buzzerPin, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("--- Security Perimeter Surveillance Active ---");
-}
-
-void loop() {
-  int motionDetected = digitalRead(pirPin);
-  
-  if (motionDetected == HIGH) {
-    digitalWrite(ledPin, HIGH);
-    tone(buzzerPin, 1800);
-    Serial.println(">>> INTRUSION DETECTED! Alarm Active <<<");
-  } else {
-    digitalWrite(ledPin, LOW);
-    noTone(buzzerPin);
-    Serial.println("Perimeter Clear - Scanning...");
-  }
-  
-  delay(150);
-}`
-        },
-        tmp36_temp: {
-            title: "7. TMP36 Precision Thermometer & Heat Monitor",
-            components: [
-                { id: 'tmp1', type: 'tmp36', x: 660.5, y: 147, rotation: 0, props: { name: 'TMP1', tempC: 28.5 } },
-                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#ef4444', name: 'LED1' } },
-                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
-            ],
-            autoWires: [
-                { from: 'ard-pin-5v', to: 'bb-a12', color: '#ef4444', waypoints: [{ x: 208, y: 330 }, { x: 669, y: 330 }] },
-                { from: 'ard-pin-a0', to: 'bb-a13', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 686, y: 260 }] },
-                { from: 'ard-pin-gnd1', to: 'bb-a14', color: '#0f172a', waypoints: [{ x: 220, y: 345 }, { x: 703, y: 345 }] },
-                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
-                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd2', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
-            ],
-            code: `// ========================================================
-// Lab 07: TMP36 Precision Analog Temperature Sensor
-// Transfer Characteristic: V_out = 0.5V + (10 mV / deg C) * T
-// ========================================================
-
-const int tempPin = A0;
-const int alertLedPin = 13;
-const float TEMP_THRESHOLD = 30.0; // deg C threshold
-
-void setup() {
-  pinMode(alertLedPin, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("--- Thermal Transducer Telemetry Active ---");
-}
-
-void loop() {
-  int rawADC = analogRead(tempPin);
-  float voltage = (rawADC / 1023.0) * 5.0;
-  float temperatureC = (voltage - 0.5) * 100.0;
-  
-  Serial.print("Raw ADC: ");
-  Serial.print(rawADC);
-  Serial.print(" | Vout: ");
-  Serial.print(voltage, 3);
-  Serial.print(" V | Temp: ");
-  Serial.print(temperatureC, 1);
-  Serial.println(" C");
-  
-  if (temperatureC > TEMP_THRESHOLD) {
-    digitalWrite(alertLedPin, HIGH);
-  } else {
-    digitalWrite(alertLedPin, LOW);
-  }
-  
-  delay(200);
-}`
-        },
         servo_sweep: {
-            title: "8. Micro Servo Motor 180° Angle Sweeper",
+            title: "Starter: Micro Servo Motor 180° Sweeper",
             components: [
                 { id: 'servo1', type: 'servo', x: 671, y: 233, rotation: 0, props: { name: 'SERVO1', angle: 90 } },
                 { id: 'pot1', type: 'potentiometer', x: 627, y: 143, rotation: 0, props: { resistance: 10000, name: 'POT1', position: 0.5 } }
@@ -623,50 +1505,30 @@ void loop() {
                 { from: 'ard-pin-gnd1', to: 'bb-top-neg-10', color: '#0f172a', waypoints: [] },
                 { from: 'bb-top-pos-10', to: 'bb-a10', color: '#ef4444', waypoints: [] },
                 { from: 'bb-top-neg-12', to: 'bb-a12', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-a0', to: 'bb-a11', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 652, y: 260 }] },
+                { from: 'ard-pin-a0', to: 'bb-a11', color: '#10b981', waypoints: [] },
                 { from: 'bb-top-neg-13', to: 'bb-f13', color: '#0f172a', waypoints: [] },
                 { from: 'bb-top-pos-14', to: 'bb-f14', color: '#ef4444', waypoints: [] },
-                { from: 'ard-pin-9', to: 'bb-f15', color: '#f97316', waypoints: [{ x: 231, y: 40 }, { x: 720, y: 40 }] }
+                { from: 'ard-pin-9', to: 'bb-f15', color: '#f97316', waypoints: [] }
             ],
-            code: `// ========================================================
-// Lab 08: Micro Servo SG90 Angular Position Control
-// Servo Horn sweeps 0 to 180 degrees mapped from Potentiometer
-// ========================================================
-
-#include <Servo.h>
-
+            code: `#include <Servo.h>
 Servo myServo;
 const int potPin = A0;
-const int servoPin = 9;
-
-int prevAngle = -1;
 
 void setup() {
-  myServo.attach(servoPin);
+  myServo.attach(9);
   Serial.begin(9600);
-  Serial.println("--- Micro Servo Kinematic Positioner Online ---");
 }
 
 void loop() {
-  int potValue = analogRead(potPin);
-  int targetAngle = map(potValue, 0, 1023, 0, 180);
-  
-  if (abs(targetAngle - prevAngle) >= 1) {
-    myServo.write(targetAngle);
-    prevAngle = targetAngle;
-    
-    Serial.print("Pot ADC: ");
-    Serial.print(potValue);
-    Serial.print(" -> Servo Angle: ");
-    Serial.print(targetAngle);
-    Serial.println(" deg");
-  }
-  
+  int val = analogRead(potPin);
+  int angle = map(val, 0, 1023, 0, 180);
+  myServo.write(angle);
+  Serial.print("Angle: "); Serial.println(angle);
   delay(40);
 }`
         },
         rgb_mixer: {
-            title: "9. RGB LED Color Spectrum PWM Mixer",
+            title: "Starter: RGB LED Color Spectrum PWM Mixer",
             components: [
                 { id: 'rgb1', type: 'rgb_led', x: 711.5, y: 147, rotation: 0, props: { name: 'RGB1', rVal: 255, gVal: 100, bVal: 50 } },
                 { id: 'res1', type: 'resistor', x: 771, y: 80, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } },
@@ -674,17 +1536,13 @@ void loop() {
                 { id: 'res3', type: 'resistor', x: 771, y: 148, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R3' } }
             ],
             autoWires: [
-                { from: 'ard-pin-9', to: 'bb-a17', color: '#3b82f6', waypoints: [{ x: 231, y: 40 }, { x: 754, y: 40 }] },
-                { from: 'ard-pin-10', to: 'bb-b17', color: '#10b981', waypoints: [{ x: 218, y: 45 }, { x: 754, y: 45 }] },
-                { from: 'ard-pin-11', to: 'bb-c15', color: '#ef4444', waypoints: [{ x: 205, y: 50 }, { x: 720, y: 50 }] },
+                { from: 'ard-pin-9', to: 'bb-a17', color: '#3b82f6', waypoints: [] },
+                { from: 'ard-pin-10', to: 'bb-b17', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-c15', color: '#ef4444', waypoints: [] },
                 { from: 'bb-e16', to: 'bb-bot-neg-16', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
             ],
-            code: `// ========================================================
-// Lab 09: RGB LED Optical Spectrum Synthesis (PWM Mixing)
-// Tri-chromatic additive color space (Pins 11, 10, 9)
-// ========================================================
-
+            code: `// RGB LED PWM Color Mixer
 const int redPin = 11;
 const int greenPin = 10;
 const int bluePin = 9;
@@ -694,204 +1552,44 @@ void setup() {
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
   Serial.begin(9600);
-  Serial.println("--- RGB Trichromatic Synthesis Online ---");
 }
 
 void loop() {
-  // Cycle through Red, Green, Blue, Cyan, Magenta, Yellow, White
-  int colors[7][3] = {
-    {255, 0, 0},     // Pure Red
-    {0, 255, 0},     // Pure Green
-    {0, 0, 255},     // Pure Blue
-    {0, 255, 255},   // Cyan
-    {255, 0, 255},   // Magenta
-    {255, 255, 0},   // Yellow
-    {255, 255, 255}  // White
-  };
-  
-  for (int i = 0; i < 7; i++) {
-    analogWrite(redPin, colors[i][0]);
-    analogWrite(greenPin, colors[i][1]);
-    analogWrite(bluePin, colors[i][2]);
-    
-    Serial.print("Color Phase ");
-    Serial.print(i + 1);
-    Serial.print(" | R: "); Serial.print(colors[i][0]);
-    Serial.print(" G: "); Serial.print(colors[i][1]);
-    Serial.print(" B: "); Serial.println(colors[i][2]);
-    delay(1000);
-  }
+  analogWrite(redPin, 255); analogWrite(greenPin, 0); analogWrite(bluePin, 0); delay(600);
+  analogWrite(redPin, 0); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(600);
+  analogWrite(redPin, 0); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(600);
 }`
         },
         button_toggle: {
-            title: "10. Pushbutton Digital Input & Pullup",
+            title: "Starter: Pushbutton Digital Input & Pullup",
             components: [
                 { id: 'btn1', type: 'pushbutton', x: 677.5, y: 169, rotation: 0, props: { name: 'BTN1', pressed: false } },
                 { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#10b981', name: 'LED1' } },
                 { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
             ],
             autoWires: [
-                { from: 'ard-pin-2', to: 'bb-d13', color: '#10b981', waypoints: [{ x: 326, y: 40 }, { x: 686, y: 40 }] },
+                { from: 'ard-pin-2', to: 'bb-d13', color: '#10b981', waypoints: [] },
                 { from: 'bb-g13', to: 'bb-bot-neg-13', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
+                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [] },
                 { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
+                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [] }
             ],
-            code: `// ========================================================
-// Lab 10: Digital Input with Internal Pull-Up Resistor
-// Active-LOW Switch Logic with Debounce
-// ========================================================
-
-const int buttonPin = 2;
+            code: `// Pushbutton Input Pull-Up
+const int btnPin = 2;
 const int ledPin = 13;
-
-int ledState = LOW;
-int lastButtonState = HIGH;
+int state = LOW;
 
 void setup() {
-  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(btnPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("--- Digital Input Pull-Up Active ---");
 }
 
 void loop() {
-  int reading = digitalRead(buttonPin);
-  
-  if (reading == LOW && lastButtonState == HIGH) {
-    ledState = !ledState;
-    digitalWrite(ledPin, ledState);
-    
-    Serial.print("Button Pressed! LED State -> ");
-    Serial.println(ledState == HIGH ? "ON (Active)" : "OFF (Standby)");
-    delay(50); // Simple debounce
+  if (digitalRead(btnPin) == LOW) {
+    state = !state;
+    digitalWrite(ledPin, state);
+    delay(200);
   }
-  
-  lastButtonState = reading;
-  delay(20);
-}`
-        },
-        rc_transient: {
-            title: "11. RC Transient Charging & Discharging Curve",
-            components: [
-                { id: 'res1', type: 'resistor', x: 669, y: 141, rotation: 0, props: { resistance: 10000, unit: 'Ω', name: 'R1' } },
-                { id: 'cap1', type: 'capacitor', x: 745.5, y: 134, rotation: 0, props: { capacitance: 100, unit: 'µF', name: 'C1' } }
-            ],
-            autoWires: [
-                { from: 'ard-pin-10', to: 'bb-a12', color: '#3b82f6', waypoints: [{ x: 218, y: 40 }, { x: 669, y: 40 }] },
-                { from: 'ard-pin-a0', to: 'bb-a17', color: '#10b981', waypoints: [{ x: 277, y: 260 }, { x: 754, y: 260 }] },
-                { from: 'bb-a18', to: 'bb-bot-neg-18', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
-            ],
-            code: `// ========================================================
-// Lab 11: RC Circuit Transient Charging & Discharging Curve
-// Time Constant tau = R * C = 10,000 Ohm * 100 uF = 1.00 s
-// ========================================================
-
-const int chargePin = 10;
-const int sensePin = A0;
-
-void setup() {
-  pinMode(chargePin, OUTPUT);
-  digitalWrite(chargePin, LOW);
-  Serial.begin(9600);
-  Serial.println("--- RC Transient Dynamic Analysis Initialized ---");
-}
-
-void loop() {
-  // 1. Charging Phase: V_C(t) = V_0 * (1 - exp(-t / RC))
-  Serial.println(">>> STEP: CHARGING PHASE (Pin 10 HIGH) <<<");
-  digitalWrite(chargePin, HIGH);
-  for (int i = 0; i < 40; i++) {
-    int raw = analogRead(sensePin);
-    float vCap = (raw / 1023.0) * 5.0;
-    Serial.print("Phase: CHARGE | Raw ADC: ");
-    Serial.print(raw);
-    Serial.print(" | V_C: ");
-    Serial.print(vCap, 3);
-    Serial.println(" V");
-    delay(50);
-  }
-
-  // 2. Discharging Phase: V_C(t) = V_0 * exp(-t / RC)
-  Serial.println(">>> STEP: DISCHARGING PHASE (Pin 10 LOW) <<<");
-  digitalWrite(chargePin, LOW);
-  for (int i = 0; i < 40; i++) {
-    int raw = analogRead(sensePin);
-    float vCap = (raw / 1023.0) * 5.0;
-    Serial.print("Phase: DISCHARGE | Raw ADC: ");
-    Serial.print(raw);
-    Serial.print(" | V_C: ");
-    Serial.print(vCap, 3);
-    Serial.println(" V");
-    delay(50);
-  }
-}`
-        },
-        photogate: {
-            title: "12. Simple Pendulum Optical Photogate ('g' Measurement)",
-            components: [
-                { id: 'btn1', type: 'pushbutton', x: 677.5, y: 169, rotation: 0, props: { name: 'BEAM_TRIG', pressed: false } },
-                { id: 'led1', type: 'led', x: 762.5, y: 147, rotation: 0, props: { color: '#10b981', name: 'BEAM_LED' } },
-                { id: 'res1', type: 'resistor', x: 788, y: 158, rotation: 0, props: { resistance: 220, unit: 'Ω', name: 'R1' } }
-            ],
-            autoWires: [
-                { from: 'ard-pin-2', to: 'bb-d13', color: '#10b981', waypoints: [{ x: 326, y: 40 }, { x: 686, y: 40 }] },
-                { from: 'bb-g13', to: 'bb-bot-neg-13', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-13', to: 'bb-a18', color: '#f97316', waypoints: [{ x: 179, y: 40 }, { x: 771, y: 40 }] },
-                { from: 'bb-a24', to: 'bb-bot-neg-24', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-gnd1', to: 'bb-bot-neg-2', color: '#0f172a', waypoints: [{ x: 220, y: 345 }] }
-            ],
-            code: `// ========================================================
-// Lab 12: Simple Pendulum Optical Photogate Timing ('g' Measurement)
-// Time Period T = 2 * pi * sqrt(L / g) => g = 4 * pi^2 * L / T^2
-// Connect Photogate sensor to Digital Pin 2 (Hardware INT0)
-// ========================================================
-
-const byte photogatePin = 2;
-const byte indicatorLed = 13;
-const float PENDULUM_LENGTH_M = 0.50; // Pendulum Length L = 50 cm
-
-volatile unsigned long t1 = 0;
-volatile unsigned long t2 = 0;
-volatile byte count = 0;
-
-void setup() {
-  pinMode(photogatePin, INPUT_PULLUP);
-  pinMode(indicatorLed, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("--- Optical Photogate Timing System Active ---");
-  Serial.println("Click BEAM_TRIG on breadboard to simulate pendulum beam cuts.");
-}
-
-void loop() {
-  int beamState = digitalRead(photogatePin);
-  
-  if (beamState == LOW) {
-    digitalWrite(indicatorLed, HIGH);
-    unsigned long now = millis();
-    count++;
-    if (count == 1) {
-      t1 = now;
-      Serial.println(">> Beam Cut 1 registered: Timing started <<");
-    } else if (count == 2) {
-      t2 = now;
-      count = 0;
-      float periodSec = (t2 - t1) / 1000.0;
-      if (periodSec > 0.1) {
-        float g = (4.0 * 3.14159265 * 3.14159265 * PENDULUM_LENGTH_M) / (periodSec * periodSec);
-        Serial.print("Oscillation Period T: ");
-        Serial.print(periodSec, 3);
-        Serial.print(" s | Acceleration 'g': ");
-        Serial.print(g, 2);
-        Serial.println(" m/s^2");
-      }
-    }
-    delay(200); // debounce beam cut
-  } else {
-    digitalWrite(indicatorLed, LOW);
-  }
-  delay(20);
 }`
         }
     };
@@ -1035,6 +1733,26 @@ void loop() {
         }
     }
 
+    function getComponentForTerminal(termId) {
+        if (!termId || termId.startsWith('bb-') || termId.startsWith('ard-')) return null;
+        const compId = termId.split('_')[0];
+        return state.components.find(c => c.id === compId) || null;
+    }
+
+    function getComponentAt(stageX, stageY) {
+        for (let i = state.components.length - 1; i >= 0; i--) {
+            const comp = state.components[i];
+            const lib = COMPONENT_LIBRARY[comp.type];
+            const w = lib ? lib.width : 50;
+            const h = lib ? lib.height : 50;
+            if (stageX >= comp.x - 6 && stageX <= comp.x + w + 6 &&
+                stageY >= comp.y - 6 && stageY <= comp.y + h + 6) {
+                return comp;
+            }
+        }
+        return null;
+    }
+
     function registerTerminal(id, name, x, y) {
         terminals[id] = { id, name, x, y };
 
@@ -1045,7 +1763,9 @@ void loop() {
         if (!el) {
             el = document.createElement('div');
             el.id = `term-${id}`;
-            el.className = 'tc-terminal tc-terminal-pin';
+            const isBb = id.startsWith('bb-');
+            const isArd = id.startsWith('ard-');
+            el.className = `tc-terminal tc-terminal-pin ${isBb ? 'tc-bb-pin' : isArd ? 'tc-ard-pin' : 'tc-comp-pin'}`;
             el.setAttribute('data-terminal-id', id);
 
             const tooltip = document.createElement('div');
@@ -1054,6 +1774,11 @@ void loop() {
             el.appendChild(tooltip);
 
             container.appendChild(el);
+        } else {
+            const tooltip = el.querySelector('.tc-pin-tooltip');
+            if (tooltip && tooltip.textContent !== name) {
+                tooltip.textContent = name;
+            }
         }
 
         el.style.left = `${x}px`;
@@ -1061,11 +1786,45 @@ void loop() {
 
         el.onmouseenter = () => onTerminalHover(id);
         el.onmouseleave = () => onTerminalLeave(id);
+
+        el.onmousedown = (e) => {
+            if (e.shiftKey) {
+                e.stopPropagation();
+                const comp = getComponentForTerminal(id) || getComponentAt(x, y);
+                if (comp) {
+                    selectComponent(comp.id);
+                    const compEl = document.getElementById(comp.id);
+                    if (compEl && compEl._startDrag) {
+                        compEl._startDrag(e.clientX, e.clientY);
+                    }
+                }
+            }
+        };
+
         el.onclick = (e) => {
+            if (e.shiftKey) {
+                e.stopPropagation();
+                const comp = getComponentForTerminal(id) || getComponentAt(x, y);
+                if (comp) {
+                    selectComponent(comp.id);
+                    return;
+                }
+            }
             e.stopPropagation();
             onTerminalClick(id);
         };
+
         el.ontouchstart = (e) => {
+            const comp = getComponentForTerminal(id) || (id.startsWith('bb-') ? getComponentAt(x, y) : null);
+            if (comp && !state.drawingWire) {
+                e.stopPropagation();
+                selectComponent(comp.id);
+                const compEl = document.getElementById(comp.id);
+                if (compEl && compEl._startDrag && e.touches.length === 1) {
+                    compEl._startDrag(e.touches[0].clientX, e.touches[0].clientY);
+                }
+                return;
+            }
             e.stopPropagation();
             e.preventDefault();
             onTerminalClick(id);
@@ -1236,6 +1995,7 @@ void loop() {
             state.wires.push(newWire);
             pulseTerminal(terminalId);
             pulseTerminal(state.drawingWire.from);
+            playPlugSound();
 
             pushUndo({
                 type: 'addWire',
@@ -1408,17 +2168,37 @@ void loop() {
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', d);
             path.setAttribute('class', 'tc-wire-svg-path' + (isSelected ? ' selected' : ''));
-            path.setAttribute('stroke', w.color);
-            path.setAttribute('stroke-width', isSelected ? '5.5' : '3.8');
+            path.setAttribute('stroke', isSelected ? '#38bdf8' : w.color);
+            path.setAttribute('stroke-width', isSelected ? '6' : '3.8');
             path.setAttribute('stroke-linecap', 'round');
             path.setAttribute('stroke-linejoin', 'round');
 
-            path.addEventListener('click', (e) => {
+            // Invisible wide hit-testing path (20px) for effortless click & Shift+Click selection
+            const hitPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hitPath.setAttribute('d', d);
+            hitPath.setAttribute('stroke', 'transparent');
+            hitPath.setAttribute('stroke-width', '20');
+            hitPath.setAttribute('fill', 'none');
+            hitPath.setAttribute('stroke-linecap', 'round');
+            hitPath.setAttribute('stroke-linejoin', 'round');
+            hitPath.style.cursor = 'pointer';
+            hitPath.style.pointerEvents = 'stroke';
+
+            const onWireSelect = (e) => {
                 e.stopPropagation();
                 selectWire(w.id);
-            });
+            };
+
+            hitPath.onmousedown = onWireSelect;
+            hitPath.onclick = onWireSelect;
+            hitPath.ontouchstart = onWireSelect;
+
+            path.onmousedown = onWireSelect;
+            path.onclick = onWireSelect;
+            path.ontouchstart = onWireSelect;
 
             group.appendChild(path);
+            group.appendChild(hitPath);
 
             // Physical terminal ferrule pins at each end
             [t1, t2].forEach(t => {
@@ -1453,18 +2233,27 @@ void loop() {
         action.innerHTML = `
             <span style="display:flex; align-items:center; gap:5px;">
                 <span style="width:8px; height:8px; border-radius:50%; background:${wire.color}; display:inline-block; border:1px solid #fff;"></span>
-                Wire
+                Wire (${wire.color})
             </span>
-            <button type="button" title="Delete Wire">
+            <button type="button" class="tc-wire-del-btn" title="Delete Wire (Del or Backspace)">
                 <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+            <button type="button" class="tc-wire-close-btn" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.75rem; padding:0 2px;" title="Deselect">
+                <i class="fa-solid fa-xmark"></i>
             </button>
         `;
 
-        action.querySelector('button')?.addEventListener('click', (e) => {
+        action.querySelector('.tc-wire-del-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteSelected();
         });
 
+        action.querySelector('.tc-wire-close-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deselectAll();
+        });
+
+        action.addEventListener('mousedown', (e) => e.stopPropagation());
         action.addEventListener('click', (e) => e.stopPropagation());
         stage.appendChild(action);
     }
@@ -1629,12 +2418,13 @@ void loop() {
         el.style.left = `${comp.x}px`;
         el.style.top = `${comp.y}px`;
         el.style.transform = `rotate(${comp.rotation}deg)`;
+        el.style.zIndex = state.selectedItem?.id === comp.id ? '50' : '30';
         el.innerHTML = getComponentSVG(comp);
 
-        el.addEventListener('click', (e) => {
+        el.onclick = (e) => {
             e.stopPropagation();
             selectComponent(comp.id);
-        });
+        };
 
         bindComponentLiveControls(el, comp);
         makeComponentDraggable(el, comp);
@@ -1912,9 +2702,79 @@ void loop() {
                     <div style="width:12px;height:2px;background:#94a3b8;"></div>
                 </div>`;
 
+            case 'seven_segment':
+                const seg = comp.props.segments || { a:1, b:1, c:1, d:1, e:1, f:1, g:0, dp:0 };
+                return `<div class="tc-seven-segment-display" style="width:60px;height:85px;position:relative;background:#090d16;border-radius:6px;border:2px solid #334155;padding:6px;box-sizing:border-box;">
+                    <div class="tc-seg ${seg.a ? 'lit' : ''}" style="top:12px;left:15px;width:30px;height:5px;"></div>
+                    <div class="tc-seg ${seg.b ? 'lit' : ''}" style="top:17px;left:42px;width:5px;height:24px;"></div>
+                    <div class="tc-seg ${seg.c ? 'lit' : ''}" style="top:44px;left:42px;width:5px;height:24px;"></div>
+                    <div class="tc-seg ${seg.d ? 'lit' : ''}" style="top:68px;left:15px;width:30px;height:5px;"></div>
+                    <div class="tc-seg ${seg.e ? 'lit' : ''}" style="top:44px;left:13px;width:5px;height:24px;"></div>
+                    <div class="tc-seg ${seg.f ? 'lit' : ''}" style="top:17px;left:13px;width:5px;height:24px;"></div>
+                    <div class="tc-seg ${seg.g ? 'lit' : ''}" style="top:40px;left:15px;width:30px;height:5px;"></div>
+                    <div class="tc-seg ${seg.dp ? 'lit' : ''}" style="bottom:12px;right:6px;width:6px;height:6px;border-radius:50%;"></div>
+                </div>`;
+
+            case 'dot_matrix':
+                return `<div style="width:75px;height:75px;position:relative;background:#0a0e17;border-radius:6px;border:2px solid #38bdf8;padding:4px;box-sizing:border-box;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:2px;">
+                    ${renderDotMatrixDots(comp.props.char || 'A')}
+                </div>`;
+
+            case 'ir_tsop1838':
+                return `<div style="width:38px;height:42px;position:relative;display:flex;flex-direction:column;align-items:center;">
+                    <div id="${comp.id}_lens" style="width:24px;height:24px;border-radius:4px 4px 12px 12px;background:#090d16;border:1.5px solid #475569;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 6px #000;">
+                        <div style="width:10px;height:10px;border-radius:50%;background:#38bdf8;opacity:0.6;"></div>
+                    </div>
+                    <div style="font-size:0.5rem;color:#94a3b8;font-weight:700;margin-top:2px;">TSOP</div>
+                </div>`;
+
+            case 'sound_sensor':
+                return `<div style="width:55px;height:40px;position:relative;background:#0284c7;border-radius:4px;border:1.5px solid #0369a1;padding:3px;box-sizing:border-box;display:flex;align-items:center;gap:4px;">
+                    <div style="width:16px;height:16px;border-radius:50%;background:#cbd5e1;border:1.5px solid #64748b;display:flex;align-items:center;justify-content:center;" title="Condenser Microphone">
+                        <div style="width:6px;height:6px;border-radius:50%;background:#0f172a;"></div>
+                    </div>
+                    <div style="width:14px;height:14px;background:#1e293b;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:0.4rem;color:#f59e0b;font-weight:700;" title="LM393 Comparator">LM</div>
+                    <div id="${comp.id}_led" style="width:5px;height:5px;border-radius:50%;background:#dc2626;box-shadow:0 0 4px #dc2626;" title="Threshold Trigger LED"></div>
+                </div>`;
+
+            case 'stepper_motor':
+                const stAngle = comp.props.angle || 0;
+                return `<div style="width:65px;height:65px;position:relative;background:linear-gradient(135deg,#94a3b8,#64748b);border-radius:50%;border:2px solid #334155;box-shadow:0 4px 10px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+                    <div id="${comp.id}_disc" style="width:48px;height:48px;border-radius:50%;background:#0f172a;border:2px solid #38bdf8;position:relative;transform:rotate(${stAngle}deg);transition:transform 0.1s ease-out;display:flex;align-items:center;justify-content:center;">
+                        <div style="position:absolute;top:2px;width:4px;height:18px;background:#ef4444;border-radius:2px;"></div>
+                        <div style="font-size:0.5rem;color:#cbd5e1;font-weight:700;">28BYJ</div>
+                    </div>
+                    <div class="tc-servo-angle-badge" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);">${stAngle}°</div>
+                </div>`;
+
+            case 'bluetooth_hc05':
+                return `<div style="width:48px;height:54px;position:relative;background:#0284c7;border-radius:4px;border:1.5px solid #0369a1;padding:3px;box-sizing:border-box;">
+                    <div style="width:100%;height:10px;background:#0f172a;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:0.5rem;font-weight:800;">HC-05</div>
+                    <div id="${comp.id}_led" style="position:absolute;top:16px;right:6px;width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;"></div>
+                    <div style="font-size:0.48rem;color:#ffffff;margin-top:8px;text-align:center;">UART 9600</div>
+                </div>`;
+
+            case 'tft_lcd':
+                return `<div style="width:85px;height:65px;position:relative;background:#0f172a;border-radius:4px;border:2px solid #ef4444;padding:4px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+                    <div style="width:100%;height:100%;background:#000000;border:1px solid #334155;border-radius:2px;display:flex;flex-direction:column;justify-content:space-between;padding:2px;box-sizing:border-box;">
+                        <div style="font-size:0.45rem;color:#38bdf8;font-weight:700;">1.8" SPI TFT LCD</div>
+                        <div style="font-size:0.55rem;color:#22c55e;font-family:'JetBrains Mono',monospace;">${comp.props.text || 'PHYSICS 4'}</div>
+                        <div style="width:100%;height:10px;background:#0284c7;border-radius:1px;"></div>
+                    </div>
+                </div>`;
+
             default:
                 return `<div style="width:36px;height:36px;background:#334155;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.75rem;">${comp.type.toUpperCase()}</div>`;
         }
+    }
+
+    function renderDotMatrixDots(char) {
+        let dots = '';
+        for (let i = 0; i < 64; i++) {
+            const isLit = (i % 9 === 0 || i % 7 === 0 || (i >= 24 && i <= 31));
+            dots += `<div style="width:100%;height:100%;border-radius:50%;background:${isLit ? '#ef4444' : '#1e293b'};box-shadow:${isLit ? '0 0 4px #ef4444' : 'none'};"></div>`;
+        }
+        return dots;
     }
 
     function getResistorBandColor(resistance, bandIndex) {
@@ -1949,6 +2809,7 @@ void loop() {
             moved = false;
             startX = clientX;
             startY = clientY;
+            el.classList.add('dragging');
 
             const origX = comp.x;
             const origY = comp.y;
@@ -1958,7 +2819,7 @@ void loop() {
                 const dx = (curX - startX) / state.zoom;
                 const dy = (curY - startY) / state.zoom;
 
-                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+                if (Math.abs(dx) > 1.0 || Math.abs(dy) > 1.0) moved = true;
 
                 comp.x += dx;
                 comp.y += dy;
@@ -1968,14 +2829,17 @@ void loop() {
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
 
-                // Highlight snapping candidates
+                // Highlight snapping candidates on breadboard
                 highlightSnapCandidates(comp, comp.x, comp.y);
 
                 registerComponentTerminals(comp);
                 renderWires();
+                updateInteractivePhysicsWidgets();
+                updateFloatingActionBar(comp);
             }
 
             function onEnd() {
+                el.classList.remove('dragging');
                 if (moved) {
                     // Check snap to breadboard
                     const lib = COMPONENT_LIBRARY[comp.type];
@@ -1987,6 +2851,7 @@ void loop() {
                         comp.y = hole.y - pin1.dy;
                         el.style.left = `${comp.x}px`;
                         el.style.top = `${comp.y}px`;
+                        playPlugSound();
                     }
 
                     document.querySelectorAll('.tc-snap-hole-halo').forEach(h => h.remove());
@@ -1994,14 +2859,35 @@ void loop() {
                     const newX = comp.x, newY = comp.y;
                     pushUndo({
                         type: 'moveComponent',
-                        undo: () => { comp.x = origX; comp.y = origY; el.style.left = `${origX}px`; el.style.top = `${origY}px`; registerComponentTerminals(comp); renderWires(); triggerCircuitSolve(); },
-                        redo: () => { comp.x = newX; comp.y = newY; el.style.left = `${newX}px`; el.style.top = `${newY}px`; registerComponentTerminals(comp); renderWires(); triggerCircuitSolve(); }
+                        undo: () => {
+                            comp.x = origX; comp.y = origY;
+                            el.style.left = `${origX}px`; el.style.top = `${origY}px`;
+                            registerComponentTerminals(comp);
+                            renderWires();
+                            triggerCircuitSolve();
+                            updateInteractivePhysicsWidgets();
+                            updateFloatingActionBar(comp);
+                        },
+                        redo: () => {
+                            comp.x = newX; comp.y = newY;
+                            el.style.left = `${newX}px`; el.style.top = `${newY}px`;
+                            registerComponentTerminals(comp);
+                            renderWires();
+                            triggerCircuitSolve();
+                            updateInteractivePhysicsWidgets();
+                            updateFloatingActionBar(comp);
+                        }
                     });
 
                     registerComponentTerminals(comp);
                     renderWires();
                     triggerCircuitSolve();
+                    updateInteractivePhysicsWidgets();
                 }
+
+                // Ensure component is actively selected
+                selectComponent(comp.id);
+
                 isDragging = false;
                 window.removeEventListener('mousemove', onMouseMove);
                 window.removeEventListener('mouseup', onMouseUp);
@@ -2025,19 +2911,26 @@ void loop() {
             window.addEventListener('touchend', onTouchEnd);
         }
 
-        el.addEventListener('mousedown', (e) => {
-            if (e.button !== 0 || state.drawingWire) return;
-            if (e.target.id === `${comp.id}_cap` || e.target.id === `${comp.id}_dial` || e.target.id === `${comp.id}_pir_btn`) return;
-            startCompDrag(e.clientX, e.clientY);
-        });
+        // Expose drag starter so terminal pins or external triggers can initiate drag
+        el._startDrag = startCompDrag;
 
-        el.addEventListener('touchstart', (e) => {
+        el.onmousedown = (e) => {
+            if (e.button !== 0 || state.drawingWire) return;
+            e.stopPropagation();
+            if (e.target.id === `${comp.id}_cap` || e.target.id === `${comp.id}_dial` || e.target.id === `${comp.id}_pir_btn`) return;
+            selectComponent(comp.id);
+            startCompDrag(e.clientX, e.clientY);
+        };
+
+        el.ontouchstart = (e) => {
             if (state.drawingWire) return;
             if (e.target.id === `${comp.id}_cap` || e.target.id === `${comp.id}_dial` || e.target.id === `${comp.id}_pir_btn`) return;
             if (e.touches.length === 1) {
+                e.stopPropagation();
+                selectComponent(comp.id);
                 startCompDrag(e.touches[0].clientX, e.touches[0].clientY);
             }
-        }, { passive: false });
+        };
     }
 
     // ==========================================
@@ -2045,6 +2938,7 @@ void loop() {
     // ==========================================
     function bindDragAndDrop() {
         document.querySelectorAll('.tc-component-card').forEach(card => {
+            // Desktop HTML5 dragstart
             card.addEventListener('dragstart', (e) => {
                 const type = card.getAttribute('data-component-type');
                 if (type === 'arduino' || type === 'breadboard' || !COMPONENT_LIBRARY[type]) {
@@ -2053,6 +2947,28 @@ void loop() {
                 }
                 state.dragType = type;
                 e.dataTransfer.setData('text/plain', type);
+            });
+
+            // Mobile & Desktop Click/Tap to place directly on breadboard
+            card.addEventListener('click', (e) => {
+                if (card.classList.contains('tc-starter-card')) return;
+                const type = card.getAttribute('data-component-type');
+                if (!type || type === 'arduino' || type === 'breadboard' || !COMPONENT_LIBRARY[type]) return;
+
+                const targetX = LAYOUT.bbX + 110 + (state.components.length % 6) * 35;
+                const targetY = LAYOUT.bbY + 70 + (state.components.length % 4) * 25;
+                const comp = placeComponent(type, targetX, targetY);
+                if (comp) {
+                    pushUndo({
+                        type: 'placeComponent',
+                        undo: () => { deleteComponent(comp.id); },
+                        redo: () => { placeComponent(comp.type, comp.x, comp.y, comp.rotation, comp.props, comp.id); }
+                    });
+                    selectComponent(comp.id);
+                    triggerCircuitSolve();
+                    updateInteractivePhysicsWidgets();
+                    showToast(`Added ${COMPONENT_LIBRARY[type].name} to Breadboard`);
+                }
             });
         });
 
@@ -2083,6 +2999,7 @@ void loop() {
                 });
                 selectComponent(comp.id);
                 triggerCircuitSolve();
+                updateInteractivePhysicsWidgets();
             }
             state.dragType = null;
         });
@@ -2112,6 +3029,624 @@ void loop() {
                     showToast(`🚀 Loaded Project: ${presets[presetKey].title}`);
                 }
             });
+        });
+    }
+
+    // ==========================================
+    // 11b. INTERACTIVE PHYSICS SENSOR WIDGETS
+    // ==========================================
+    function updateInteractivePhysicsWidgets() {
+        const stage = document.getElementById('tcCanvasStage');
+        if (!stage) return;
+
+        // 1. Ultrasonic Sensor Obstacle & Acoustic Ping Waves
+        const usComp = state.components.find(c => c.type === 'ultrasonic');
+        let obstacle = document.getElementById('tcUltrasonicObstacle');
+        let sonarSvg = document.getElementById('tcSonarWavesSvg');
+
+        if (usComp) {
+            if (!sonarSvg) {
+                sonarSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                sonarSvg.id = 'tcSonarWavesSvg';
+                sonarSvg.setAttribute('class', 'tc-sonar-waves-svg');
+                stage.appendChild(sonarSvg);
+            }
+            if (!obstacle) {
+                obstacle = document.createElement('div');
+                obstacle.id = 'tcUltrasonicObstacle';
+                obstacle.className = 'tc-ultrasonic-obstacle-container';
+                const initDist = usComp.props.distance || 25;
+                const obsX = usComp.x + 95 + (initDist * 2.8);
+                const obsY = usComp.y - 20;
+                obstacle.style.left = `${obsX}px`;
+                obstacle.style.top = `${obsY}px`;
+                obstacle.innerHTML = `
+                    <div class="tc-ultrasonic-obstacle-block" title="Drag obstacle to change ultrasonic echo distance">
+                        <div style="font-size:0.6rem;font-weight:800;color:#38bdf8;text-align:center;margin-top:10px;writing-mode:vertical-rl;letter-spacing:1px;">OBSTACLE</div>
+                    </div>
+                    <div class="tc-obstacle-badge" id="tcObstacleBadge">${initDist} cm</div>
+                `;
+                stage.appendChild(obstacle);
+                bindDraggableObstacle(obstacle, usComp);
+            }
+            updateSonarVisualization(usComp, obstacle, sonarSvg);
+        } else {
+            if (obstacle) obstacle.remove();
+            if (sonarSvg) sonarSvg.remove();
+        }
+
+        // 2. PIR Motion Sensor Avatar & 120° Detection Cone
+        const pirComp = state.components.find(c => c.type === 'pir');
+        let pirAvatar = document.getElementById('tcPirSubject');
+        let pirCone = document.getElementById('tcPirFieldCone');
+
+        if (pirComp) {
+            if (!pirCone) {
+                pirCone = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                pirCone.id = 'tcPirFieldCone';
+                pirCone.setAttribute('class', 'tc-pir-field-cone');
+                stage.appendChild(pirCone);
+            }
+            if (!pirAvatar) {
+                pirAvatar = document.createElement('div');
+                pirAvatar.id = 'tcPirSubject';
+                pirAvatar.className = 'tc-pir-subject-container';
+                const avX = pirComp.x + 120;
+                const avY = pirComp.y + 10;
+                pirAvatar.style.left = `${avX}px`;
+                pirAvatar.style.top = `${avY}px`;
+                pirAvatar.innerHTML = `
+                    <svg class="tc-pir-human-avatar" viewBox="0 0 48 72">
+                        <circle cx="24" cy="14" r="8" fill="#fbcfe8" stroke="#f43f5e" stroke-width="1.5"/>
+                        <path d="M 16 24 L 32 24 L 29 46 L 19 46 Z" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+                        <path d="M 16 26 L 8 40" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 32 26 L 40 40" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 21 46 L 18 68" stroke="#0369a1" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M 27 46 L 30 68" stroke="#0369a1" stroke-width="3.5" stroke-linecap="round"/>
+                    </svg>
+                    <div class="tc-pir-subject-badge" id="tcPirBadge">PIR Target — Drag to Move</div>
+                `;
+                stage.appendChild(pirAvatar);
+                bindDraggablePirSubject(pirAvatar, pirComp);
+            }
+            updatePirConeVisualization(pirComp, pirCone);
+        } else {
+            if (pirAvatar) pirAvatar.remove();
+            if (pirCone) pirCone.remove();
+        }
+
+        // 3. LDR Flashlight Widget
+        const ldrComp = state.components.find(c => c.type === 'ldr');
+        let ldrFlashlight = document.getElementById('tcLdrFlashlight');
+        let ldrBeam = document.getElementById('tcLdrLightBeam');
+
+        if (ldrComp) {
+            if (!ldrBeam) {
+                ldrBeam = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                ldrBeam.id = 'tcLdrLightBeam';
+                ldrBeam.setAttribute('class', 'tc-ldr-light-beam');
+                stage.appendChild(ldrBeam);
+            }
+            if (!ldrFlashlight) {
+                ldrFlashlight = document.createElement('div');
+                ldrFlashlight.id = 'tcLdrFlashlight';
+                ldrFlashlight.className = 'tc-ldr-flashlight-container';
+                const flX = ldrComp.x + 85;
+                const flY = ldrComp.y - 10;
+                ldrFlashlight.style.left = `${flX}px`;
+                ldrFlashlight.style.top = `${flY}px`;
+                ldrFlashlight.innerHTML = `
+                    <div class="tc-ldr-flashlight-body" title="Drag flashlight or tap to toggle light level">
+                        <div class="tc-ldr-bulb"></div>
+                        <div style="font-size:0.6rem;font-weight:800;color:#78350f;margin-left:8px;">TORCH</div>
+                    </div>
+                    <div class="tc-ldr-badge" id="tcLdrBadge">${ldrComp.props.lux || 400} lx</div>
+                `;
+                stage.appendChild(ldrFlashlight);
+                bindDraggableFlashlight(ldrFlashlight, ldrComp);
+            }
+            updateLdrBeamVisualization(ldrComp, ldrFlashlight, ldrBeam);
+        } else {
+            if (ldrFlashlight) ldrFlashlight.remove();
+            if (ldrBeam) ldrBeam.remove();
+        }
+
+        // 4. TSOP1838 TV Remote Control Modal
+        const irComp = state.components.find(c => c.type === 'ir_tsop1838');
+        let irRemote = document.getElementById('tcIrRemoteModal');
+
+        if (irComp) {
+            if (!irRemote) {
+                irRemote = document.createElement('div');
+                irRemote.id = 'tcIrRemoteModal';
+                irRemote.className = 'tc-ir-remote-modal';
+                irRemote.innerHTML = `
+                    <div class="tc-ir-remote-header">
+                        <span>TV REMOTE (NEC)</span>
+                        <div class="tc-ir-led-emitter" id="tcIrLedEmitter"></div>
+                    </div>
+                    <div class="tc-remote-grid">
+                        <button type="button" class="tc-remote-btn tc-remote-power" data-hex="0xFFA25D">PWR</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF629D">MODE</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFFE21D">MUTE</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF22DD">PREV</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF02FD">NEXT</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFFC23D">PLAY</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFFE01F">VOL-</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFFA857">VOL+</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF906F">EQ</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF30CF">1</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF18E7">2</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF7A85">3</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF10EF">4</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF38C7">5</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF5AA5">6</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF42BD">7</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF4AB5">8</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF52AD">9</button>
+                        <button type="button" class="tc-remote-btn" data-hex="0xFF6897" style="grid-column: span 3;">0</button>
+                    </div>
+                `;
+                stage.appendChild(irRemote);
+                bindIrRemoteEvents(irRemote);
+            }
+        } else {
+            if (irRemote) irRemote.remove();
+        }
+
+        // 5. LM393 Sound Sensor Clap Widget
+        const soundComp = state.components.find(c => c.type === 'sound_sensor');
+        let clapWidget = document.getElementById('tcSoundClapWidget');
+
+        if (soundComp) {
+            if (!clapWidget) {
+                clapWidget = document.createElement('div');
+                clapWidget.id = 'tcSoundClapWidget';
+                clapWidget.className = 'tc-sound-clap-widget';
+                clapWidget.style.left = `${soundComp.x - 20}px`;
+                clapWidget.style.top = `${soundComp.y - 45}px`;
+                clapWidget.innerHTML = `
+                    <span>Sound Level:</span>
+                    <button type="button" class="tc-sound-clap-btn" id="tcClapTriggerBtn">👏 Make Sound / Clap</button>
+                `;
+                stage.appendChild(clapWidget);
+                bindClapTrigger(clapWidget, soundComp);
+            } else {
+                clapWidget.style.left = `${soundComp.x - 20}px`;
+                clapWidget.style.top = `${soundComp.y - 45}px`;
+            }
+        } else {
+            if (clapWidget) clapWidget.remove();
+        }
+
+        // 6. Bluetooth HC-05 Smartphone Controller
+        const btComp = state.components.find(c => c.type === 'bluetooth_hc05');
+        let btPhone = document.getElementById('tcBtPhoneModal');
+
+        if (btComp) {
+            if (!btPhone) {
+                btPhone = document.createElement('div');
+                btPhone.id = 'tcBtPhoneModal';
+                btPhone.className = 'tc-bt-phone-modal';
+                btPhone.innerHTML = `
+                    <div class="tc-bt-phone-header">📱 BlueControl Smartphone</div>
+                    <div class="tc-bt-phone-screen" id="tcBtScreen">Connected to HC-05 (Ready)</div>
+                    <div class="tc-bt-btn-grid">
+                        <button type="button" class="tc-bt-app-btn" data-cmd="1">💡 LED ON ('1')</button>
+                        <button type="button" class="tc-bt-app-btn" data-cmd="0">🔌 LED OFF ('0')</button>
+                        <button type="button" class="tc-bt-app-btn" data-cmd="+">⏩ SPEED +</button>
+                        <button type="button" class="tc-bt-app-btn" data-cmd="-">⏪ SPEED -</button>
+                    </div>
+                    <div class="tc-bt-input-row">
+                        <input type="text" id="tcBtTextInput" class="tc-bt-input" placeholder="Type command...">
+                        <button type="button" id="tcBtSendBtn" class="tc-bt-send-btn">Send</button>
+                    </div>
+                `;
+                stage.appendChild(btPhone);
+                bindBtPhoneEvents(btPhone);
+            }
+        } else {
+            if (btPhone) btPhone.remove();
+        }
+
+        // 7. Photogate Pendulum Widget (Exp 06)
+        const isPhotogate = state.currentPreset === 'photogate';
+        let photogateWidget = document.getElementById('tcPhotogateWidget');
+
+        if (isPhotogate) {
+            if (!photogateWidget) {
+                photogateWidget = document.createElement('div');
+                photogateWidget.id = 'tcPhotogateWidget';
+                photogateWidget.className = 'tc-photogate-widget';
+                photogateWidget.style.left = '640px';
+                photogateWidget.style.top = '40px';
+                photogateWidget.innerHTML = `
+                    <span>Pendulum Photogate:</span>
+                    <button type="button" class="tc-photogate-btn" id="tcSwingBobBtn">⏱️ Swing Bob / Break Beam</button>
+                `;
+                stage.appendChild(photogateWidget);
+                bindPhotogateEvents(photogateWidget);
+            }
+        } else {
+            if (photogateWidget) photogateWidget.remove();
+        }
+    }
+
+    function bindDraggableObstacle(obstacle, usComp) {
+        let isDragging = false;
+        let startX, startY;
+
+        function onStart(clientX, clientY) {
+            isDragging = true;
+            startX = clientX;
+            startY = clientY;
+
+            function onMove(curX, curY) {
+                if (!isDragging) return;
+                const dx = (curX - startX) / state.zoom;
+                const dy = (curY - startY) / state.zoom;
+                startX = curX;
+                startY = curY;
+
+                const curLeft = parseFloat(obstacle.style.left) || 0;
+                const curTop = parseFloat(obstacle.style.top) || 0;
+                const newLeft = Math.max(usComp.x + 95, Math.min(curLeft + dx, 1200));
+                const newTop = curTop + dy;
+
+                obstacle.style.left = `${newLeft}px`;
+                obstacle.style.top = `${newTop}px`;
+
+                const distPx = newLeft - (usComp.x + 90);
+                const distCm = Math.max(2, Math.min(400, Math.round(distPx / 2.8)));
+                usComp.props.distance = distCm;
+                state.hardwareValues.ultrasonicCm = distCm;
+
+                const badge = document.getElementById('tcObstacleBadge');
+                if (badge) badge.textContent = `${distCm} cm`;
+
+                const slider = document.getElementById('tcUsSlider');
+                const valText = document.getElementById('tcUsValText');
+                if (slider) slider.value = distCm;
+                if (valText) valText.textContent = `${distCm} cm`;
+
+                const sonarSvg = document.getElementById('tcSonarWavesSvg');
+                if (sonarSvg) updateSonarVisualization(usComp, obstacle, sonarSvg);
+                triggerCircuitSolve();
+            }
+
+            function onEnd() {
+                isDragging = false;
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
+            }
+
+            function onMouseMove(e) { onMove(e.clientX, e.clientY); }
+            function onMouseUp() { onEnd(); }
+            function onTouchMove(e) { if (e.touches.length > 0) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); } }
+            function onTouchEnd() { onEnd(); }
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('touchend', onTouchEnd);
+        }
+
+        obstacle.addEventListener('mousedown', (e) => { e.stopPropagation(); onStart(e.clientX, e.clientY); });
+        obstacle.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                e.stopPropagation();
+                onStart(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+    }
+
+    function updateSonarVisualization(usComp, obstacle, sonarSvg) {
+        const left = usComp.x + 85;
+        const top = Math.min(usComp.y, parseFloat(obstacle.style.top) || usComp.y) - 10;
+        const width = Math.max(20, (parseFloat(obstacle.style.left) || 0) - left + 10);
+        const height = Math.max(80, Math.abs((parseFloat(obstacle.style.top) || usComp.y) - usComp.y) + 100);
+
+        sonarSvg.style.left = `${left}px`;
+        sonarSvg.style.top = `${top}px`;
+        sonarSvg.setAttribute('width', width);
+        sonarSvg.setAttribute('height', height);
+
+        let arcs = '';
+        const count = 4;
+        for (let i = 1; i <= count; i++) {
+            const rad = (width / count) * i;
+            arcs += `<path d="M 0 35 A ${rad} ${rad * 0.8} 0 0 1 ${rad} ${35 + rad * 0.4} A ${rad} ${rad * 0.8} 0 0 0 0 35" class="tc-sonar-arc-ping" style="animation-delay:${i * 0.25}s;"/>`;
+        }
+        sonarSvg.innerHTML = arcs;
+    }
+
+    function bindDraggablePirSubject(pirAvatar, pirComp) {
+        let isDragging = false;
+        let startX, startY;
+        let motionTimeout = null;
+
+        function triggerMovement() {
+            pirAvatar.classList.add('moving');
+            const badge = document.getElementById('tcPirBadge');
+            if (badge) badge.textContent = '🏃 MOTION DETECTED!';
+            triggerPirMotion(pirComp);
+
+            if (motionTimeout) clearTimeout(motionTimeout);
+            motionTimeout = setTimeout(() => {
+                pirAvatar.classList.remove('moving');
+                if (badge) badge.textContent = 'PIR Target — Drag to Move';
+            }, 2500);
+        }
+
+        pirAvatar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            triggerMovement();
+        });
+
+        function onStart(clientX, clientY) {
+            isDragging = true;
+            startX = clientX;
+            startY = clientY;
+
+            function onMove(curX, curY) {
+                if (!isDragging) return;
+                const dx = (curX - startX) / state.zoom;
+                const dy = (curY - startY) / state.zoom;
+                startX = curX;
+                startY = curY;
+
+                const curLeft = parseFloat(pirAvatar.style.left) || 0;
+                const curTop = parseFloat(pirAvatar.style.top) || 0;
+                pirAvatar.style.left = `${curLeft + dx}px`;
+                pirAvatar.style.top = `${curTop + dy}px`;
+
+                triggerMovement();
+            }
+
+            function onEnd() {
+                isDragging = false;
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
+            }
+
+            function onMouseMove(e) { onMove(e.clientX, e.clientY); }
+            function onMouseUp() { onEnd(); }
+            function onTouchMove(e) { if (e.touches.length > 0) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); } }
+            function onTouchEnd() { onEnd(); }
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('touchend', onTouchEnd);
+        }
+
+        pirAvatar.addEventListener('mousedown', (e) => { e.stopPropagation(); onStart(e.clientX, e.clientY); });
+        pirAvatar.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                e.stopPropagation();
+                onStart(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+    }
+
+    function updatePirConeVisualization(pirComp, pirCone) {
+        const left = pirComp.x + 32;
+        const top = pirComp.y - 70;
+        pirCone.style.left = `${left}px`;
+        pirCone.style.top = `${top}px`;
+        pirCone.setAttribute('width', 190);
+        pirCone.setAttribute('height', 190);
+        pirCone.innerHTML = `
+            <path d="M 0 95 L 180 15 A 180 180 0 0 1 180 175 Z" fill="rgba(56, 189, 248, 0.08)" stroke="rgba(56, 189, 248, 0.25)" stroke-width="1.5" stroke-dasharray="4,4"/>
+        `;
+    }
+
+    function bindDraggableFlashlight(ldrFlashlight, ldrComp) {
+        let isDragging = false;
+        let startX, startY;
+
+        function recalcLux() {
+            const flX = parseFloat(ldrFlashlight.style.left) || 0;
+            const flY = parseFloat(ldrFlashlight.style.top) || 0;
+            const dist = Math.hypot(flX - ldrComp.x, flY - ldrComp.y);
+            const lux = Math.max(10, Math.min(1000, Math.round(180000 / (dist * dist + 150))));
+            ldrComp.props.lux = lux;
+            state.hardwareValues.ldrLux = lux;
+
+            const badge = document.getElementById('tcLdrBadge');
+            if (badge) badge.textContent = `${lux} lx`;
+
+            const slider = document.getElementById('tcLdrSlider');
+            const valText = document.getElementById('tcLdrValText');
+            if (slider) slider.value = lux;
+            if (valText) valText.textContent = `${lux} lx`;
+
+            const beam = document.getElementById('tcLdrLightBeam');
+            if (beam) updateLdrBeamVisualization(ldrComp, ldrFlashlight, beam);
+            triggerCircuitSolve();
+        }
+
+        function onStart(clientX, clientY) {
+            isDragging = true;
+            startX = clientX;
+            startY = clientY;
+
+            function onMove(curX, curY) {
+                if (!isDragging) return;
+                const dx = (curX - startX) / state.zoom;
+                const dy = (curY - startY) / state.zoom;
+                startX = curX;
+                startY = curY;
+
+                const curLeft = parseFloat(ldrFlashlight.style.left) || 0;
+                const curTop = parseFloat(ldrFlashlight.style.top) || 0;
+                ldrFlashlight.style.left = `${curLeft + dx}px`;
+                ldrFlashlight.style.top = `${curTop + dy}px`;
+
+                recalcLux();
+            }
+
+            function onEnd() {
+                isDragging = false;
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
+            }
+
+            function onMouseMove(e) { onMove(e.clientX, e.clientY); }
+            function onMouseUp() { onEnd(); }
+            function onTouchMove(e) { if (e.touches.length > 0) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); } }
+            function onTouchEnd() { onEnd(); }
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('touchend', onTouchEnd);
+        }
+
+        ldrFlashlight.addEventListener('mousedown', (e) => { e.stopPropagation(); onStart(e.clientX, e.clientY); });
+        ldrFlashlight.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                e.stopPropagation();
+                onStart(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+    }
+
+    function updateLdrBeamVisualization(ldrComp, ldrFlashlight, ldrBeam) {
+        const flX = parseFloat(ldrFlashlight.style.left) || 0;
+        const flY = parseFloat(ldrFlashlight.style.top) || 0;
+        const minX = Math.min(flX, ldrComp.x) - 10;
+        const minY = Math.min(flY, ldrComp.y) - 10;
+        const width = Math.abs(flX - ldrComp.x) + 70;
+        const height = Math.abs(flY - ldrComp.y) + 70;
+
+        ldrBeam.style.left = `${minX}px`;
+        ldrBeam.style.top = `${minY}px`;
+        ldrBeam.setAttribute('width', width);
+        ldrBeam.setAttribute('height', height);
+
+        const x1 = flX - minX + 5;
+        const y1 = flY - minY + 18;
+        const x2 = ldrComp.x - minX + 17;
+        const y2 = ldrComp.y - minY + 20;
+
+        ldrBeam.innerHTML = `
+            <defs>
+                <linearGradient id="ldrBeamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.6"/>
+                    <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.1"/>
+                </linearGradient>
+            </defs>
+            <polygon points="${x1},${y1} ${x2 - 12},${y2 - 14} ${x2 + 12},${y2 + 14}" fill="url(#ldrBeamGrad)"/>
+        `;
+    }
+
+    function bindIrRemoteEvents(irRemote) {
+        irRemote.querySelectorAll('.tc-remote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const hexStr = btn.getAttribute('data-hex');
+                const hexVal = parseInt(hexStr, 16);
+                const emitter = document.getElementById('tcIrLedEmitter');
+                if (emitter) {
+                    emitter.classList.add('flash');
+                    setTimeout(() => emitter.classList.remove('flash'), 180);
+                }
+                playTone(3800);
+                setTimeout(stopTone, 60);
+
+                state.hardwareValues.lastIrCode = hexVal;
+                appendSerial(`[IR Remote 38kHz]: Sent NEC Code ${hexStr} (${btn.textContent.trim()})\n`);
+                showToast(`📡 Remote Sent: ${hexStr}`);
+                triggerCircuitSolve();
+            });
+        });
+    }
+
+    function bindClapTrigger(clapWidget, soundComp) {
+        clapWidget.querySelector('#tcClapTriggerBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playPlugSound();
+            soundComp.props.soundActive = true;
+            state.hardwareValues.digitalPins[7] = 1;
+            triggerCircuitSolve();
+            showToast('👏 Sound Peak > Threshold (LM393 D0 -> HIGH)');
+            appendSerial('[LM393 Mic]: Sound impulse 85 dB detected!\n');
+            setTimeout(() => {
+                soundComp.props.soundActive = false;
+                state.hardwareValues.digitalPins[7] = 0;
+                triggerCircuitSolve();
+            }, 500);
+        });
+    }
+
+    function bindBtPhoneEvents(btPhone) {
+        btPhone.querySelectorAll('.tc-bt-app-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const cmd = btn.getAttribute('data-cmd');
+                if (!state.hardwareValues.btQueue) state.hardwareValues.btQueue = [];
+                state.hardwareValues.btQueue.push(cmd.charCodeAt(0));
+
+                const screen = document.getElementById('tcBtScreen');
+                if (screen) screen.textContent = `TX: '${cmd}' (${btn.textContent.trim()})`;
+                appendSerial(`[BlueControl TX]: '${cmd}'\n`);
+                showToast(`📱 Bluetooth Sent: '${cmd}'`);
+            });
+        });
+
+        const sendBtn = btPhone.querySelector('#tcBtSendBtn');
+        const input = btPhone.querySelector('#tcBtTextInput');
+
+        const doSend = () => {
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+            if (!state.hardwareValues.btQueue) state.hardwareValues.btQueue = [];
+            for (let i = 0; i < text.length; i++) {
+                state.hardwareValues.btQueue.push(text.charCodeAt(i));
+            }
+            state.hardwareValues.btQueue.push(10); // \n
+
+            const screen = document.getElementById('tcBtScreen');
+            if (screen) screen.textContent = `TX: "${text}"`;
+            appendSerial(`[BlueControl TX]: "${text}"\n`);
+            showToast(`📱 Bluetooth Sent: "${text}"`);
+            input.value = '';
+        };
+
+        sendBtn?.addEventListener('click', (e) => { e.stopPropagation(); doSend(); });
+        input?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.stopPropagation();
+                doSend();
+            }
+        });
+    }
+
+    function bindPhotogateEvents(photogateWidget) {
+        photogateWidget.querySelector('#tcSwingBobBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playPlugSound();
+            showToast('⏱️ Pendulum Bob broke IR Photogate beam!');
+            appendSerial('[Photogate INT0]: Beam interrupted -> ISR triggered\n');
+
+            if (typeof state.hardwareValues.interruptIsr === 'function') {
+                state.hardwareValues.interruptIsr();
+            } else {
+                state.hardwareValues.digitalPins[2] = 0;
+                triggerCircuitSolve();
+                setTimeout(() => {
+                    state.hardwareValues.digitalPins[2] = 1;
+                    triggerCircuitSolve();
+                }, 40);
+            }
         });
     }
 
@@ -2195,11 +3730,90 @@ void loop() {
     // ==========================================
     // 12. COMPONENT INSPECTOR POPOVER
     // ==========================================
+    function renderSelectedComponentFloatingBar(comp) {
+        let bar = document.getElementById('tcCompFloatingBar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'tcCompFloatingBar';
+            bar.className = 'tc-comp-floating-bar';
+            const stage = document.getElementById('tcCanvasStage');
+            if (stage) stage.appendChild(bar);
+        }
+
+        const lib = COMPONENT_LIBRARY[comp.type];
+        const typeName = lib ? lib.name : comp.type.toUpperCase();
+        const compLabel = `${comp.props.name || typeName}`;
+
+        bar.style.left = `${comp.x}px`;
+        bar.style.top = `${comp.y - 36}px`;
+        bar.style.display = 'flex';
+
+        bar.innerHTML = `
+            <span class="tc-float-label"><i class="fa-solid fa-microchip"></i> ${compLabel}</span>
+            <button type="button" class="tc-float-btn tc-float-edit" title="Edit Component Values (Inspector)">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+            <button type="button" class="tc-float-btn tc-float-rotate" title="Rotate Component 90° (R)">
+                <i class="fa-solid fa-rotate"></i> Rotate
+            </button>
+            <button type="button" class="tc-float-btn tc-float-delete" title="Delete Component (Del)">
+                <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+            <button type="button" class="tc-float-btn tc-float-close" title="Deselect">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
+
+        bar.querySelector('.tc-float-edit')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showComponentInspector(comp.id);
+        });
+
+        bar.querySelector('.tc-float-rotate')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            rotateSelected();
+        });
+
+        bar.querySelector('.tc-float-delete')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteSelected();
+        });
+
+        bar.querySelector('.tc-float-close')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deselectAll();
+        });
+
+        bar.addEventListener('mousedown', (e) => e.stopPropagation());
+        bar.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    function updateFloatingActionBar(comp) {
+        const bar = document.getElementById('tcCompFloatingBar');
+        if (bar && state.selectedItem?.id === comp.id) {
+            bar.style.left = `${comp.x}px`;
+            bar.style.top = `${comp.y - 36}px`;
+        }
+    }
+
+    function removeFloatingActionBar() {
+        const bar = document.getElementById('tcCompFloatingBar');
+        if (bar) bar.style.display = 'none';
+    }
+
     function selectComponent(id) {
         deselectAll();
         state.selectedItem = { type: 'component', id };
         const el = document.getElementById(id);
-        if (el) el.classList.add('selected');
+        if (el) {
+            el.classList.add('selected');
+            el.style.zIndex = '50';
+        }
+        const comp = state.components.find(c => c.id === id);
+        if (comp) {
+            renderSelectedComponentFloatingBar(comp);
+            document.querySelectorAll(`[id^="term-${id}_"]`).forEach(t => t.classList.add('selected-parent'));
+        }
         showComponentInspector(id);
         updateStatusBar();
     }
@@ -2214,7 +3828,12 @@ void loop() {
 
     function deselectAll() {
         state.selectedItem = null;
-        document.querySelectorAll('.tc-placed-component').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('.tc-placed-component').forEach(el => {
+            el.classList.remove('selected');
+            el.style.zIndex = '30';
+        });
+        document.querySelectorAll('.tc-terminal-pin.selected-parent').forEach(t => t.classList.remove('selected-parent'));
+        removeFloatingActionBar();
         renderWires();
         hideComponentInspector();
         updateStatusBar();
@@ -2233,11 +3852,12 @@ void loop() {
         registerComponentTerminals(comp);
         renderWires();
         triggerCircuitSolve();
+        updateFloatingActionBar(comp);
 
         pushUndo({
             type: 'rotateComponent',
-            undo: () => { comp.rotation = origRot; if (el) el.style.transform = `rotate(${origRot}deg)`; registerComponentTerminals(comp); renderWires(); triggerCircuitSolve(); },
-            redo: () => { comp.rotation = (origRot + 90) % 360; if (el) el.style.transform = `rotate(${comp.rotation}deg)`; registerComponentTerminals(comp); renderWires(); triggerCircuitSolve(); }
+            undo: () => { comp.rotation = origRot; if (el) el.style.transform = `rotate(${origRot}deg)`; registerComponentTerminals(comp); renderWires(); triggerCircuitSolve(); updateFloatingActionBar(comp); },
+            redo: () => { comp.rotation = (origRot + 90) % 360; if (el) el.style.transform = `rotate(${comp.rotation}deg)`; registerComponentTerminals(comp); renderWires(); triggerCircuitSolve(); updateFloatingActionBar(comp); }
         });
     }
 
@@ -2250,6 +3870,7 @@ void loop() {
             renderWires();
             deselectAll();
             triggerCircuitSolve();
+            showToast('🗑️ Deleted wire');
             pushUndo({
                 type: 'deleteWire',
                 undo: () => { state.wires.push(wire); renderWires(); triggerCircuitSolve(); },
@@ -2270,6 +3891,9 @@ void loop() {
     }
 
     function deleteComponent(compId) {
+        const comp = state.components.find(c => c.id === compId);
+        const compName = comp ? comp.props.name : 'Component';
+
         state.components = state.components.filter(c => c.id !== compId);
         const el = document.getElementById(compId);
         if (el) el.remove();
@@ -2283,7 +3907,14 @@ void loop() {
                 if (tEl) tEl.remove();
             }
         }
+
+        removeFloatingActionBar();
+        hideComponentInspector();
         renderWires();
+        triggerCircuitSolve();
+        updateInteractivePhysicsWidgets();
+        updateStatusBar();
+        showToast(`🗑️ Deleted: ${compName}`);
     }
 
     function showComponentInspector(compId) {
@@ -2296,8 +3927,8 @@ void loop() {
         const lib = COMPONENT_LIBRARY[comp.type];
         title.textContent = `${lib ? lib.name : comp.type} — ${comp.props.name}`;
 
-        const inspectX = Math.max(30, Math.min(comp.x - 70, 750));
-        const inspectY = Math.max(20, Math.min(comp.y - 130, 260));
+        const inspectX = Math.max(20, Math.min(comp.x - 70, 750));
+        const inspectY = Math.max(20, Math.min(comp.y - 140, 280));
 
         pop.style.left = `${inspectX}px`;
         pop.style.top = `${inspectY}px`;
@@ -2305,99 +3936,389 @@ void loop() {
 
         let html = '';
         if (comp.type === 'led') {
-            html = `<div class="tc-inspector-row"><span>Color:</span>
-                <select id="tcLedColorSelect" class="tc-inspector-input" style="width:95px;">
-                    <option value="#ef4444" ${comp.props.color === '#ef4444' ? 'selected' : ''}>Red</option>
-                    <option value="#10b981" ${comp.props.color === '#10b981' ? 'selected' : ''}>Green</option>
-                    <option value="#eab308" ${comp.props.color === '#eab308' ? 'selected' : ''}>Yellow</option>
-                    <option value="#0284c7" ${comp.props.color === '#0284c7' ? 'selected' : ''}>Blue</option>
-                    <option value="#f97316" ${comp.props.color === '#f97316' ? 'selected' : ''}>Orange</option>
-                    <option value="#ffffff" ${comp.props.color === '#ffffff' ? 'selected' : ''}>White</option>
-                </select></div>
-                <div class="tc-inspector-row"><span>Fwd V:</span><span>${comp.props.forwardVoltage || 2.0} V</span></div>`;
+            const colors = [
+                { hex: '#ef4444', name: 'Red', vf: 2.0 },
+                { hex: '#10b981', name: 'Green', vf: 2.2 },
+                { hex: '#eab308', name: 'Yellow', vf: 2.1 },
+                { hex: '#0284c7', name: 'Blue', vf: 3.2 },
+                { hex: '#f97316', name: 'Orange', vf: 2.0 },
+                { hex: '#ffffff', name: 'White', vf: 3.2 }
+            ];
+            html = `
+                <div class="tc-inspector-row"><span>Color Swatch:</span>
+                    <div class="tc-swatch-group">
+                        ${colors.map(c => `
+                            <div class="tc-color-swatch ${comp.props.color === c.hex ? 'active' : ''}" data-color="${c.hex}" data-vf="${c.vf}" style="background:${c.hex};" title="${c.name} (${c.vf}V)"></div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="tc-inspector-row"><span>Forward Voltage:</span><span id="tcLedVf">${comp.props.forwardVoltage || 2.0} V</span></div>
+            `;
         } else if (comp.type === 'resistor') {
-            html = `<div class="tc-inspector-row"><span>Resistance:</span>
-                <input type="number" id="tcResVal" class="tc-inspector-input" value="${comp.props.resistance}" min="1" max="10000000">
-                <select id="tcResUnit" class="tc-inspector-input" style="width:50px;">
-                    <option value="1" ${comp.props.unit === 'Ω' ? 'selected' : ''}>Ω</option>
-                    <option value="1000" ${comp.props.unit === 'kΩ' ? 'selected' : ''}>kΩ</option>
-                    <option value="1000000" ${comp.props.unit === 'MΩ' ? 'selected' : ''}>MΩ</option>
-                </select></div>`;
-        } else if (comp.type === 'potentiometer') {
-            html = `<div class="tc-inspector-row"><span>Total R:</span><span>${comp.props.resistance || 10000} Ω</span></div>
-                <div class="tc-inspector-row"><span>Wiper Pos:</span>
-                <input type="range" id="tcPotSlider" min="0" max="100" value="${Math.round((comp.props.position || 0.5) * 100)}" style="width:90px;">
-                <span id="tcPotValText">${Math.round((comp.props.position || 0.5) * 100)}%</span></div>`;
-        } else if (comp.type === 'ldr') {
-            html = `<div class="tc-inspector-row"><span>Ambient Lux:</span>
-                <input type="range" id="tcLdrSlider" min="0" max="1000" value="${comp.props.lux || 400}" style="width:90px;">
-                <span id="tcLdrValText">${comp.props.lux || 400} lx</span></div>`;
-        } else if (comp.type === 'ultrasonic') {
-            html = `<div class="tc-inspector-row"><span>Obstacle:</span>
-                <input type="range" id="tcUsSlider" min="2" max="400" value="${comp.props.distance || 25}" style="width:90px;">
-                <span id="tcUsValText">${comp.props.distance || 25} cm</span></div>`;
-        } else if (comp.type === 'tmp36') {
-            html = `<div class="tc-inspector-row"><span>Temperature:</span>
-                <input type="range" id="tcTmpSlider" min="-40" max="125" value="${Math.round(comp.props.tempC || 25)}" style="width:90px;">
-                <span id="tcTmpValText">${(comp.props.tempC || 25).toFixed(1)}°C</span></div>`;
-        } else if (comp.type === 'servo') {
-            html = `<div class="tc-inspector-row"><span>Angle:</span>
-                <input type="range" id="tcServoSlider" min="0" max="180" value="${comp.props.angle || 90}" style="width:90px;">
-                <span id="tcServoValText">${comp.props.angle || 90}°</span></div>`;
-        } else if (comp.type === 'pushbutton') {
-            html = `<div class="tc-inspector-row"><span>Contact State:</span>
-                <button type="button" id="tcBtnToggle" class="btn-tc-code-toggle" style="padding:2px 8px;font-size:0.75rem;">
-                    ${comp.props.pressed ? 'Pressed (Closed)' : 'Normal (Open)'}
-                </button></div>`;
-        } else if (comp.type === 'slide_switch') {
-            html = `<div class="tc-inspector-row"><span>Switch Pos:</span>
-                <button type="button" id="tcSwitchToggle" class="btn-tc-code-toggle" style="padding:2px 8px;font-size:0.75rem;">
-                    ${comp.props.state === 'left' ? 'Left Position' : 'Right Position'}
-                </button></div>`;
+            html = `
+                <div class="tc-inspector-row"><span>Resistance:</span>
+                    <div class="tc-stepper-row">
+                        <button type="button" class="tc-inspector-stepper-btn" id="tcResStepDown">-</button>
+                        <input type="number" id="tcResVal" class="tc-inspector-input" value="${comp.props.resistance}" min="1" max="10000000" style="width:75px;">
+                        <button type="button" class="tc-inspector-stepper-btn" id="tcResStepUp">+</button>
+                        <select id="tcResUnit" class="tc-inspector-input" style="width:55px;">
+                            <option value="1" ${comp.props.unit === 'Ω' ? 'selected' : ''}>Ω</option>
+                            <option value="1000" ${comp.props.unit === 'kΩ' ? 'selected' : ''}>kΩ</option>
+                            <option value="1000000" ${comp.props.unit === 'MΩ' ? 'selected' : ''}>MΩ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-res="220" data-unit="Ω">220 Ω</button>
+                    <button type="button" class="tc-preset-chip" data-res="330" data-unit="Ω">330 Ω</button>
+                    <button type="button" class="tc-preset-chip" data-res="1" data-unit="kΩ">1 kΩ</button>
+                    <button type="button" class="tc-preset-chip" data-res="4.7" data-unit="kΩ">4.7 kΩ</button>
+                    <button type="button" class="tc-preset-chip" data-res="10" data-unit="kΩ">10 kΩ</button>
+                    <button type="button" class="tc-preset-chip" data-res="100" data-unit="kΩ">100 kΩ</button>
+                </div>
+            `;
         } else if (comp.type === 'capacitor') {
-            html = `<div class="tc-inspector-row"><span>Capacitance:</span>
-                <input type="number" id="tcCapVal" class="tc-inspector-input" value="${comp.props.capacitance}" min="1">
-                <span>${comp.props.unit}</span></div>`;
+            html = `
+                <div class="tc-inspector-row"><span>Capacitance:</span>
+                    <div class="tc-stepper-row">
+                        <button type="button" class="tc-inspector-stepper-btn" id="tcCapStepDown">-</button>
+                        <input type="number" id="tcCapVal" class="tc-inspector-input" value="${comp.props.capacitance}" min="1" style="width:75px;">
+                        <button type="button" class="tc-inspector-stepper-btn" id="tcCapStepUp">+</button>
+                        <span>${comp.props.unit || 'µF'}</span>
+                    </div>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-cap="100" data-unit="nF">100 nF</button>
+                    <button type="button" class="tc-preset-chip" data-cap="1" data-unit="µF">1 µF</button>
+                    <button type="button" class="tc-preset-chip" data-cap="10" data-unit="µF">10 µF</button>
+                    <button type="button" class="tc-preset-chip" data-cap="100" data-unit="µF">100 µF</button>
+                    <button type="button" class="tc-preset-chip" data-cap="470" data-unit="µF">470 µF</button>
+                </div>
+            `;
+        } else if (comp.type === 'potentiometer') {
+            html = `
+                <div class="tc-inspector-row"><span>Track Total:</span><span>${comp.props.resistance || 10000} Ω</span></div>
+                <div class="tc-inspector-row"><span>Wiper:</span>
+                    <input type="range" id="tcPotSlider" min="0" max="100" value="${Math.round((comp.props.position || 0.5) * 100)}" style="width:90px;">
+                    <span id="tcPotValText">${Math.round((comp.props.position || 0.5) * 100)}%</span>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-pos="0">0%</button>
+                    <button type="button" class="tc-preset-chip" data-pos="25">25%</button>
+                    <button type="button" class="tc-preset-chip" data-pos="50">50%</button>
+                    <button type="button" class="tc-preset-chip" data-pos="75">75%</button>
+                    <button type="button" class="tc-preset-chip" data-pos="100">100%</button>
+                </div>
+            `;
+        } else if (comp.type === 'ldr') {
+            html = `
+                <div class="tc-inspector-row"><span>Ambient Lux:</span>
+                    <input type="range" id="tcLdrSlider" min="0" max="1000" value="${comp.props.lux || 400}" style="width:90px;">
+                    <span id="tcLdrValText">${comp.props.lux || 400} lx</span>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-lux="15">🌑 Dark (15 lx)</button>
+                    <button type="button" class="tc-preset-chip" data-lux="150">💡 Dim (150 lx)</button>
+                    <button type="button" class="tc-preset-chip" data-lux="400">🏢 Room (400 lx)</button>
+                    <button type="button" class="tc-preset-chip" data-lux="950">☀️ Sun (950 lx)</button>
+                </div>
+            `;
+        } else if (comp.type === 'ultrasonic') {
+            html = `
+                <div class="tc-inspector-row"><span>Distance:</span>
+                    <input type="range" id="tcUsSlider" min="2" max="400" value="${comp.props.distance || 25}" style="width:90px;">
+                    <span id="tcUsValText">${comp.props.distance || 25} cm</span>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-dist="5">5 cm</button>
+                    <button type="button" class="tc-preset-chip" data-dist="15">15 cm</button>
+                    <button type="button" class="tc-preset-chip" data-dist="30">30 cm</button>
+                    <button type="button" class="tc-preset-chip" data-dist="60">60 cm</button>
+                    <button type="button" class="tc-preset-chip" data-dist="120">120 cm</button>
+                </div>
+            `;
+        } else if (comp.type === 'tmp36') {
+            html = `
+                <div class="tc-inspector-row"><span>Temperature:</span>
+                    <input type="range" id="tcTmpSlider" min="-40" max="125" value="${Math.round(comp.props.tempC || 25)}" style="width:90px;">
+                    <span id="tcTmpValText">${(comp.props.tempC || 25).toFixed(1)}°C</span>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-temp="0">❄️ 0°C</button>
+                    <button type="button" class="tc-preset-chip" data-temp="25">🌡️ 25°C</button>
+                    <button type="button" class="tc-preset-chip" data-temp="37">🩺 37°C</button>
+                    <button type="button" class="tc-preset-chip" data-temp="75">🔥 75°C</button>
+                </div>
+            `;
+        } else if (comp.type === 'servo') {
+            html = `
+                <div class="tc-inspector-row"><span>Horn Angle:</span>
+                    <input type="range" id="tcServoSlider" min="0" max="180" value="${comp.props.angle || 90}" style="width:90px;">
+                    <span id="tcServoValText">${comp.props.angle || 90}°</span>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-ang="0">0°</button>
+                    <button type="button" class="tc-preset-chip" data-ang="45">45°</button>
+                    <button type="button" class="tc-preset-chip" data-ang="90">90°</button>
+                    <button type="button" class="tc-preset-chip" data-ang="135">135°</button>
+                    <button type="button" class="tc-preset-chip" data-ang="180">180°</button>
+                </div>
+            `;
+        } else if (comp.type === 'stepper_motor') {
+            html = `
+                <div class="tc-inspector-row"><span>Angle:</span><span id="tcStepperAngText">${comp.props.angle || 0}°</span></div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" id="tcStepBackBtn">⟲ -10°</button>
+                    <button type="button" class="tc-preset-chip" id="tcStepFwdBtn">⟳ +10°</button>
+                    <button type="button" class="tc-preset-chip" data-stepang="90">90°</button>
+                    <button type="button" class="tc-preset-chip" data-stepang="180">180°</button>
+                    <button type="button" class="tc-preset-chip" data-stepang="360">360°</button>
+                </div>
+            `;
+        } else if (comp.type === 'sound_sensor') {
+            html = `
+                <div class="tc-inspector-row"><span>Threshold:</span>
+                    <input type="range" id="tcSoundThreshSlider" min="0" max="1023" value="${comp.props.threshold || 512}" style="width:90px;">
+                    <span id="tcSoundThreshText">${comp.props.threshold || 512}</span>
+                </div>
+                <div style="margin-top:6px;">
+                    <button type="button" class="tc-sound-clap-btn" id="tcInspClapBtn" style="width:100%;">👏 Trigger Clap Peak</button>
+                </div>
+            `;
+        } else if (comp.type === 'dc_motor') {
+            html = `
+                <div class="tc-inspector-row"><span>Speed (PWM):</span>
+                    <input type="range" id="tcMotorPwmSlider" min="0" max="255" value="${comp.props.speed || 0}" style="width:90px;">
+                    <span id="tcMotorPwmText">${comp.props.speed || 0}</span>
+                </div>
+                <div class="tc-preset-chip-group">
+                    <button type="button" class="tc-preset-chip" data-pwm="0">Stop (0)</button>
+                    <button type="button" class="tc-preset-chip" data-pwm="128">50% (128)</button>
+                    <button type="button" class="tc-preset-chip" data-pwm="192">75% (192)</button>
+                    <button type="button" class="tc-preset-chip" data-pwm="255">Max (255)</button>
+                </div>
+            `;
+        } else if (comp.type === 'seven_segment') {
+            html = `
+                <div class="tc-inspector-row"><span>Mode:</span><span>Common Cathode</span></div>
+                <div class="tc-preset-chip-group">
+                    ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `
+                        <button type="button" class="tc-preset-chip tc-seg-test-chip" data-digit="${n}">${n}</button>
+                    `).join('')}
+                </div>
+            `;
+        } else if (comp.type === 'pushbutton') {
+            html = `
+                <div class="tc-inspector-row"><span>Contact State:</span>
+                    <button type="button" id="tcBtnToggle" class="btn-tc-code-toggle" style="padding:4px 10px;font-size:0.75rem;">
+                        ${comp.props.pressed ? 'Pressed (Closed)' : 'Normal (Open)'}
+                    </button>
+                </div>
+            `;
+        } else if (comp.type === 'slide_switch') {
+            html = `
+                <div class="tc-inspector-row"><span>Switch Pos:</span>
+                    <button type="button" id="tcSwitchToggle" class="btn-tc-code-toggle" style="padding:4px 10px;font-size:0.75rem;">
+                        ${comp.props.state === 'left' ? 'Left Position' : 'Right Position'}
+                    </button>
+                </div>
+            `;
         } else {
-            html = `<div style="color:var(--tc-text-muted);font-size:0.75rem;">Interactive physics lab component</div>`;
+            html = `<div style="color:var(--tc-text-muted);font-size:0.75rem;">Physics lab component: ${comp.props.name}</div>`;
         }
+
+        html += `
+            <div class="tc-inspector-actions" style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; gap: 8px;">
+                <button type="button" id="tcInspectorRotateBtn" class="tc-tool-btn" style="flex:1; height:32px; justify-content:center; background:#1e293b; color:#38bdf8; border:1px solid #334155; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;" title="Rotate Component (R)">
+                    <i class="fa-solid fa-rotate"></i> Rotate
+                </button>
+                <button type="button" id="tcInspectorDeleteBtn" class="tc-tool-btn" style="flex:1; height:32px; justify-content:center; background:rgba(239,68,68,0.18); color:#fca5a5; border:1px solid rgba(239,68,68,0.4); border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;" title="Delete Component (Del)">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+            </div>
+        `;
 
         fields.innerHTML = html;
 
-        document.getElementById('tcLedColorSelect')?.addEventListener('change', function () {
-            comp.props.color = this.value;
-            renderComponentDOM(comp);
-            triggerCircuitSolve();
+        document.getElementById('tcInspectorRotateBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            rotateSelected();
+        });
+        document.getElementById('tcInspectorDeleteBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteSelected();
         });
 
+        // BIND EVENT LISTENERS FOR CONTROLS
+        // LED Swatches
+        fields.querySelectorAll('.tc-color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', function () {
+                const hex = this.getAttribute('data-color');
+                const vf = parseFloat(this.getAttribute('data-vf')) || 2.0;
+                comp.props.color = hex;
+                comp.props.forwardVoltage = vf;
+                fields.querySelectorAll('.tc-color-swatch').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const vfEl = document.getElementById('tcLedVf');
+                if (vfEl) vfEl.textContent = `${vf} V`;
+                renderComponentDOM(comp);
+                triggerCircuitSolve();
+            });
+        });
+
+        // Resistor Steppers & Chips
         document.getElementById('tcResVal')?.addEventListener('input', function () {
             comp.props.resistance = parseFloat(this.value) || 220;
             renderComponentDOM(comp);
             triggerCircuitSolve();
         });
+        document.getElementById('tcResUnit')?.addEventListener('change', function () {
+            comp.props.unit = this.options[this.selectedIndex].text;
+            renderComponentDOM(comp);
+            triggerCircuitSolve();
+        });
+        document.getElementById('tcResStepDown')?.addEventListener('click', () => {
+            comp.props.resistance = Math.max(1, (comp.props.resistance || 220) - 10);
+            const inp = document.getElementById('tcResVal');
+            if (inp) inp.value = comp.props.resistance;
+            renderComponentDOM(comp);
+            triggerCircuitSolve();
+        });
+        document.getElementById('tcResStepUp')?.addEventListener('click', () => {
+            comp.props.resistance = (comp.props.resistance || 220) + 10;
+            const inp = document.getElementById('tcResVal');
+            if (inp) inp.value = comp.props.resistance;
+            renderComponentDOM(comp);
+            triggerCircuitSolve();
+        });
+        fields.querySelectorAll('.tc-preset-chip[data-res]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.resistance = parseFloat(this.getAttribute('data-res'));
+                comp.props.unit = this.getAttribute('data-unit');
+                const inp = document.getElementById('tcResVal');
+                if (inp) inp.value = comp.props.resistance;
+                const unitSel = document.getElementById('tcResUnit');
+                if (unitSel) {
+                    for (let i = 0; i < unitSel.options.length; i++) {
+                        if (unitSel.options[i].text === comp.props.unit) unitSel.selectedIndex = i;
+                    }
+                }
+                renderComponentDOM(comp);
+                triggerCircuitSolve();
+            });
+        });
 
+        // Capacitor Steppers & Chips
+        document.getElementById('tcCapVal')?.addEventListener('input', function () {
+            comp.props.capacitance = parseFloat(this.value) || 100;
+            renderComponentDOM(comp);
+            triggerCircuitSolve();
+        });
+        document.getElementById('tcCapStepDown')?.addEventListener('click', () => {
+            comp.props.capacitance = Math.max(1, (comp.props.capacitance || 100) - 5);
+            const inp = document.getElementById('tcCapVal');
+            if (inp) inp.value = comp.props.capacitance;
+            renderComponentDOM(comp);
+            triggerCircuitSolve();
+        });
+        document.getElementById('tcCapStepUp')?.addEventListener('click', () => {
+            comp.props.capacitance = (comp.props.capacitance || 100) + 10;
+            const inp = document.getElementById('tcCapVal');
+            if (inp) inp.value = comp.props.capacitance;
+            renderComponentDOM(comp);
+            triggerCircuitSolve();
+        });
+        fields.querySelectorAll('.tc-preset-chip[data-cap]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.capacitance = parseFloat(this.getAttribute('data-cap'));
+                comp.props.unit = this.getAttribute('data-unit');
+                const inp = document.getElementById('tcCapVal');
+                if (inp) inp.value = comp.props.capacitance;
+                renderComponentDOM(comp);
+                triggerCircuitSolve();
+            });
+        });
+
+        // Potentiometer Slider & Chips
         document.getElementById('tcPotSlider')?.addEventListener('input', function () {
             setPotPosition(comp, parseInt(this.value) / 100);
             const valText = document.getElementById('tcPotValText');
             if (valText) valText.textContent = `${this.value}%`;
         });
+        fields.querySelectorAll('.tc-preset-chip[data-pos]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                const pos = parseInt(this.getAttribute('data-pos'));
+                setPotPosition(comp, pos / 100);
+                const slider = document.getElementById('tcPotSlider');
+                if (slider) slider.value = pos;
+                const valText = document.getElementById('tcPotValText');
+                if (valText) valText.textContent = `${pos}%`;
+            });
+        });
 
+        // LDR Slider & Chips
         document.getElementById('tcLdrSlider')?.addEventListener('input', function () {
             comp.props.lux = parseInt(this.value);
             state.hardwareValues.ldrLux = comp.props.lux;
             const valText = document.getElementById('tcLdrValText');
             if (valText) valText.textContent = `${comp.props.lux} lx`;
+            const badge = document.getElementById('tcLdrBadge');
+            if (badge) badge.textContent = `${comp.props.lux} lx`;
             triggerCircuitSolve();
         });
+        fields.querySelectorAll('.tc-preset-chip[data-lux]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.lux = parseInt(this.getAttribute('data-lux'));
+                state.hardwareValues.ldrLux = comp.props.lux;
+                const slider = document.getElementById('tcLdrSlider');
+                if (slider) slider.value = comp.props.lux;
+                const valText = document.getElementById('tcLdrValText');
+                if (valText) valText.textContent = `${comp.props.lux} lx`;
+                const badge = document.getElementById('tcLdrBadge');
+                if (badge) badge.textContent = `${comp.props.lux} lx`;
+                triggerCircuitSolve();
+            });
+        });
 
+        // Ultrasonic Slider & Chips
         document.getElementById('tcUsSlider')?.addEventListener('input', function () {
             comp.props.distance = parseFloat(this.value);
             state.hardwareValues.ultrasonicCm = comp.props.distance;
             const valText = document.getElementById('tcUsValText');
             if (valText) valText.textContent = `${comp.props.distance} cm`;
+            const badge = document.getElementById('tcObstacleBadge');
+            if (badge) badge.textContent = `${comp.props.distance} cm`;
+            const obstacle = document.getElementById('tcUltrasonicObstacle');
+            if (obstacle) {
+                const newLeft = comp.x + 95 + (comp.props.distance * 2.8);
+                obstacle.style.left = `${newLeft}px`;
+                const sonarSvg = document.getElementById('tcSonarWavesSvg');
+                if (sonarSvg) updateSonarVisualization(comp, obstacle, sonarSvg);
+            }
             triggerCircuitSolve();
         });
+        fields.querySelectorAll('.tc-preset-chip[data-dist]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.distance = parseFloat(this.getAttribute('data-dist'));
+                state.hardwareValues.ultrasonicCm = comp.props.distance;
+                const slider = document.getElementById('tcUsSlider');
+                if (slider) slider.value = comp.props.distance;
+                const valText = document.getElementById('tcUsValText');
+                if (valText) valText.textContent = `${comp.props.distance} cm`;
+                const badge = document.getElementById('tcObstacleBadge');
+                if (badge) badge.textContent = `${comp.props.distance} cm`;
+                const obstacle = document.getElementById('tcUltrasonicObstacle');
+                if (obstacle) {
+                    const newLeft = comp.x + 95 + (comp.props.distance * 2.8);
+                    obstacle.style.left = `${newLeft}px`;
+                    const sonarSvg = document.getElementById('tcSonarWavesSvg');
+                    if (sonarSvg) updateSonarVisualization(comp, obstacle, sonarSvg);
+                }
+                triggerCircuitSolve();
+            });
+        });
 
+        // TMP36 Slider & Chips
         document.getElementById('tcTmpSlider')?.addEventListener('input', function () {
             comp.props.tempC = parseFloat(this.value);
             state.hardwareValues.tmp36Temp = comp.props.tempC;
@@ -2406,7 +4327,20 @@ void loop() {
             renderComponentDOM(comp);
             triggerCircuitSolve();
         });
+        fields.querySelectorAll('.tc-preset-chip[data-temp]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.tempC = parseFloat(this.getAttribute('data-temp'));
+                state.hardwareValues.tmp36Temp = comp.props.tempC;
+                const slider = document.getElementById('tcTmpSlider');
+                if (slider) slider.value = comp.props.tempC;
+                const valText = document.getElementById('tcTmpValText');
+                if (valText) valText.textContent = `${comp.props.tempC.toFixed(1)}°C`;
+                renderComponentDOM(comp);
+                triggerCircuitSolve();
+            });
+        });
 
+        // Servo Slider & Chips
         document.getElementById('tcServoSlider')?.addEventListener('input', function () {
             comp.props.angle = parseInt(this.value);
             const horn = document.getElementById(`${comp.id}_horn`);
@@ -2416,7 +4350,83 @@ void loop() {
             const valText = document.getElementById('tcServoValText');
             if (valText) valText.textContent = `${comp.props.angle}°`;
         });
+        fields.querySelectorAll('.tc-preset-chip[data-ang]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.angle = parseInt(this.getAttribute('data-ang'));
+                const horn = document.getElementById(`${comp.id}_horn`);
+                if (horn) horn.style.transform = `rotate(${comp.props.angle}deg)`;
+                const badge = document.querySelector(`#${comp.id} .tc-servo-angle-badge`);
+                if (badge) badge.textContent = `${comp.props.angle}°`;
+                const slider = document.getElementById('tcServoSlider');
+                if (slider) slider.value = comp.props.angle;
+                const valText = document.getElementById('tcServoValText');
+                if (valText) valText.textContent = `${comp.props.angle}°`;
+            });
+        });
 
+        // Stepper Motor Controls
+        const updateStepperAngle = (newAng) => {
+            comp.props.angle = ((newAng % 360) + 360) % 360;
+            const needle = document.getElementById(`${comp.id}_needle`);
+            if (needle) needle.style.transform = `rotate(${comp.props.angle}deg)`;
+            const badge = document.querySelector(`#${comp.id} .tc-stepper-angle-badge`);
+            if (badge) badge.textContent = `${comp.props.angle}°`;
+            const text = document.getElementById('tcStepperAngText');
+            if (text) text.textContent = `${comp.props.angle}°`;
+        };
+        document.getElementById('tcStepBackBtn')?.addEventListener('click', () => updateStepperAngle((comp.props.angle || 0) - 10));
+        document.getElementById('tcStepFwdBtn')?.addEventListener('click', () => updateStepperAngle((comp.props.angle || 0) + 10));
+        fields.querySelectorAll('.tc-preset-chip[data-stepang]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                updateStepperAngle(parseInt(this.getAttribute('data-stepang')));
+            });
+        });
+
+        // Sound Sensor Clap Button
+        document.getElementById('tcInspClapBtn')?.addEventListener('click', () => {
+            playPlugSound();
+            comp.props.soundActive = true;
+            state.hardwareValues.digitalPins[7] = 1;
+            triggerCircuitSolve();
+            showToast('👏 Sound Peak Generated (LM393 Triggered)');
+            setTimeout(() => {
+                comp.props.soundActive = false;
+                state.hardwareValues.digitalPins[7] = 0;
+                triggerCircuitSolve();
+            }, 500);
+        });
+
+        // DC Motor PWM
+        document.getElementById('tcMotorPwmSlider')?.addEventListener('input', function () {
+            comp.props.speed = parseInt(this.value);
+            const prop = document.getElementById(`${comp.id}_prop`);
+            if (prop) prop.style.animationDuration = comp.props.speed > 0 ? `${Math.max(0.04, 1.2 - (comp.props.speed / 255))}s` : '0s';
+            const valText = document.getElementById('tcMotorPwmText');
+            if (valText) valText.textContent = comp.props.speed;
+        });
+        fields.querySelectorAll('.tc-preset-chip[data-pwm]').forEach(chip => {
+            chip.addEventListener('click', function () {
+                comp.props.speed = parseInt(this.getAttribute('data-pwm'));
+                const prop = document.getElementById(`${comp.id}_prop`);
+                if (prop) prop.style.animationDuration = comp.props.speed > 0 ? `${Math.max(0.04, 1.2 - (comp.props.speed / 255))}s` : '0s';
+                const slider = document.getElementById('tcMotorPwmSlider');
+                if (slider) slider.value = comp.props.speed;
+                const valText = document.getElementById('tcMotorPwmText');
+                if (valText) valText.textContent = comp.props.speed;
+            });
+        });
+
+        // Seven Segment Digit Chips
+        fields.querySelectorAll('.tc-seg-test-chip').forEach(chip => {
+            chip.addEventListener('click', function () {
+                const digit = parseInt(this.getAttribute('data-digit'));
+                comp.props.digit = digit;
+                renderComponentDOM(comp);
+                showToast(`7-Segment Display: ${digit}`);
+            });
+        });
+
+        // Buttons & Switches
         document.getElementById('tcBtnToggle')?.addEventListener('click', function () {
             comp.props.pressed = !comp.props.pressed;
             this.textContent = comp.props.pressed ? 'Pressed (Closed)' : 'Normal (Open)';
@@ -2905,6 +4915,12 @@ void loop() {
             return match.split('\n').map(() => '//').join('\n');
         });
 
+        // 1. Array definitions on single line: int arr[] = {1, 2, 3}; -> let arr = [1, 2, 3];
+        cleanCode = cleanCode.replace(/\b(?:const\s+)?(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\s+([a-zA-Z0-9_]+)\s*\[\s*\d*\s*\]\s*=\s*\{([^}\n\r]*)\}/g, 'let $1 = [$2]');
+
+        // 2. Array definitions spanning multiple lines: const byte table[10] = { \n ... \n };
+        cleanCode = cleanCode.replace(/\b(?:const\s+)?(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\s+([a-zA-Z0-9_]+)\s*\[\s*\d*\s*\]\s*=\s*\{/g, 'let $1 = [');
+
         let lines = cleanCode.split('\n');
         let out = [];
         let declaredUserFuncs = new Set();
@@ -2956,9 +4972,27 @@ void loop() {
                 continue;
             }
 
-            // Arrays
-            l = l.replace(/\b(?:const\s+)?(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\s+([a-zA-Z0-9_]+)\s*\[\s*\d*\s*\]\s*=\s*\{([^}]*)\}/g, 'let $1 = [$2]');
+            // Close multi-line array block if line starts with '};'
+            if (l.trim().startsWith('};')) {
+                l = l.replace(/\};/, '];');
+                out.push(l);
+                continue;
+            }
+
+            // Strip C++ 'volatile'
+            l = l.replace(/\bvolatile\s+/g, '');
+
+            // Extract string literals to protect them from regex replacements
+            const stringLiterals = [];
+            l = l.replace(/(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/g, match => {
+                stringLiterals.push(match);
+                return `__STR_LIT_${stringLiterals.length - 1}__`;
+            });
+
+            // Arrays declarations without init: int arr[10]; -> let arr = new Array(10).fill(0)
             l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean)\s+([a-zA-Z0-9_]+)\s*\[\s*(\d+)\s*\]/g, 'let $1 = new Array($2).fill(0)');
+            // Array string/literal without brackets in JS: const char name[] = "..." -> const name = "..."
+            l = l.replace(/\b(?:const\s+)?(?:char|byte|int|float|double)\s+([a-zA-Z0-9_]+)\s*\[\s*\]\s*=/g, 'const $1 =');
 
             // Function signatures
             let funcDef = l.match(/^(\s*)(?:void|int|float|double|long|unsigned\s+long|bool|boolean|char|String)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(\{?)/);
@@ -2972,70 +5006,98 @@ void loop() {
                     let pTrim = p.trim();
                     if (!pTrim) return '';
                     let parts = pTrim.split(/\s+/);
-                    return parts[parts.length - 1];
+                    let pName = parts[parts.length - 1].replace(/^&/, '');
+                    return pName;
                 }).filter(Boolean).join(', ');
 
-                out.push(`${indent}async function ${name}(${cleanedParams}) ${brace}`);
-                continue;
+                l = `${indent}async function ${name}(${cleanedParams}) ${brace}`;
+            } else {
+                // Declarations
+                l = l.replace(/\bfor\s*\(\s*(?:int|float|long|unsigned\s+long|unsigned\s+int|short|byte)\s+/g, 'for (let ');
+                l = l.replace(/\bconst\s+(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\b/g, 'const');
+                l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\s+([a-zA-Z0-9_]+)\b/g, 'let $1');
+
+                // While loop yields to prevent browser hang
+                l = l.replace(/\bwhile\s*\((.*)\)\s*\{/g, 'while ($1) { await __env.yield();');
+
+                // Async delays & pulseIn
+                l = l.replace(/\bdelay\s*\(/g, 'await __env.delay(');
+                l = l.replace(/\bdelayMicroseconds\s*\(/g, 'await __env.delayMicroseconds(');
+                l = l.replace(/\bpulseIn\s*\(/g, 'await __env.pulseIn(');
+
+                for (let uf of declaredUserFuncs) {
+                    let re = new RegExp(`\\b${uf}\\s*\\(`, 'g');
+                    l = l.replace(re, `await ${uf}(`);
+                }
+
+                // Builtins
+                l = l.replace(/\bpinMode\s*\(/g, '__env.pinMode(');
+                l = l.replace(/\bdigitalWrite\s*\(/g, '__env.digitalWrite(');
+                l = l.replace(/\bdigitalRead\s*\(/g, '__env.digitalRead(');
+                l = l.replace(/\banalogWrite\s*\(/g, '__env.analogWrite(');
+                l = l.replace(/\banalogRead\s*\(/g, '__env.analogRead(');
+                l = l.replace(/\bmillis\s*\(\s*\)/g, '__env.millis()');
+                l = l.replace(/\bmicros\s*\(\s*\)/g, '__env.micros()');
+                l = l.replace(/\bmap\s*\(/g, '__env.map(');
+                l = l.replace(/\bconstrain\s*\(/g, '__env.constrain(');
+                l = l.replace(/\btone\s*\(/g, '__env.tone(');
+                l = l.replace(/\bnoTone\s*\(/g, '__env.noTone(');
+                l = l.replace(/\brandom\s*\(/g, '__env.random(');
+                l = l.replace(/\bsq\s*\(/g, 'Math.pow(');
+                l = l.replace(/\bsqrt\s*\(/g, 'Math.sqrt(');
+                l = l.replace(/\babs\s*\(/g, 'Math.abs(');
+                l = l.replace(/\bmin\s*\(/g, 'Math.min(');
+                l = l.replace(/\bmax\s*\(/g, 'Math.max(');
+                l = l.replace(/\bpow\s*\(/g, 'Math.pow(');
+                l = l.replace(/\bround\s*\(/g, 'Math.round(');
+                l = l.replace(/\bfloor\s*\(/g, 'Math.floor(');
+                l = l.replace(/\bceil\s*\(/g, 'Math.ceil(');
+                l = l.replace(/\bstrlen\s*\(/g, '__env.strlen(');
+
+                // Serial
+                l = l.replace(/\bSerial\.begin\s*\(/g, '__env.Serial.begin(');
+                l = l.replace(/\bSerial\.println\s*\(/g, '__env.Serial.println(');
+                l = l.replace(/\bSerial\.print\s*\(/g, '__env.Serial.print(');
+                l = l.replace(/\bSerial\.available\s*\(\s*\)/g, '__env.Serial.available()');
+                l = l.replace(/\bSerial\.read\s*\(\s*\)/g, '__env.Serial.read()');
+
+                // Advanced Syllabus Components & Protocols
+                l = l.replace(/\bIRrecv\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*;/g, 'let $1 = new __env.IRrecv($2);');
+                l = l.replace(/\bdecode_results\s+([a-zA-Z0-9_]+)\s*;/g, 'let $1 = new __env.decode_results();');
+                l = l.replace(/\bStepper\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*;/g, 'let $1 = new __env.Stepper($2);');
+                l = l.replace(/\bSoftwareSerial\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*;/g, 'let $1 = new __env.SoftwareSerial($2);');
+                l = l.replace(/\battachInterrupt\s*\(/g, '__env.attachInterrupt(');
+                l = l.replace(/\bdigitalPinToInterrupt\s*\(/g, '__env.digitalPinToInterrupt(');
+
+                // Strip C++ address-of operator only inside function argument lists like (&results) or (, &var)
+                l = l.replace(/(?<=[(,]\s*)&\s*([a-zA-Z0-9_]+)/g, '$1');
+
+                // Constants
+                l = l.replace(/\bHIGH\b/g, '__env.HIGH');
+                l = l.replace(/\bLOW\b/g, '__env.LOW');
+                l = l.replace(/\bOUTPUT\b/g, '__env.OUTPUT');
+                l = l.replace(/\bINPUT_PULLUP\b/g, '__env.INPUT_PULLUP');
+                l = l.replace(/\bINPUT\b/g, '__env.INPUT');
+                l = l.replace(/\bLED_BUILTIN\b/g, '__env.LED_BUILTIN');
+                l = l.replace(/\bHEX\b/g, '__env.HEX');
+                l = l.replace(/\bDEC\b/g, '__env.DEC');
+                l = l.replace(/\bBIN\b/g, '__env.BIN');
+                l = l.replace(/\bOCT\b/g, '__env.OCT');
+                l = l.replace(/\bFALLING\b/g, '__env.FALLING');
+                l = l.replace(/\bRISING\b/g, '__env.RISING');
+                l = l.replace(/\bCHANGE\b/g, '__env.CHANGE');
+                l = l.replace(/\bA0\b/g, '__env.A0');
+                l = l.replace(/\bA1\b/g, '__env.A1');
+                l = l.replace(/\bA2\b/g, '__env.A2');
+                l = l.replace(/\bA3\b/g, '__env.A3');
+                l = l.replace(/\bA4\b/g, '__env.A4');
+                l = l.replace(/\bA5\b/g, '__env.A5');
             }
 
-            // Declarations
-            l = l.replace(/\bfor\s*\(\s*(?:int|float|long|unsigned\s+long|unsigned\s+int|short|byte)\s+/g, 'for (let ');
-            l = l.replace(/\bconst\s+(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\b/g, 'const');
-            l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\s+([a-zA-Z0-9_]+)\b/g, 'let $1');
-
-            // While loop yields to prevent browser hang
-            l = l.replace(/\bwhile\s*\((.*)\)\s*\{/g, 'while ($1) { await __env.yield();');
-
-            // Async delays & pulseIn
-            l = l.replace(/\bdelay\s*\(/g, 'await __env.delay(');
-            l = l.replace(/\bdelayMicroseconds\s*\(/g, 'await __env.delayMicroseconds(');
-            l = l.replace(/\bpulseIn\s*\(/g, 'await __env.pulseIn(');
-
-            for (let uf of declaredUserFuncs) {
-                let re = new RegExp(`\\b${uf}\\s*\\(`, 'g');
-                l = l.replace(re, `await ${uf}(`);
-            }
-
-            // Builtins
-            l = l.replace(/\bpinMode\s*\(/g, '__env.pinMode(');
-            l = l.replace(/\bdigitalWrite\s*\(/g, '__env.digitalWrite(');
-            l = l.replace(/\bdigitalRead\s*\(/g, '__env.digitalRead(');
-            l = l.replace(/\banalogWrite\s*\(/g, '__env.analogWrite(');
-            l = l.replace(/\banalogRead\s*\(/g, '__env.analogRead(');
-            l = l.replace(/\bmillis\s*\(\s*\)/g, '__env.millis()');
-            l = l.replace(/\bmicros\s*\(\s*\)/g, '__env.micros()');
-            l = l.replace(/\bmap\s*\(/g, '__env.map(');
-            l = l.replace(/\bconstrain\s*\(/g, '__env.constrain(');
-            l = l.replace(/\btone\s*\(/g, '__env.tone(');
-            l = l.replace(/\bnoTone\s*\(/g, '__env.noTone(');
-            l = l.replace(/\brandom\s*\(/g, '__env.random(');
-            l = l.replace(/\bsq\s*\(/g, 'Math.pow(');
-            l = l.replace(/\bsqrt\s*\(/g, 'Math.sqrt(');
-            l = l.replace(/\babs\s*\(/g, 'Math.abs(');
-            l = l.replace(/\bmin\s*\(/g, 'Math.min(');
-            l = l.replace(/\bmax\s*\(/g, 'Math.max(');
-
-            // Serial
-            l = l.replace(/\bSerial\.begin\s*\(/g, '__env.Serial.begin(');
-            l = l.replace(/\bSerial\.println\s*\(/g, '__env.Serial.println(');
-            l = l.replace(/\bSerial\.print\s*\(/g, '__env.Serial.print(');
-            l = l.replace(/\bSerial\.available\s*\(\s*\)/g, '__env.Serial.available()');
-            l = l.replace(/\bSerial\.read\s*\(\s*\)/g, '__env.Serial.read()');
-
-            // Constants
-            l = l.replace(/\bHIGH\b/g, '__env.HIGH');
-            l = l.replace(/\bLOW\b/g, '__env.LOW');
-            l = l.replace(/\bOUTPUT\b/g, '__env.OUTPUT');
-            l = l.replace(/\bINPUT_PULLUP\b/g, '__env.INPUT_PULLUP');
-            l = l.replace(/\bINPUT\b/g, '__env.INPUT');
-            l = l.replace(/\bLED_BUILTIN\b/g, '__env.LED_BUILTIN');
-            l = l.replace(/\bA0\b/g, '__env.A0');
-            l = l.replace(/\bA1\b/g, '__env.A1');
-            l = l.replace(/\bA2\b/g, '__env.A2');
-            l = l.replace(/\bA3\b/g, '__env.A3');
-            l = l.replace(/\bA4\b/g, '__env.A4');
-            l = l.replace(/\bA5\b/g, '__env.A5');
+            // Restore string literals pristine without modification
+            l = l.replace(/__STR_LIT_(\d+)__/g, (match, idx) => {
+                return stringLiterals[parseInt(idx, 10)];
+            });
 
             out.push(l);
         }
@@ -3153,6 +5215,9 @@ void loop() {
             map: (x, in_min, in_max, out_min, out_max) => Math.round((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min),
             constrain: (amt, low, high) => Math.max(low, Math.min(high, amt)),
             random: (min, max) => (max === undefined ? Math.floor(Math.random() * min) : Math.floor(Math.random() * (max - min) + min)),
+            strlen: (s) => (s ? s.length : 0),
+            pow: (b, e) => Math.pow(b, e),
+            round: (x) => Math.round(x),
             tone: (pin, freq) => playTone(freq),
             noTone: (pin) => stopTone(),
             Servo: class {
@@ -3192,8 +5257,91 @@ void loop() {
                     appendSerial(str);
                     extractPlotterValue(str);
                 },
-                available: () => 0,
-                read: () => -1
+                available: () => {
+                    return (state.hardwareValues.btQueue && state.hardwareValues.btQueue.length > 0) ? state.hardwareValues.btQueue.length : 0;
+                },
+                read: () => {
+                    if (!state.hardwareValues.btQueue || state.hardwareValues.btQueue.length === 0) return -1;
+                    const ch = state.hardwareValues.btQueue.shift();
+                    return typeof ch === 'number' ? ch : ch.charCodeAt(0);
+                }
+            },
+
+            HEX: 'HEX',
+            DEC: 'DEC',
+            BIN: 'BIN',
+            OCT: 'OCT',
+            FALLING: 'FALLING',
+            RISING: 'RISING',
+            CHANGE: 'CHANGE',
+
+            attachInterrupt: (pin, isr, mode) => {
+                state.hardwareValues.interruptIsr = isr;
+            },
+            digitalPinToInterrupt: (p) => normalizePin(p),
+
+            IRrecv: class {
+                constructor(pin) {
+                    this.pin = normalizePin(pin);
+                }
+                enableIRIn() { }
+                decode(res) {
+                    if (state.hardwareValues.lastIrCode) {
+                        res.value = state.hardwareValues.lastIrCode;
+                        state.hardwareValues.lastIrCode = 0;
+                        return true;
+                    }
+                    return false;
+                }
+                resume() { }
+            },
+
+            decode_results: class {
+                constructor() {
+                    this.value = 0;
+                }
+            },
+
+            Stepper: class {
+                constructor(steps, p1, p2, p3, p4) {
+                    this.stepsPerRev = steps || 2048;
+                    this.pins = [p1, p2, p3, p4].map(normalizePin);
+                    this.speed = 60;
+                    this.curAngle = 0;
+                }
+                setSpeed(rpm) { this.speed = rpm; }
+                step(steps) {
+                    this.curAngle = (this.curAngle + (steps / this.stepsPerRev) * 360) % 360;
+                    const sm = state.components.find(c => c.type === 'stepper_motor');
+                    if (sm) {
+                        sm.props.angle = Math.round(this.curAngle);
+                        const needle = document.getElementById(`${sm.id}_needle`);
+                        if (needle) needle.style.transform = `rotate(${sm.props.angle}deg)`;
+                        const badge = document.querySelector(`#${sm.id} .tc-stepper-angle-badge`);
+                        if (badge) badge.textContent = `${sm.props.angle}°`;
+                    }
+                }
+            },
+
+            SoftwareSerial: class {
+                constructor(rx, tx) {
+                    this.rx = rx; this.tx = tx;
+                }
+                begin(baud) { }
+                available() {
+                    return (state.hardwareValues.btQueue && state.hardwareValues.btQueue.length > 0) ? state.hardwareValues.btQueue.length : 0;
+                }
+                read() {
+                    if (!state.hardwareValues.btQueue || state.hardwareValues.btQueue.length === 0) return -1;
+                    const ch = state.hardwareValues.btQueue.shift();
+                    return typeof ch === 'number' ? ch : ch.charCodeAt(0);
+                }
+                write(c) {
+                    const ch = typeof c === 'number' ? String.fromCharCode(c) : String(c);
+                    appendSerial(`[BT Out]: ${ch}\n`);
+                }
+                print(s) { appendSerial(`[BT Out]: ${s}`); }
+                println(s) { appendSerial(`[BT Out]: ${s}\n`); }
             },
             isRunning: () => state.isSimulating && !state.firmwareCancelToken.cancelled
         };
@@ -3290,9 +5438,31 @@ void loop() {
 
     function formatSerialPrint(msg, precision) {
         if (typeof msg === 'number') {
+            if (precision === 'HEX' || precision === 16) return msg.toString(16).toUpperCase();
+            if (precision === 'BIN' || precision === 2) return msg.toString(2);
+            if (precision === 'OCT' || precision === 8) return msg.toString(8);
+            if (precision === 'DEC' || precision === 10) return Math.round(msg).toString();
             return precision !== undefined ? msg.toFixed(precision) : msg.toString();
         }
         return String(msg);
+    }
+
+    function playPlugSound() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.045);
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.045);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.045);
+        } catch(e) {}
     }
 
     function extractPlotterValue(text) {
@@ -3838,6 +6008,7 @@ void loop() {
         }
 
         autoWirePreset();
+        updateInteractivePhysicsWidgets();
         appendSerial(`--- Loaded Project: ${p.title} ---\n`);
         showToast(`🚀 Loaded: ${p.title}`);
 
@@ -3898,6 +6069,7 @@ void loop() {
 
         renderWires();
         triggerCircuitSolve();
+        updateInteractivePhysicsWidgets();
         updateStatusBar();
     }
 
@@ -4069,6 +6241,8 @@ void loop() {
             const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
             try {
                 const transpiled = transpileArduino(code);
+                const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+                new AsyncFunction('__env', transpiled);
                 const size = Math.round(1450 + code.length * 2.6);
                 const sram = Math.round(180 + code.split('\n').length * 2.2);
                 appendSerial(`✓ Compilation Successful!\nBinary sketch size: ${size} bytes (4% of 32,256 max).\nGlobal variables use: ${sram} bytes of SRAM.\n`);
@@ -4100,18 +6274,7 @@ void loop() {
         document.getElementById('tcAutoWireBtn')?.addEventListener('click', autoWirePreset);
         document.getElementById('tcClearWiresBtn')?.addEventListener('click', clearAllWires);
 
-        document.querySelectorAll('.tc-component-card').forEach(card => {
-            card.addEventListener('click', function () {
-                if (state.dragType) return;
-                const type = this.getAttribute('data-component-type');
-                if (type === 'arduino' || type === 'breadboard' || !COMPONENT_LIBRARY[type]) return;
-                const comp = placeComponent(type, 650 + Math.random() * 40, 160 + Math.random() * 40);
-                if (comp) {
-                    selectComponent(comp.id);
-                    triggerCircuitSolve();
-                }
-            });
-        });
+
 
         document.getElementById('tcCloseInspectorBtn')?.addEventListener('click', hideComponentInspector);
 
@@ -4257,11 +6420,13 @@ void loop() {
         if (state.selectedItem) {
             if (state.selectedItem.type === 'wire') {
                 const w = state.wires.find(ww => ww.id === state.selectedItem.id);
-                selText = w ? `Wire (${w.color})` : 'Wire';
+                selText = w ? `Wire (${w.color}) — [Del] to delete` : 'Wire';
             } else {
                 const c = state.components.find(cc => cc.id === state.selectedItem.id);
-                selText = c ? `${c.props.name} (${c.type.toUpperCase()})` : 'Component';
+                selText = c ? `${c.props.name} (${c.type.toUpperCase()}) — [Del] to delete, [R] to rotate` : 'Component';
             }
+        } else {
+            selText = 'None (Shift+Click to Select & Drag)';
         }
 
         const projTitle = presets[state.currentPreset]?.title || state.currentPreset;

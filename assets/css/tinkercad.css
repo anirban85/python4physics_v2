@@ -465,7 +465,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 10;
+    z-index: 24;
     pointer-events: none;
 }
 
@@ -481,11 +481,12 @@
 
 .tc-wire-svg-path:hover {
     stroke-width: 5.5px !important;
-    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.7));
 }
 
 .tc-wire-svg-path.selected {
-    filter: drop-shadow(0 0 8px #38bdf8) drop-shadow(0 0 3px #38bdf8);
+    stroke-width: 6px !important;
+    filter: drop-shadow(0 0 10px #38bdf8) drop-shadow(0 0 4px #ffffff) !important;
 }
 
 /* Rubberband live drawing wire */
@@ -530,8 +531,18 @@
 }
 
 /* ========================================
-   TERMINAL PIN SNAPPING POINTS
+   TERMINAL PIN SNAPPING POINTS & OVERLAY
    ======================================== */
+#tcTerminalsContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 45;
+}
+
 .tc-terminal,
 .tc-terminal-pin {
     width: 14px;
@@ -542,11 +553,12 @@
     cursor: crosshair;
     position: absolute;
     transform: translate(-50%, -50%);
-    z-index: 25;
-    transition: all 0.1s ease;
+    z-index: 20;
+    pointer-events: auto;
+    transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-/* Touch hit padding so mobile users and mouse users never miss */
+/* Touch hit padding - tight & precise so it doesn't overlap adjacent holes or block placed components */
 .tc-terminal::after,
 .tc-terminal-pin::after {
     content: '';
@@ -554,11 +566,25 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 32px;
-    height: 32px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: transparent;
     cursor: crosshair;
+    pointer-events: auto;
+}
+
+.tc-terminal-pin.tc-bb-pin {
+    z-index: 20;
+}
+.tc-terminal-pin.tc-ard-pin {
+    z-index: 30;
+}
+.tc-terminal-pin.tc-comp-pin {
+    z-index: 55;
+}
+.tc-terminal-pin.tc-comp-pin.selected-parent {
+    z-index: 65;
 }
 
 .tc-terminal:hover,
@@ -568,8 +594,8 @@
     background: rgba(16, 185, 129, 0.55);
     border-color: #10b981;
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
-    transform: translate(-50%, -50%) scale(1.6);
-    z-index: 30;
+    transform: translate(-50%, -50%) scale(1.35);
+    z-index: 80 !important;
 }
 
 .tc-terminal.snap-candidate,
@@ -577,8 +603,8 @@
     border-color: #38bdf8 !important;
     background: rgba(56, 189, 248, 0.55) !important;
     box-shadow: 0 0 12px rgba(56, 189, 248, 0.8) !important;
-    transform: translate(-50%, -50%) scale(1.6) !important;
-    z-index: 35 !important;
+    transform: translate(-50%, -50%) scale(1.35) !important;
+    z-index: 85 !important;
 }
 
 @keyframes tcTerminalPulse {
@@ -635,7 +661,7 @@
 /* Pin Tooltip */
 .tc-pin-tooltip {
     position: absolute;
-    bottom: 20px;
+    bottom: calc(100% + 6px);
     left: 50%;
     transform: translateX(-50%);
     background: #0f172a;
@@ -645,16 +671,20 @@
     padding: 3px 8px;
     border-radius: 4px;
     white-space: nowrap;
-    pointer-events: none;
-    z-index: 40;
+    pointer-events: none !important;
+    user-select: none;
+    z-index: 100 !important;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.12s ease;
     letter-spacing: 0.01em;
 }
 
 .tc-terminal:hover .tc-pin-tooltip,
 .tc-terminal-pin:hover .tc-pin-tooltip {
-    display: block;
+    opacity: 1;
+    visibility: visible;
 }
 
 /* ========================================
@@ -885,33 +915,131 @@
 .tc-placed-component {
     position: absolute;
     cursor: grab;
-    z-index: 8;
+    z-index: 30;
     user-select: none;
     transition: filter 0.12s ease;
+    touch-action: none;
 }
 
-.tc-placed-component:active {
-    cursor: grabbing;
+.tc-placed-component:hover {
+    filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.45));
+}
+
+.tc-placed-component:active,
+.tc-placed-component.dragging {
+    cursor: grabbing !important;
+    z-index: 60 !important;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(56, 189, 248, 0.8)) !important;
 }
 
 .tc-placed-component.selected {
-    filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.6));
+    z-index: 50 !important;
+    filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.95)) !important;
 }
 
 /* Selection indicator overlay */
 .tc-placed-component.selected::after {
     content: '';
     position: absolute;
-    inset: -4px;
-    border: 2px dashed #0284c7;
-    border-radius: 4px;
+    inset: -6px;
+    border: 2px dashed #38bdf8;
+    background: rgba(56, 189, 248, 0.08);
+    border-radius: 6px;
     pointer-events: none;
     animation: tcSelectionPulse 1.5s ease-in-out infinite;
+    z-index: 51;
 }
 
 @keyframes tcSelectionPulse {
-    0%, 100% { border-color: #0284c7; }
-    50% { border-color: #38bdf8; }
+    0%, 100% { border-color: #0284c7; box-shadow: 0 0 8px rgba(2, 132, 199, 0.4); }
+    50% { border-color: #38bdf8; box-shadow: 0 0 14px rgba(56, 189, 248, 0.7); }
+}
+
+/* Floating Quick-Action Bar for Selected Component */
+.tc-comp-floating-bar {
+    position: absolute;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #090d16;
+    border: 1px solid #0284c7;
+    border-radius: 8px;
+    padding: 3px 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 12px rgba(2, 132, 199, 0.4);
+    transform: translateY(-5px);
+    animation: tcFloatBarIn 0.15s ease-out;
+    user-select: none;
+    white-space: nowrap;
+}
+
+@keyframes tcFloatBarIn {
+    from { opacity: 0; transform: translateY(0); }
+    to { opacity: 1; transform: translateY(-5px); }
+}
+
+.tc-float-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #38bdf8;
+    padding: 2px 6px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tc-float-btn {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f1f5f9;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.12s;
+}
+
+.tc-float-btn:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.tc-float-btn.tc-float-edit:hover {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+}
+
+.tc-float-btn.tc-float-rotate:hover {
+    background: #059669;
+    border-color: #10b981;
+    color: #ffffff;
+}
+
+.tc-float-btn.tc-float-delete {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.tc-float-btn.tc-float-delete:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #f87171;
+}
+
+.tc-float-btn.tc-float-close {
+    padding: 3px 5px;
+    color: var(--tc-text-muted);
+}
+.tc-float-btn.tc-float-close:hover {
+    color: #ffffff;
+    background: #334155;
 }
 
 /* Drag ghost preview (semi-transparent copy following cursor) */
@@ -2103,6 +2231,577 @@
     background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
 }
+
+/* ========================================================
+   PHYSICS LAB REALISTIC INTERACTIVE WIDGETS (OBSTACLES & TARGETS)
+   ======================================================== */
+
+/* 1. Ultrasonic HC-SR04 Interactive Obstacle */
+.tc-ultrasonic-obstacle-container {
+    position: absolute;
+    z-index: 45;
+    user-select: none;
+    cursor: grab;
+    touch-action: none;
+    transition: filter 0.15s ease;
+}
+.tc-ultrasonic-obstacle-container:active {
+    cursor: grabbing;
+}
+.tc-ultrasonic-obstacle-block {
+    width: 28px;
+    height: 90px;
+    background: linear-gradient(135deg, #475569 0%, #334155 50%, #1e293b 100%);
+    border: 2px solid #38bdf8;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(56, 189, 248, 0.35);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.tc-obstacle-stripes {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: repeating-linear-gradient(45deg, rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.25) 6px, transparent 6px, transparent 12px);
+    border-radius: 4px;
+    pointer-events: none;
+}
+.tc-obstacle-badge {
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.tc-obstacle-drag-handle {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 8px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Ultrasonic Sonar Wave Arcs */
+.tc-sonar-waves-svg {
+    position: absolute;
+    pointer-events: none;
+    z-index: 15;
+    overflow: visible;
+}
+.tc-sonar-arc-ping {
+    fill: none;
+    stroke: #38bdf8;
+    stroke-width: 2.2;
+    opacity: 0.8;
+    stroke-dasharray: 4 2;
+    animation: tcSonarPing 1.2s infinite ease-out;
+}
+.tc-sonar-arc-echo {
+    fill: none;
+    stroke: #10b981;
+    stroke-width: 1.8;
+    opacity: 0.6;
+    animation: tcSonarEcho 1.2s infinite ease-in;
+}
+@keyframes tcSonarPing {
+    0% { opacity: 0; stroke-width: 1; }
+    30% { opacity: 0.9; stroke-width: 2.5; }
+    100% { opacity: 0; stroke-width: 3.5; }
+}
+@keyframes tcSonarEcho {
+    0% { opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0; }
+}
+
+/* 2. PIR Motion Interactive Human Avatar */
+.tc-pir-subject-container {
+    position: absolute;
+    z-index: 45;
+    user-select: none;
+    cursor: grab;
+    touch-action: none;
+}
+.tc-pir-subject-container:active {
+    cursor: grabbing;
+}
+.tc-pir-human-avatar {
+    width: 48px;
+    height: 72px;
+    background: #0f172a;
+    border: 2px solid #ec4899;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
+    position: relative;
+    transition: all 0.2s;
+}
+.tc-pir-human-avatar.moving {
+    border-color: #ef4444;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.7);
+    animation: tcHumanStep 0.4s infinite alternate ease-in-out;
+}
+@keyframes tcHumanStep {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-4px); }
+}
+.tc-pir-subject-badge {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    border: 1px solid #ec4899;
+    color: #f472b6;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+.tc-pir-field-cone {
+    position: absolute;
+    pointer-events: none;
+    z-index: 12;
+    transition: fill 0.3s, opacity 0.3s;
+}
+
+/* 3. LDR Interactive Flashlight */
+.tc-ldr-flashlight-container {
+    position: absolute;
+    z-index: 45;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+.tc-ldr-flashlight-container:active {
+    cursor: grabbing;
+}
+.tc-ldr-flashlight-body {
+    width: 64px;
+    height: 38px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: 2px solid #fef08a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.72rem;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.45);
+    position: relative;
+}
+.tc-ldr-light-beam {
+    position: absolute;
+    pointer-events: none;
+    z-index: 14;
+}
+
+/* 4. Interactive TSOP1838 TV Remote Control */
+.tc-ir-remote-modal {
+    position: absolute;
+    top: 55px;
+    left: 20px;
+    width: 145px;
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 16px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75);
+    padding: 10px 8px;
+    z-index: 80;
+    user-select: none;
+    touch-action: none;
+}
+.tc-ir-remote-header {
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+}
+.tc-ir-led-emitter {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #334155;
+    border: 1px solid #64748b;
+    margin: 0 auto 6px auto;
+    transition: all 0.08s;
+}
+.tc-ir-led-emitter.flash {
+    background: #38bdf8;
+    box-shadow: 0 0 14px 4px #38bdf8;
+}
+.tc-remote-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+.tc-remote-btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 6px 0;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.1s;
+}
+.tc-remote-btn:active {
+    background: #0284c7;
+    transform: scale(0.92);
+}
+.tc-remote-btn.pwr {
+    background: #dc2626;
+    color: #fff;
+    grid-column: span 3;
+}
+
+/* 5. Interactive Simple Pendulum Widget */
+.tc-pendulum-assembly {
+    position: absolute;
+    pointer-events: all;
+    z-index: 35;
+}
+.tc-pendulum-bob {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #e2e8f0, #475569);
+    border: 2px solid #0f172a;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    cursor: grab;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+.tc-pendulum-bob:active {
+    cursor: grabbing;
+}
+
+/* 6. Seven Segment Display & Matrix Elements */
+.tc-seven-segment-display {
+    width: 60px;
+    height: 85px;
+    background: #090d16;
+    border: 2px solid #1e293b;
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.tc-seg {
+    position: absolute;
+    background: #1e293b;
+    border-radius: 2px;
+    transition: background 0.06s, box-shadow 0.06s;
+}
+.tc-seg.lit {
+    background: #ef4444;
+    box-shadow: 0 0 10px 2px rgba(239, 68, 68, 0.85);
+}
+
+/* 7. Enhanced Mobile Touch Inspector & Responsive Controls */
+@media (max-width: 768px) {
+    .tc-component-inspector {
+        position: fixed !important;
+        bottom: 0 !important;
+        top: auto !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 16px 16px 0 0 !important;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6) !important;
+        z-index: 1500 !important;
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+    .tc-inspector-title {
+        font-size: 1rem !important;
+        padding-bottom: 8px;
+    }
+    .tc-inspector-input,
+    .tc-inspector-row select,
+    .tc-inspector-row input[type="range"] {
+        min-height: 40px;
+    }
+    .tc-tools-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .tc-top-navbar {
+        gap: 0.5rem;
+    }
+}
+
+/* Preset quick-select chips in component inspector */
+.tc-preset-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+.tc-preset-chip {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--tc-text-main);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+.tc-preset-chip:hover,
+.tc-preset-chip.active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #38bdf8;
+}
+
+/* Stepper buttons in inspector */
+.tc-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.tc-inspector-stepper-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+.tc-inspector-stepper-btn:hover {
+    background: #334155;
+    color: #38bdf8;
+}
+
+/* Color swatches in inspector */
+.tc-swatch-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 4px;
+}
+.tc-color-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.15s, border-color 0.15s;
+}
+.tc-color-swatch:hover,
+.tc-color-swatch.active {
+    transform: scale(1.18);
+    border-color: #ffffff;
+    box-shadow: 0 0 8px currentColor;
+}
+
+/* Sound Sensor Clap Floating Widget */
+.tc-sound-clap-widget {
+    position: absolute;
+    z-index: 40;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #38bdf8;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+.tc-sound-clap-btn {
+    background: #0284c7;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.75rem;
+    transition: transform 0.1s, background 0.1s;
+}
+.tc-sound-clap-btn:active {
+    transform: scale(0.92);
+    background: #0369a1;
+}
+
+/* Bluetooth Smartphone Controller Modal */
+.tc-bt-phone-modal {
+    position: absolute;
+    top: 50px;
+    right: 25px;
+    width: 200px;
+    background: #090d16;
+    border: 3px solid #334155;
+    border-radius: 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    z-index: 45;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    user-select: none;
+}
+.tc-bt-phone-header {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.5px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.tc-bt-phone-screen {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 0.68rem;
+    color: #a5f3fc;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.tc-bt-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.tc-bt-app-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.12s;
+}
+.tc-bt-app-btn:hover {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #fff;
+}
+.tc-bt-app-btn:active {
+    transform: scale(0.95);
+}
+.tc-bt-input-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+.tc-bt-input {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    color: #f8fafc;
+    font-size: 0.72rem;
+    padding: 3px 6px;
+    outline: none;
+}
+.tc-bt-send-btn {
+    background: #10b981;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* Photogate Pendulum Widget */
+.tc-photogate-widget {
+    position: absolute;
+    z-index: 40;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #10b981;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+.tc-photogate-btn {
+    background: #059669;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.75rem;
+    transition: transform 0.1s, background 0.1s;
+}
+.tc-photogate-btn:hover {
+    background: #10b981;
+}
+.tc-photogate-btn:active {
+    transform: scale(0.92);
+}
+
+
 
 
 

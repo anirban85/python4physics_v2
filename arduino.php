@@ -66,18 +66,32 @@ require_once __DIR__ . '/include/navbar.php';
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <label style="font-size: 0.8rem; font-weight: 700; color: var(--tc-text-muted);">LAB PRESET:</label>
                 <select id="tcPresetSelector" style="font-size: 0.82rem; padding: 0.35rem 0.75rem; background: var(--tc-toolbar-bg); color: var(--tc-text-main); border: 1px solid var(--tc-toolbar-border); border-radius: 6px; font-weight: 600;">
-                    <option value="blink">1. LED Blink & Optical Timing</option>
-                    <option value="pwm_fade">2. PWM Breathing & Effective DC Voltage</option>
-                    <option value="potentiometer">3. Potentiometer 10-Bit ADC Voltage Divider</option>
-                    <option value="ldr_sensor">4. Photoresistor (LDR) Solar Light Sensor</option>
-                    <option value="ultrasonic">5. Ultrasonic HC-SR04 Speed of Sound Range</option>
-                    <option value="pir_alarm">6. PIR Motion Detector & Security Alarm</option>
-                    <option value="tmp36_temp">7. TMP36 Precision Thermometer & Heat Monitor</option>
-                    <option value="servo_sweep">8. Micro Servo Motor 180° Angle Sweeper</option>
-                    <option value="rgb_mixer">9. RGB LED Color Spectrum PWM Mixer</option>
-                    <option value="button_toggle">10. Pushbutton Digital Input & Pullup</option>
-                    <option value="rc_transient">11. RC Transient Charging & Discharging Curve</option>
-                    <option value="photogate">12. Simple Pendulum Optical Photogate ('g' Measurement)</option>
+                    <optgroup label="Syllabus Physics & Electronics Experiments (16 Projects)">
+                        <option value="ldr_lamp">Exp 01: LDR Ambient Light Detector & Lamp Switch</option>
+                        <option value="ldr_sensor">Exp 02: LDR Potential Divider & LED Brightness Telemetry</option>
+                        <option value="ultrasonic">Exp 03: HC-SR04 Ultrasonic Distance Sensor & Real-Time Echo</option>
+                        <option value="ir_remote">Exp 04: TSOP1838 IR Receiver & TV Remote Hex Code Decoder</option>
+                        <option value="pir_alarm">Exp 05: HC-SR501 PIR Motion Sensor & Security Alarm</option>
+                        <option value="photogate">Exp 06: Simple Pendulum 'g' Measurement with Photogate</option>
+                        <option value="seven_segment">Exp 07: 7-Segment Display 0-9 Counter (Start/Stop & Reset)</option>
+                        <option value="tft_lcd">Exp 08: 1.8" TFT / LCD Graphics & Data Print</option>
+                        <option value="seven_segment_updown">Exp 09: 7-Segment Display Up/Down Decade Counter</option>
+                        <option value="dot_matrix">Exp 10: 8x8 LED Dot Matrix Alphabet & Numbers</option>
+                        <option value="tmp36_temp">Exp 11: Temperature & Humidity (DHT11/TMP36) with Serial Plotter</option>
+                        <option value="sound_lm393">Exp 12: LM393 Sound Sensor & Threshold Potentiometer</option>
+                        <option value="dc_motor_l298">Exp 13: RS-775 DC Motor Speed Control via L298 Driver</option>
+                        <option value="stepper_uln2003">Exp 14: 28BYJ-48 Stepper Motor 10° Angle & ULN2003 Driver</option>
+                        <option value="bluetooth_hc05">Exp 15: HC-05 Bluetooth Module & Smartphone Controller</option>
+                        <option value="rc_transient">Exp 16: RC Circuit Transient Charging & Discharging Data Logger</option>
+                    </optgroup>
+                    <optgroup label="Additional Electronics Starters">
+                        <option value="blink">Starter: LED Blink & Optical Timing</option>
+                        <option value="pwm_fade">Starter: PWM Breathing & V_eff</option>
+                        <option value="potentiometer">Starter: Potentiometer 10-Bit ADC Divider</option>
+                        <option value="servo_sweep">Starter: Micro Servo SG90 180° Sweeper</option>
+                        <option value="rgb_mixer">Starter: RGB LED Trichromatic Color Mixer</option>
+                        <option value="button_toggle">Starter: Pushbutton Digital Input & Pullup</option>
+                    </optgroup>
                 </select>
             </div>
         </div>
@@ -145,6 +159,12 @@ require_once __DIR__ . '/include/navbar.php';
                 <button type="button" class="btn-tc-code-toggle" id="tcClearWiresBtn" style="font-size: 0.78rem; padding: 0.35rem 0.7rem;" title="Clear all wires for freeform practice">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
+
+                <div class="tc-divider-v"></div>
+                <div class="tc-hint-tag" style="font-size: 0.72rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 4px;" title="Press Shift + Left Click on any component to select, move, rotate, or delete it">
+                    <i class="fa-solid fa-computer-mouse" style="color: #38bdf8;"></i>
+                    <span><strong>Shift+Click</strong>: Select Component / Wire (Move / Delete)</span>
+                </div>
             </div>
 
             <!-- Right Tools -->
@@ -219,8 +239,6 @@ require_once __DIR__ . '/include/navbar.php';
                         <path id="tcRubberbandWire" class="tc-rubberband-wire" style="display: none;"></path>
                     </svg>
 
-                    <!-- Interactive Terminal Pins Overlay Container -->
-                    <div id="tcTerminalsContainer"></div>
 
                     <!-- Photorealistic Arduino Uno R3 Board SVG -->
                     <div class="tc-arduino-uno" id="arduinoUno" style="top: 75px; left: 35px;">
@@ -495,6 +513,9 @@ require_once __DIR__ . '/include/navbar.php';
 
                     <!-- Placed Electronic Components Container (Rendered dynamically) -->
                     <div id="tcComponentsContainer"></div>
+
+                    <!-- Interactive Terminal Pins Overlay Container -->
+                    <div id="tcTerminalsContainer"></div>
 
                     <!-- Component Inspector Dialog Popover -->
                     <div class="tc-component-inspector" id="tcComponentInspector" style="display: none;">
@@ -846,6 +867,114 @@ require_once __DIR__ . '/include/navbar.php';
                             <span class="tc-component-card-name">DC Motor / Fan</span>
                         </div>
 
+                        <!-- 7-Segment Display (Exp 07, 09) -->
+                        <div class="tc-component-card" data-component-type="seven_segment" data-category="actuators" title="7-Segment LED Display (Common Cathode)">
+                            <div class="tc-component-card-icon">
+                                <svg width="34" height="42" viewBox="0 0 34 42">
+                                    <rect x="2" y="2" width="30" height="38" rx="3" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+                                    <!-- Segments showing '8' -->
+                                    <rect x="9" y="6" width="16" height="3" rx="1" fill="#ef4444"/>
+                                    <rect x="6" y="9" width="3" height="10" rx="1" fill="#ef4444"/>
+                                    <rect x="25" y="9" width="3" height="10" rx="1" fill="#ef4444"/>
+                                    <rect x="9" y="19" width="16" height="3" rx="1" fill="#ef4444"/>
+                                    <rect x="6" y="22" width="3" height="10" rx="1" fill="#ef4444"/>
+                                    <rect x="25" y="22" width="3" height="10" rx="1" fill="#ef4444"/>
+                                    <rect x="9" y="32" width="16" height="3" rx="1" fill="#ef4444"/>
+                                    <circle cx="28" cy="34" r="1.5" fill="#ef4444"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">7-Segment LED</span>
+                        </div>
+
+                        <!-- 8x8 LED Dot Matrix (Exp 10) -->
+                        <div class="tc-component-card" data-component-type="dot_matrix" data-category="actuators" title="8x8 LED Dot Matrix Module">
+                            <div class="tc-component-card-icon">
+                                <svg width="38" height="38" viewBox="0 0 38 38">
+                                    <rect x="2" y="2" width="34" height="34" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+                                    <circle cx="9" cy="9" r="2" fill="#ef4444"/>
+                                    <circle cx="17" cy="9" r="2" fill="#ef4444"/>
+                                    <circle cx="25" cy="9" r="2" fill="#ef4444"/>
+                                    <circle cx="9" cy="17" r="2" fill="#ef4444"/>
+                                    <circle cx="17" cy="17" r="2" fill="#ef4444"/>
+                                    <circle cx="25" cy="17" r="2" fill="#ef4444"/>
+                                    <circle cx="9" cy="25" r="2" fill="#ef4444"/>
+                                    <circle cx="17" cy="25" r="2" fill="#ef4444"/>
+                                    <circle cx="25" cy="25" r="2" fill="#ef4444"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">8x8 Dot Matrix</span>
+                        </div>
+
+                        <!-- 28BYJ-48 Stepper Motor (Exp 14) -->
+                        <div class="tc-component-card" data-component-type="stepper_motor" data-category="actuators" title="28BYJ-48 5V Stepper Motor + ULN2003 Driver">
+                            <div class="tc-component-card-icon">
+                                <svg width="42" height="40" viewBox="0 0 42 40">
+                                    <rect x="4" y="8" width="34" height="28" rx="6" fill="#38bdf8" stroke="#0284c7" stroke-width="1.5"/>
+                                    <circle cx="21" cy="22" r="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+                                    <circle cx="21" cy="22" r="4" fill="#0f172a"/>
+                                    <line x1="21" y1="22" x2="21" y2="14" stroke="#e11d48" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Stepper 28BYJ-48</span>
+                        </div>
+
+                        <!-- TSOP1838 IR Receiver (Exp 04) -->
+                        <div class="tc-component-card" data-component-type="ir_tsop1838" data-category="sensors" title="TSOP1838 38kHz Infrared Remote Receiver">
+                            <div class="tc-component-card-icon">
+                                <svg width="34" height="40" viewBox="0 0 34 40">
+                                    <rect x="8" y="6" width="18" height="20" rx="3" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+                                    <circle cx="17" cy="14" r="5" fill="#334155" stroke="#64748b" stroke-width="1"/>
+                                    <!-- 3 leads -->
+                                    <line x1="12" y1="26" x2="12" y2="38" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="17" y1="26" x2="17" y2="38" stroke="#94a3b8" stroke-width="1.8"/>
+                                    <line x1="22" y1="26" x2="22" y2="38" stroke="#94a3b8" stroke-width="1.8"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">IR TSOP1838</span>
+                        </div>
+
+                        <!-- LM393 Sound Sensor (Exp 12) -->
+                        <div class="tc-component-card" data-component-type="sound_sensor" data-category="sensors" title="LM393 Acoustic Microphone Sound Sensor Module">
+                            <div class="tc-component-card-icon">
+                                <svg width="42" height="34" viewBox="0 0 42 34">
+                                    <rect x="2" y="2" width="38" height="30" rx="3" fill="#047857" stroke="#065f46" stroke-width="1.5"/>
+                                    <!-- Microphone capsule -->
+                                    <circle cx="12" cy="17" r="7" fill="#64748b" stroke="#334155" stroke-width="1.5"/>
+                                    <!-- Potentiometer blue trimmer -->
+                                    <rect x="24" y="11" width="10" height="12" rx="1.5" fill="#0284c7"/>
+                                    <circle cx="29" cy="17" r="2.5" fill="#f8fafc"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">LM393 Sound</span>
+                        </div>
+
+                        <!-- HC-05 Bluetooth Module (Exp 15) -->
+                        <div class="tc-component-card" data-component-type="bluetooth_hc05" data-category="sensors" title="HC-05 Wireless Serial Bluetooth Transceiver">
+                            <div class="tc-component-card-icon">
+                                <svg width="42" height="36" viewBox="0 0 42 36">
+                                    <rect x="2" y="4" width="38" height="28" rx="3" fill="#0284c7" stroke="#0369a1" stroke-width="1.5"/>
+                                    <!-- Antenna zigzag -->
+                                    <path d="M 6 8 L 8 16 L 10 8 L 12 16" fill="none" stroke="#facc15" stroke-width="1.5"/>
+                                    <!-- Bluetooth rune -->
+                                    <path d="M 28 9 L 28 27 L 33 22 L 25 15 L 33 13 Z" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">Bluetooth HC-05</span>
+                        </div>
+
+                        <!-- 1.8" Color TFT LCD (Exp 08) -->
+                        <div class="tc-component-card" data-component-type="tft_lcd" data-category="actuators" title="1.8-inch SPI Color TFT LCD Display (128x160)">
+                            <div class="tc-component-card-icon">
+                                <svg width="42" height="38" viewBox="0 0 42 38">
+                                    <rect x="2" y="2" width="38" height="34" rx="2" fill="#be123c" stroke="#9f1239" stroke-width="1.5"/>
+                                    <rect x="6" y="6" width="30" height="26" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+                                    <text x="10" y="18" fill="#38bdf8" font-size="7" font-weight="bold">P4P</text>
+                                    <text x="10" y="26" fill="#10b981" font-size="6">LAB</text>
+                                </svg>
+                            </div>
+                            <span class="tc-component-card-name">1.8" TFT / LCD</span>
+                        </div>
+
                         <!-- Breadboard Small -->
                         <div class="tc-component-card" data-component-type="breadboard" data-category="basic" title="Solderless Breadboard">
                             <div class="tc-component-card-icon">
@@ -986,12 +1115,112 @@ require_once __DIR__ . '/include/navbar.php';
 
                         <!-- Starter 12: Optical Photogate -->
                         <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="photogate" data-category="starters" style="display: none;" title="Click to load Optical Photogate project">
-                            <span class="tc-starter-badge">Lab 12</span>
+                            <span class="tc-starter-badge">Exp 06</span>
                             <div class="tc-component-card-icon" style="margin-top: 6px;">
                                 <i class="fa-solid fa-stopwatch" style="color: #06b6d4; font-size: 1.3rem;"></i>
                             </div>
                             <span class="tc-component-card-name">Photogate Period 'g'</span>
                             <span class="tc-starter-card-desc">Hardware INT0 Microsecond Timing</span>
+                        </div>
+
+                        <!-- Syllabus Exp 01: LDR Lamp Switch -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="ldr_lamp" data-category="starters" style="display: none;" title="Click to load LDR Ambient Light Detector & Lamp Switch">
+                            <span class="tc-starter-badge">Exp 01</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-lightbulb" style="color: #facc15; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">LDR Lamp Switch</span>
+                            <span class="tc-starter-card-desc">Ambient Lux Threshold Control</span>
+                        </div>
+
+                        <!-- Syllabus Exp 04: IR Remote Decoder -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="ir_remote" data-category="starters" style="display: none;" title="Click to load TSOP1838 IR Receiver & TV Remote Decoder">
+                            <span class="tc-starter-badge">Exp 04</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-tv" style="color: #a855f7; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">TSOP1838 TV Remote</span>
+                            <span class="tc-starter-card-desc">38kHz NEC Hex Code Decoder</span>
+                        </div>
+
+                        <!-- Syllabus Exp 07: 7-Segment 0-9 Counter -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="seven_segment" data-category="starters" style="display: none;" title="Click to load 7-Segment Display 0-9 Counter">
+                            <span class="tc-starter-badge">Exp 07</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-calculator" style="color: #ef4444; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">7-Seg 0-9 Counter</span>
+                            <span class="tc-starter-card-desc">Start/Stop & Reset Keys</span>
+                        </div>
+
+                        <!-- Syllabus Exp 08: 1.8" Color TFT LCD -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="tft_lcd" data-category="starters" style="display: none;" title="Click to load 1.8 TFT / LCD Graphics & Data Print">
+                            <span class="tc-starter-badge">Exp 08</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-display" style="color: #38bdf8; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">1.8" TFT / LCD Graphics</span>
+                            <span class="tc-starter-card-desc">High-Res Color Telemetry</span>
+                        </div>
+
+                        <!-- Syllabus Exp 09: 7-Seg Decade Counter -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="seven_segment_updown" data-category="starters" style="display: none;" title="Click to load 7-Segment Display Up/Down Decade Counter">
+                            <span class="tc-starter-badge">Exp 09</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-arrows-up-down" style="color: #f97316; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">7-Seg Up/Down Decade</span>
+                            <span class="tc-starter-card-desc">Decade Counter with Key Controls</span>
+                        </div>
+
+                        <!-- Syllabus Exp 10: 8x8 LED Dot Matrix -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="dot_matrix" data-category="starters" style="display: none;" title="Click to load 8x8 LED Dot Matrix Alphabet & Numbers">
+                            <span class="tc-starter-badge">Exp 10</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-table-cells" style="color: #ec4899; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">8x8 Dot Matrix</span>
+                            <span class="tc-starter-card-desc">A-Z & 0-9 Character Generator</span>
+                        </div>
+
+                        <!-- Syllabus Exp 12: LM393 Sound Sensor -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="sound_lm393" data-category="starters" style="display: none;" title="Click to load LM393 Sound Sensor & Threshold Potentiometer">
+                            <span class="tc-starter-badge">Exp 12</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-microphone-lines" style="color: #10b981; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">LM393 Sound Sensor</span>
+                            <span class="tc-starter-card-desc">Acoustic Trip Comparator</span>
+                        </div>
+
+                        <!-- Syllabus Exp 13: RS-775 DC Motor L298 -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="dc_motor_l298" data-category="starters" style="display: none;" title="Click to load RS-775 DC Motor Speed Control via L298 Driver">
+                            <span class="tc-starter-badge">Exp 13</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-fan" style="color: #6366f1; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">RS-775 Motor (L298)</span>
+                            <span class="tc-starter-card-desc">H-Bridge PWM Speed Control</span>
+                        </div>
+
+                        <!-- Syllabus Exp 14: 28BYJ-48 Stepper Motor ULN2003 -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="stepper_uln2003" data-category="starters" style="display: none;" title="Click to load 28BYJ-48 Stepper Motor 10° Angle & ULN2003 Driver">
+                            <span class="tc-starter-badge">Exp 14</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-solid fa-compass" style="color: #0284c7; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">Stepper 10° (ULN2003)</span>
+                            <span class="tc-starter-card-desc">Precision Microstep Sequencing</span>
+                        </div>
+
+                        <!-- Syllabus Exp 15: HC-05 Bluetooth Module -->
+                        <div class="tc-component-card tc-starter-card" data-component-type="starter" data-preset="bluetooth_hc05" data-category="starters" style="display: none;" title="Click to load HC-05 Bluetooth Module & Smartphone Controller">
+                            <span class="tc-starter-badge">Exp 15</span>
+                            <div class="tc-component-card-icon" style="margin-top: 6px;">
+                                <i class="fa-brands fa-bluetooth-b" style="color: #0284c7; font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="tc-component-card-name">HC-05 Bluetooth</span>
+                            <span class="tc-starter-card-desc">Smartphone BlueControl Terminal</span>
                         </div>
 
                     </div>
@@ -1181,7 +1410,215 @@ require_once __DIR__ . '/include/navbar.php';
                     $$ \theta = \frac{\text{ADC}}{1023} \times 180^\circ, \quad \tau_{\text{pulse}} \in [1000\,\mu\text{s}, 2000\,\mu\text{s}] $$
                 </div>
                 <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
-                    Arduino C++ `#include <Servo.h>` sends a $50\text{ Hz}$ PPM train with pulse widths proportional to the target angle, driving the motor horn in real time.
+                    Arduino C++ <code>#include &lt;Servo.h&gt;</code> sends a $50\text{ Hz}$ PPM train with pulse widths proportional to the target angle, driving the motor horn in real time.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 7: LDR Ambient Light Detector & Lamp Switch (Syllabus Exp 01) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-amber">Syllabus Exp 01</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">LDR Ambient Light Detector & Automatic Lamp Switch</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Detect room light level and actuate a 5V relay / lamp when illumination drops below a programmable threshold.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="ldr_lamp" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-lightbulb" style="color: #facc15;"></i> Optical Relay Thresholding</h4>
+                <div class="katex-display">
+                    $$ \text{ADC}_{\text{LDR}} = \left\lfloor \frac{R_F}{R_{\text{LDR}} + R_F} \times 1023 \right\rfloor, \quad \text{State} = \begin{cases} \text{LAMP\_ON}, & \text{ADC} < 450 \\ \text{LAMP\_OFF}, & \text{ADC} \ge 450 \end{cases} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    In darkness, $R_{\text{LDR}}$ spikes to $500\text{ k}\Omega$, lowering ADC voltage at Pin A0 below 450, which asserts Digital Pin 13 HIGH to illuminate the lamp.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 8: TSOP1838 IR Receiver & TV Remote Decoder (Syllabus Exp 04) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-purple">Syllabus Exp 04</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">TSOP1838 IR Receiver & TV Remote Hex Code Decoder</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Demodulate 38 kHz infrared pulse-distance modulation from a consumer TV remote and decode 32-bit NEC Hex protocol packets.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="ir_remote" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-satellite" style="color: #a855f7;"></i> 38 kHz NEC Demodulation</h4>
+                <div class="katex-display">
+                    $$ \text{Bit '0'} \to 562.5\,\mu\text{s burst} + 562.5\,\mu\text{s space} \quad (1.125\text{ ms}) $$
+                    $$ \text{Bit '1'} \to 562.5\,\mu\text{s burst} + 1687.5\,\mu\text{s space} \quad (2.25\text{ ms}) $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Interactive remote keypad transmits real NEC packets to TSOP1838 on Pin 11, printing decoded hex identifiers (e.g. <code>0xFFA25D</code> for Power) to the Serial Monitor.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 9: HC-SR501 PIR Motion Sensor & Alarm (Syllabus Exp 05) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-rose">Syllabus Exp 05</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">HC-SR501 PIR Motion Sensor & Security Alarm</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Pyroelectric infrared detection through Fresnel lens arrays, triggering LED indicators and acoustic sirens upon body movement.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="pir_alarm" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-person-walking" style="color: #f43f5e;"></i> Pyroelectric Charge Differential</h4>
+                <div class="katex-display">
+                    $$ \Delta Q = \gamma \cdot A \cdot \Delta T, \quad V_{\text{out}} = \begin{cases} 3.3\text{V (HIGH)}, & \text{Motion in Field} \\ 0.0\text{V (LOW)}, & \text{Quiescent Background} \end{cases} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Moving the interactive avatar inside the $120^\circ$ detection cone creates differential thermal currents, driving Pin 2 HIGH and activating the alarm LED on Pin 13.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 10: 7-Segment Display Counter (Syllabus Exp 07 & 09) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-emerald">Syllabus Exp 07 & 09</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">7-Segment Display 0-9 & Decade Counter with Pushbutton Control</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Cycle numbers 0 to 9 with 2-second timing, featuring start/stop toggle keys and reset pushbuttons.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="seven_segment" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-table" style="color: #10b981;"></i> Binary-to-7-Segment Truth Table</h4>
+                <div class="katex-display">
+                    $$ \text{Digit } 0 \to \text{0b00111111}, \quad \text{Digit } 8 \to \text{0b01111111}, \quad \text{Digit } 9 \to \text{0b01101111} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Digital Pins 2-8 drive individual anode segments $A$ through $G$. Pressing the pushbutton pauses or resumes counting, while the reset key clears to 0.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 11: 8x8 LED Dot Matrix Alphabet Generator (Syllabus Exp 10) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-cyan">Syllabus Exp 10</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">8x8 LED Dot Matrix Character & Alphabet Generator</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Showcase numbers 0 to 9 and the entire English alphabet in upper and lower case using time-multiplexed matrix scanning.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="dot_matrix" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-table-cells" style="color: #06b6d4;"></i> Matrix Multiplexing Equation</h4>
+                <div class="katex-display">
+                    $$ f_{\text{scan}} = N_{\text{rows}} \times f_{\text{refresh}} \ge 8 \times 60\text{ Hz} = 480\text{ Hz} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Persistence of vision (POV) allows 64 individual LEDs to be controlled with row and column scanning pulses, displaying scrolling text and alphanumeric glyphs.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 12: LM393 Sound Sensor & Threshold Potentiometer (Syllabus Exp 12) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-emerald">Syllabus Exp 12</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">LM393 Acoustic Sound Sensor & Comparator Threshold</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Electret condenser microphone input amplified through LM393 comparator with adjustable potentiometer sensitivity.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="sound_lm393" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-microphone" style="color: #10b981;"></i> Comparator Trigger Condition</h4>
+                <div class="katex-display">
+                    $$ V_{\text{mic}} > V_{\text{pot}} \implies D_0 = \text{HIGH}, \quad \text{LED State} = \text{ON} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Clicking the interactive "👏 Clap" button triggers an instantaneous acoustic impulse, driving Pin 7 HIGH and logging new sound detection to the Serial Monitor.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 13: RS-775 DC Motor Speed Control via L298 Driver (Syllabus Exp 13) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-indigo">Syllabus Exp 13</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">RS-775 DC Motor Speed Control via L298 H-Bridge Driver</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Dual full-bridge motor driver L298 with PWM speed variation and bidirectional rotation control.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="dc_motor_l298" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-fan" style="color: #6366f1;"></i> H-Bridge PWM Speed Relation</h4>
+                <div class="katex-display">
+                    $$ V_{\text{avg}} = V_{\text{source}} \times \frac{\text{PWM}}{255}, \quad \omega \approx k_e \cdot V_{\text{avg}} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    PWM Pin 9 controls enable input ENA while Pins 8 and 7 set rotation direction, ramping the propeller from 0 to 255 PWM duty cycle.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 14: 28BYJ-48 Stepper Motor 10° Sequencing (Syllabus Exp 14) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-blue">Syllabus Exp 14</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">28BYJ-48 Stepper Motor 10° Angular Indexing via ULN2003</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Precision 4-phase microstepping rotation indexing 10° steps every 5 seconds with pushbuttons to halt and initiate.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="stepper_uln2003" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-compass" style="color: #0284c7;"></i> Stepper Gear Reduction Calculation</h4>
+                <div class="katex-display">
+                    $$ \text{Steps per Revolution} = 32 \times 64 = 2048, \quad \text{Steps for } 10^\circ = \frac{10}{360} \times 2048 \approx 57\text{ steps} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Digital Pins 8, 9, 10, 11 energize Darlington pair phases on the ULN2003 driver, stepping the needle rotor precisely $10^\circ$ each interval.
+                </p>
+            </div>
+        </article>
+
+        <!-- Module 15: HC-05 Bluetooth Smartphone Controller (Syllabus Exp 15) -->
+        <article class="glass-card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                <div>
+                    <span class="badge badge-cyan">Syllabus Exp 15</span>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">HC-05 Bluetooth Module & Smartphone Controller</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Full-duplex UART serial telemetry with virtual smartphone controller (Arduino BlueControl) for voice and wireless device actuation.</p>
+                </div>
+                <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="bluetooth_hc05" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-play"></i> Open in Circuit Simulator
+                </button>
+            </div>
+            <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-brands fa-bluetooth-b" style="color: #38bdf8;"></i> UART Serial Telemetry Protocol</h4>
+                <div class="katex-display">
+                    $$ \text{Baud} = 9600\text{ bps}, \quad \text{Format: 8-N-1}, \quad \text{Command: '1' } \to \text{LED HIGH}, \quad \text{'0' } \to \text{LED LOW} $$
+                </div>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                    Transmit characters from the interactive smartphone keypad into HC-05 RX Pin 10, controlling peripherals wirelessly and receiving sensor telemetry.
                 </p>
             </div>
         </article>
