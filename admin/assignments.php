@@ -157,9 +157,12 @@ require_once __DIR__ . '/layout_top.php';
                     <select name="category" id="assign_category" class="admin-select" required>
                         <?php 
                         $cats = [
-                            'central-force' => 'Central Force & Gravitational Orbits (4)',
-                            'scattering' => 'Two-Body Collision & Scattering (5)',
-                            'fluid-mechanics' => 'Mechanics of Continuum & Fluids (6)',
+                            'newtons-laws' => "1. Newton's Laws & Rotational Dynamics",
+                            'potential-wells' => "2. Potential Theory & Equilibrium Stability",
+                            'particle-dynamics' => "3. System of Particles & Center of Mass",
+                            'central-force' => '4. Central Force & Gravitational Orbits (8)',
+                            'scattering' => '5. Two-Body Collision & Scattering (2)',
+                            'fluid-mechanics' => '6. Mechanics of Continuum & Fluids (6)',
                             'mechanics' => 'Classical Mechanics & Dynamics',
                             'electrodynamics' => 'Electromagnetism & Potential Theory',
                             'quantum' => 'Quantum Mechanics & Wavepackets',

@@ -42,9 +42,9 @@ require_once __DIR__ . '/include/navbar.php';
         </section>
 
         <section>
-            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">4. Cookies & Local Storage</h3>
+            <h3 style="color: var(--accent); margin-bottom: 0.75rem;">4. Cookies, Local Storage & Academic Analytics</h3>
             <p>
-                We utilize minimal <code>localStorage</code> purely to remember your theme preference (Dark Mode / Light Mode). No third-party tracking or behavioral profiling cookies are placed by our application logic.
+                We utilize minimal client-side <code>localStorage</code> to remember your theme preference (Dark Mode / Light Mode). For educational telemetry and academic engagement metrics, this portal utilizes <strong>Google Analytics 4 (GA4)</strong> with mandatory <strong>IP Anonymization</strong> (<code>anonymize_ip: true</code>) and Secure SameSite cookie policies. Data collected is strictly aggregated to quantify pedagogical adoption of computational physics simulations, algorithms, and virtual labs. We do not engage in cross-site tracking or behavioral profiling.
             </p>
         </section>
 

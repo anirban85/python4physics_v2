@@ -96,6 +96,13 @@
       currentResults = data.results;
       selectedIndex = 0;
       renderResults();
+
+      if (typeof window.trackPhysicsEvent === 'function') {
+        window.trackPhysicsEvent('search', {
+          search_term: query,
+          results_count: currentResults.length
+        });
+      }
     } catch (err) {
       console.error('Search error:', err);
       resultsContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--danger);">Error performing search. Please try again.</div>';
@@ -124,6 +131,19 @@
     });
 
     resultsContainer.innerHTML = html;
+
+    resultsContainer.querySelectorAll('.search-result-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.getAttribute('data-index'));
+        if (currentResults[idx] && typeof window.trackPhysicsEvent === 'function') {
+          window.trackPhysicsEvent('select_content', {
+            content_type: 'search_result',
+            item_id: currentResults[idx].url,
+            item_name: currentResults[idx].title
+          });
+        }
+      });
+    });
   }
 
   function handleKeyboardNav(e) {

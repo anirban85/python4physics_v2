@@ -53,8 +53,11 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', '<?php echo htmlspecialchars($ga_measurement_id); ?>', {
+        'page_title': <?php echo json_encode($page_title_text); ?>,
+        'page_location': <?php echo json_encode($canonical_url_clean); ?>,
         'anonymize_ip': true,
-        'cookie_flags': 'SameSite=None;Secure'
+        'cookie_flags': 'SameSite=None;Secure',
+        'transport_type': 'beacon'
       });
     </script>
     <?php endif; ?>

@@ -57,6 +57,9 @@ function build_sitemap_urls($base_url, $conn = null) {
 
     // 2. Syllabus & Category Assignment Pages
     $categories = [
+        'newtons-laws' => 0.88,
+        'potential-wells' => 0.88,
+        'particle-dynamics' => 0.88,
         'central-force' => 0.85,
         'scattering' => 0.85,
         'fluid-mechanics' => 0.85,

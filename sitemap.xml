@@ -5,13 +5,13 @@
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
     <url>
         <loc>https://v2.python4physics.in/</loc>
-        <lastmod>2026-09-30</lastmod>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.00</priority>
     </url>
     <url>
         <loc>https://v2.python4physics.in/index.php</loc>
-        <lastmod>2026-09-30</lastmod>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.00</priority>
     </url>
@@ -65,9 +65,27 @@
     </url>
     <url>
         <loc>https://v2.python4physics.in/privacy.php</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.50</priority>
+    </url>
+    <url>
+        <loc>https://v2.python4physics.in/assignments.php?category=newtons-laws</loc>
+        <lastmod>2026-10-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.88</priority>
+    </url>
+    <url>
+        <loc>https://v2.python4physics.in/assignments.php?category=potential-wells</loc>
+        <lastmod>2026-10-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.88</priority>
+    </url>
+    <url>
+        <loc>https://v2.python4physics.in/assignments.php?category=particle-dynamics</loc>
+        <lastmod>2026-10-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.88</priority>
     </url>
     <url>
         <loc>https://v2.python4physics.in/assignments.php?category=central-force</loc>
@@ -119,19 +137,19 @@
     </url>
     <url>
         <loc>https://v2.python4physics.in/assignments.php?id=2</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
         <loc>https://v2.python4physics.in/assignments.php?id=3</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
         <loc>https://v2.python4physics.in/assignments.php?id=4</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
@@ -162,6 +180,24 @@
     <url>
         <loc>https://v2.python4physics.in/assignments.php?id=9</loc>
         <lastmod>2026-09-30</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.85</priority>
+    </url>
+    <url>
+        <loc>https://v2.python4physics.in/assignments.php?id=10</loc>
+        <lastmod>2026-10-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.85</priority>
+    </url>
+    <url>
+        <loc>https://v2.python4physics.in/assignments.php?id=11</loc>
+        <lastmod>2026-10-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.85</priority>
+    </url>
+    <url>
+        <loc>https://v2.python4physics.in/assignments.php?id=12</loc>
+        <lastmod>2026-10-01</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>

@@ -19,11 +19,11 @@ try {
 }
 
 // Fallback assignments definitions if database is empty or not yet seeded
-if (count($db_assignments) < 9) {
-    if (file_exists(__DIR__ . '/seed_assignments_v2.php')) {
+if (count($db_assignments) < 12) {
+    if (file_exists(__DIR__ . '/seed_assignments_v3.php')) {
         try {
             if (isset($conn) && $conn !== null) {
-                include_once __DIR__ . '/seed_assignments_v2.php';
+                include_once __DIR__ . '/seed_assignments_v3.php';
                 $stmt = $conn->query("SELECT * FROM `assignments` ORDER BY `id` ASC");
                 $db_assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
@@ -50,6 +50,18 @@ if ($id_param > 0 && !empty($db_assignments)) {
     }
 } elseif (!empty($category_param)) {
     $cat_seo_map = [
+        'newtons-laws' => [
+            'title' => 'Newton\'s Laws & Rotational Dynamics (Topic 1) - Graduate Labs',
+            'desc' => 'Physical pendulum large-angle non-linear oscillations, damping decay, phase space portraits, and energy dissipation with Python.'
+        ],
+        'potential-wells' => [
+            'title' => 'Potential Theory & Equilibrium Stability (Topic 2) - Graduate Labs',
+            'desc' => '1D asymmetric double-well potentials, stable and unstable equilibrium roots, effective spring constant, and anharmonic oscillations with Python.'
+        ],
+        'particle-dynamics' => [
+            'title' => 'System of Particles & Center of Mass Dynamics (Topic 3) - Graduate Labs',
+            'desc' => 'Two-body gravitational binary motion, center-of-mass frame transformation, reduced mass dynamics, and momentum conservation with Python.'
+        ],
         'central-force' => [
             'title' => 'Central Force Orbits & Kepler Gravitation (Topic 4) - Graduate Labs',
             'desc' => 'Computational assignments on Central Force fields, Kepler laws, relativistic perihelion precession, and Gauss law for gravitation with Python sliders.'
@@ -90,6 +102,38 @@ require_once __DIR__ . '/include/navbar.php';
 
 // Interactive Slider Configuration for Physics Labs
 $SLIDER_CONFIG = [
+    1 => [
+        'title' => 'Projectile Ballistics & Drag Parameters',
+        'sliders' => [
+            ['id' => 'v0', 'var' => 'v0', 'label' => 'Launch Speed (v_0)', 'min' => 15, 'max' => 90, 'step' => 1, 'val' => 45.0, 'unit' => 'm/s'],
+            ['id' => 'c', 'var' => 'c', 'label' => 'Air Drag Constant (c)', 'min' => 0.0005, 'max' => 0.0040, 'step' => 0.0005, 'val' => 0.0015, 'unit' => 'kg/m']
+        ],
+        'hud_id' => 'hud_1'
+    ],
+    2 => [
+        'title' => 'Electrostatic Quadrupole Geometry & Charge Parameters',
+        'sliders' => [
+            ['id' => 'd', 'var' => 'd', 'label' => 'Charge Separation (d)', 'min' => 0.4, 'max' => 2.5, 'step' => 0.1, 'val' => 1.00, 'unit' => 'm'],
+            ['id' => 'q', 'var' => 'q', 'label' => 'Charge Magnitude (q)', 'min' => 0.2, 'max' => 5.0, 'step' => 0.2, 'val' => 1.00, 'unit' => 'nC']
+        ],
+        'hud_id' => 'hud_2'
+    ],
+    3 => [
+        'title' => 'Quantum Finite Square Well Confining Parameters',
+        'sliders' => [
+            ['id' => 'V0', 'var' => 'V0', 'label' => 'Well Depth (V₀)', 'min' => 5.0, 'max' => 60.0, 'step' => 2.5, 'val' => 25.0, 'unit' => 'eV'],
+            ['id' => 'a_nm', 'var' => 'a_nm', 'label' => 'Well Half-Width (a)', 'min' => 0.4, 'max' => 3.0, 'step' => 0.1, 'val' => 1.20, 'unit' => 'nm']
+        ],
+        'hud_id' => 'hud_3'
+    ],
+    4 => [
+        'title' => 'Ising Model Lattice & Temperature Parameters',
+        'sliders' => [
+            ['id' => 'T', 'var' => 'T', 'label' => 'Temperature (T)', 'min' => 0.50, 'max' => 4.50, 'step' => 0.05, 'val' => 2.27, 'unit' => 'J/k_B'],
+            ['id' => 'L', 'var' => 'L', 'label' => 'Lattice Size (L×L)', 'min' => 12, 'max' => 40, 'step' => 4, 'val' => 24, 'unit' => 'spins']
+        ],
+        'hud_id' => 'hud_4'
+    ],
     5 => [
         'title' => 'Orbital Mechanics & Relativistic Precession Parameters',
         'sliders' => [
@@ -135,13 +179,35 @@ $SLIDER_CONFIG = [
         ],
         'hud_id' => 'hud_9'
     ],
-    1 => [
-        'title' => 'Projectile Ballistics & Drag Parameters',
+    10 => [
+        'title' => 'Rotational Dynamics & Damped Pendulum Parameters',
         'sliders' => [
-            ['id' => 'v0', 'var' => 'v0', 'label' => 'Launch Speed (v_0)', 'min' => 15, 'max' => 90, 'step' => 1, 'val' => 45.0, 'unit' => 'm/s'],
-            ['id' => 'c', 'var' => 'c', 'label' => 'Air Drag Constant (c)', 'min' => 0.0005, 'max' => 0.0040, 'step' => 0.0005, 'val' => 0.0015, 'unit' => 'kg/m']
+            ['id' => 'theta0_deg', 'var' => 'theta0_deg', 'label' => 'Release Angle (θ₀)', 'min' => 10.0, 'max' => 170.0, 'step' => 5.0, 'val' => 75.0, 'unit' => '°'],
+            ['id' => 'gamma', 'var' => 'gamma', 'label' => 'Damping Rate (γ)', 'min' => 0.00, 'max' => 1.50, 'step' => 0.05, 'val' => 0.35, 'unit' => 's⁻¹'],
+            ['id' => 'L', 'var' => 'L', 'label' => 'Rod Length (L)', 'min' => 0.4, 'max' => 3.0, 'step' => 0.1, 'val' => 1.0, 'unit' => 'm'],
+            ['id' => 'm', 'var' => 'm', 'label' => 'Rod Mass (m)', 'min' => 0.5, 'max' => 5.0, 'step' => 0.25, 'val' => 1.5, 'unit' => 'kg']
         ],
-        'hud_id' => 'hud_1'
+        'hud_id' => 'hud_10'
+    ],
+    11 => [
+        'title' => '1D Asymmetric Potential Well & Particle Parameters',
+        'sliders' => [
+            ['id' => 'b', 'var' => 'b', 'label' => 'Barrier Coefficient (b)', 'min' => 1.00, 'max' => 8.00, 'step' => 0.50, 'val' => 4.00, 'unit' => ''],
+            ['id' => 'c', 'var' => 'c', 'label' => 'Tilt Asymmetry (c)', 'min' => -1.50, 'max' => 1.50, 'step' => 0.10, 'val' => 0.40, 'unit' => ''],
+            ['id' => 'x0', 'var' => 'x0', 'label' => 'Release Point (x₀)', 'min' => -2.50, 'max' => 2.50, 'step' => 0.05, 'val' => 1.85, 'unit' => 'm'],
+            ['id' => 'm', 'var' => 'm', 'label' => 'Particle Mass (m)', 'min' => 0.20, 'max' => 3.00, 'step' => 0.10, 'val' => 1.00, 'unit' => 'kg']
+        ],
+        'hud_id' => 'hud_11'
+    ],
+    12 => [
+        'title' => 'Coupled Two-Body Gravitational Binary Parameters',
+        'sliders' => [
+            ['id' => 'm1', 'var' => 'm1', 'label' => 'Primary Mass (m₁)', 'min' => 0.5, 'max' => 10.0, 'step' => 0.5, 'val' => 3.00, 'unit' => 'M☉'],
+            ['id' => 'm2', 'var' => 'm2', 'label' => 'Secondary Mass (m₂)', 'min' => 0.2, 'max' => 5.0, 'step' => 0.2, 'val' => 1.00, 'unit' => 'M☉'],
+            ['id' => 'r0', 'var' => 'r0', 'label' => 'Separation (r₀)', 'min' => 0.8, 'max' => 5.0, 'step' => 0.2, 'val' => 2.00, 'unit' => 'AU'],
+            ['id' => 'v0', 'var' => 'v0', 'label' => 'Relative Velocity (v₀)', 'min' => 0.40, 'max' => 2.50, 'step' => 0.05, 'val' => 1.35, 'unit' => 'v_c']
+        ],
+        'hud_id' => 'hud_12'
     ]
 ];
 ?>
@@ -157,35 +223,45 @@ $SLIDER_CONFIG = [
         </h1>
         <p style="font-size: 1.15rem; line-height: 1.6; color: var(--text-muted);">
             Graduate and undergraduate computational physics problem sets matching premier university curricula: 
-            <strong>Central Force (8)</strong>, <strong>Two-Body Scattering (2)</strong>, <strong>Mechanics of Continuum (6)</strong>, 
+            <strong>Newton's Laws & Rotation</strong>, <strong>Potential Theory</strong>, <strong>System of Particles</strong>,
+            <strong>Central Force (8)</strong>, <strong>Two-Body Scattering (2)</strong>, <strong>Continuum Mechanics (6)</strong>, 
             Electrodynamics, and Quantum Mechanics. Experiment interactively with real-time parameter sliders.
         </p>
     </div>
 
     <!-- Curriculum Topic Filter Tabs -->
     <div style="display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 3.5rem;">
-        <button type="button" class="btn-modern btn-primary btn-sm" onclick="filterAssignments('all', this)">
+        <button type="button" class="btn-modern btn-primary btn-sm filter-topic-btn" onclick="filterAssignments('all', this)">
             <i class="fa-solid fa-cubes"></i> All Topics (<?php echo count($db_assignments); ?> Labs)
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('central-force', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('newtons-laws', this)">
+            <i class="fa-solid fa-compass"></i> 1. Newton's Laws (6)
+        </button>
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('potential-wells', this)">
+            <i class="fa-solid fa-chart-area"></i> 2. Potential Theory (4)
+        </button>
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('particle-dynamics', this)">
+            <i class="fa-solid fa-arrows-spin"></i> 3. System of Particles (4)
+        </button>
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('central-force', this)">
             <i class="fa-solid fa-circle-nodes"></i> 4. Central Force (8)
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('scattering', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('scattering', this)">
             <i class="fa-solid fa-burst"></i> 5. Scattering (2)
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('fluid-mechanics', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('fluid-mechanics', this)">
             <i class="fa-solid fa-water"></i> 6. Mechanics of Continuum (6)
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('mechanics', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('mechanics', this)">
             <i class="fa-solid fa-atom"></i> Classical Mechanics
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('electrodynamics', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('electrodynamics', this)">
             <i class="fa-solid fa-bolt"></i> Electrodynamics
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('quantum', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('quantum', this)">
             <i class="fa-solid fa-wave-square"></i> Quantum Mechanics
         </button>
-        <button type="button" class="btn-modern btn-secondary btn-sm" onclick="filterAssignments('thermo', this)">
+        <button type="button" class="btn-modern btn-secondary btn-sm filter-topic-btn" onclick="filterAssignments('thermo', this)">
             <i class="fa-solid fa-fire"></i> Thermodynamics
         </button>
     </div>
@@ -205,7 +281,16 @@ $SLIDER_CONFIG = [
                 $badge_class = 'badge-cyan';
                 $cat_display = 'Classical Mechanics';
                 
-                if ($cat === 'central-force') {
+                if ($cat === 'newtons-laws') {
+                    $badge_class = 'badge-cyan';
+                    $cat_display = "1. Newton's Laws & Rotational Dynamics";
+                } elseif ($cat === 'potential-wells') {
+                    $badge_class = 'badge-emerald';
+                    $cat_display = "2. Potential Theory & Equilibrium Stability";
+                } elseif ($cat === 'particle-dynamics') {
+                    $badge_class = 'badge-purple';
+                    $cat_display = "3. System of Particles & Center of Mass";
+                } elseif ($cat === 'central-force') {
                     $badge_class = 'badge-blue';
                     $cat_display = '4. Central Force (8)';
                 } elseif ($cat === 'scattering') {
@@ -529,6 +614,136 @@ function updateAssignmentTelemetry(asId) {
             <span class="param-hud-item"><i class="fa-solid fa-crosshairs" style="color:var(--accent)"></i> Vacuum Range R_vac: <span class="param-hud-val">${R_vac} m</span></span>
             <span class="param-hud-item"><i class="fa-solid fa-stopwatch" style="color:var(--success)"></i> Flight Time t: <span class="param-hud-val">${(2*v0*Math.sin(Math.PI/4)/9.81).toFixed(2)} s</span></span>
         `;
+    } else if (asId === 2) {
+        // Electric Quadrupole
+        const dEl = document.getElementById('slider_2_d');
+        const qEl = document.getElementById('slider_2_q');
+        if (!dEl || !qEl) return;
+        const d = parseFloat(dEl.value);
+        const q = parseFloat(qEl.value);
+        const q_xy = (2 * q * d * d).toFixed(2);
+        const E_diag = (4 * 8.98755 * q / (d * d * Math.SQRT2)).toFixed(2);
+        hud.innerHTML = `
+            <span class="param-hud-item"><i class="fa-solid fa-cube" style="color:var(--accent)"></i> Quadrupole Moment Q_xy: <span class="param-hud-val">${q_xy} nC·m²</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Corner E-Field: <span class="param-hud-val">${E_diag} V/m</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-arrows-to-circle" style="color:var(--success)"></i> Asymptotic Decay: <span class="param-hud-val">~ 1/r³</span></span>
+        `;
+    } else if (asId === 3) {
+        // Quantum Finite Square Well
+        const vEl = document.getElementById('slider_3_V0');
+        const aEl = document.getElementById('slider_3_a_nm');
+        if (!vEl || !aEl) return;
+        const V0 = parseFloat(vEl.value);
+        const a_nm = parseFloat(aEl.value);
+        const a_m = a_nm * 1e-9;
+        const hbar = 1.0545718e-34;
+        const m = 9.10938356e-31;
+        const e = 1.60217663e-19;
+        const V0_J = V0 * e;
+        const z0 = (a_m / hbar) * Math.sqrt(2 * m * V0_J);
+        const numStates = 1 + Math.floor(z0 / (Math.PI / 2));
+        const E1_est = (Math.pow(Math.PI * hbar / (2 * a_m), 2) / (2 * m * e) * Math.pow(z0 / (z0 + 1), 2)).toFixed(2);
+        hud.innerHTML = `
+            <span class="param-hud-item"><i class="fa-solid fa-wave-square" style="color:var(--accent)"></i> Confining Dimension z₀: <span class="param-hud-val">${z0.toFixed(2)}</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-layer-group" style="color:var(--success)"></i> Bound States Count: <span class="param-hud-val">${numStates}</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-atom" style="color:var(--warning)"></i> Ground State E₁ ≈ <span class="param-hud-val">${E1_est} eV</span></span>
+        `;
+    } else if (asId === 4) {
+        // 2D Ising Model Monte Carlo
+        const tEl = document.getElementById('slider_4_T');
+        const lEl = document.getElementById('slider_4_L');
+        if (!tEl || !lEl) return;
+        const T = parseFloat(tEl.value);
+        const L = parseInt(lEl.value);
+        const Tc = 2.269185;
+        const isFerro = T < Tc;
+        const mag = isFerro ? Math.pow(Math.max(0, 1 - Math.pow(Math.sinh(2 / T), -4)), 0.125).toFixed(3) : '0.000 (Fluctuating)';
+        const stateChip = isFerro 
+            ? '<span class="param-status-chip status-laminar"><i class="fa-solid fa-magnet"></i> Ordered Ferromagnetic (Domains)</span>'
+            : '<span class="param-status-chip status-turbulent"><i class="fa-solid fa-shuffle"></i> Disordered Paramagnetic (Thermal)</span>';
+        hud.innerHTML = `
+            <span class="param-hud-item"><i class="fa-solid fa-temperature-half" style="color:var(--accent)"></i> Critical T_c: <span class="param-hud-val">2.269 J/k_B</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-chart-line" style="color:var(--warning)"></i> Onsager |M|: <span class="param-hud-val">${mag}</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-border-all" style="color:var(--purple)"></i> Lattice: <span class="param-hud-val">${L}×${L} (${L*L})</span></span>
+            ${stateChip}
+        `;
+    } else if (asId === 10) {
+        // Rotational Dynamics: Damped Physical Pendulum
+        const thEl = document.getElementById('slider_10_theta0_deg');
+        const gEl = document.getElementById('slider_10_gamma');
+        const lEl = document.getElementById('slider_10_L');
+        const mEl = document.getElementById('slider_10_m');
+        if (!thEl || !gEl || !lEl || !mEl) return;
+        const th0_deg = parseFloat(thEl.value);
+        const th0_rad = th0_deg * Math.PI / 180;
+        const gamma = parseFloat(gEl.value);
+        const L = parseFloat(lEl.value);
+        const m = parseFloat(mEl.value);
+        const g = 9.81;
+        const I = (1/3) * m * L * L;
+        const omega0 = Math.sqrt((3 * g) / (2 * L));
+        const T0 = (2 * Math.PI / omega0);
+        const T_nonlinear = (T0 * (1 + (1/16) * th0_rad * th0_rad)).toFixed(3);
+        const Q_factor = (omega0 / (2 * Math.max(0.001, gamma))).toFixed(1);
+        const regimeChip = (gamma >= omega0) 
+            ? '<span class="param-status-chip status-turbulent"><i class="fa-solid fa-ban"></i> Overdamped / Aperiodic</span>'
+            : '<span class="param-status-chip status-laminar"><i class="fa-solid fa-circle-notch"></i> Underdamped Ringdown (Q=' + Q_factor + ')</span>';
+        hud.innerHTML = `
+            <span class="param-hud-item"><i class="fa-solid fa-rotate" style="color:var(--accent)"></i> Pivot Inertia I: <span class="param-hud-val">${I.toFixed(3)} kg·m²</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-stopwatch" style="color:var(--warning)"></i> Linear T₀: <span class="param-hud-val">${T0.toFixed(3)} s</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-stopwatch-20" style="color:var(--danger)"></i> Non-linear T(θ₀): <span class="param-hud-val">${T_nonlinear} s</span></span>
+            ${regimeChip}
+        `;
+    } else if (asId === 11) {
+        // Potential Theory: 1D Asymmetric Potential Wells
+        const bEl = document.getElementById('slider_11_b');
+        const cEl = document.getElementById('slider_11_c');
+        const xEl = document.getElementById('slider_11_x0');
+        const mEl = document.getElementById('slider_11_m');
+        if (!bEl || !cEl || !xEl || !mEl) return;
+        const a = 1.0;
+        const b = parseFloat(bEl.value);
+        const c = parseFloat(cEl.value);
+        const x0 = parseFloat(xEl.value);
+        const m = parseFloat(mEl.value);
+        const x_min = Math.sqrt(b / a);
+        const k_eff = (3 * a * x_min * x_min - b).toFixed(2);
+        const omega0 = Math.sqrt(parseFloat(k_eff) / m).toFixed(2);
+        const barrier_V = (Math.pow(b, 2) / (4 * a)).toFixed(2);
+        const wellChip = (Math.abs(x0) < 0.25)
+            ? '<span class="param-status-chip status-turbulent"><i class="fa-solid fa-triangle-exclamation"></i> Near Hilltop Crest (x=0)</span>'
+            : '<span class="param-status-chip status-laminar"><i class="fa-solid fa-check"></i> Bound Inside Potential Basin</span>';
+        hud.innerHTML = `
+            <span class="param-hud-item"><i class="fa-solid fa-mountain" style="color:var(--accent)"></i> Central Barrier ΔV: <span class="param-hud-val">${barrier_V} J</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-arrows-left-right" style="color:var(--warning)"></i> Equilibrium Minima x*: <span class="param-hud-val">±${x_min.toFixed(2)} m</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-wave-square" style="color:var(--success)"></i> Small-Osc. ω₀: <span class="param-hud-val">${omega0} rad/s</span></span>
+            ${wellChip}
+        `;
+    } else if (asId === 12) {
+        // Two-Body Problem & Center-of-Mass Dynamics
+        const m1El = document.getElementById('slider_12_m1');
+        const m2El = document.getElementById('slider_12_m2');
+        const r0El = document.getElementById('slider_12_r0');
+        const v0El = document.getElementById('slider_12_v0');
+        if (!m1El || !m2El || !r0El || !v0El) return;
+        const m1 = parseFloat(m1El.value);
+        const m2 = parseFloat(m2El.value);
+        const r0 = parseFloat(r0El.value);
+        const v0 = parseFloat(v0El.value);
+        const M_tot = m1 + m2;
+        const mu = (m1 * m2) / M_tot;
+        const v_circ = Math.sqrt((1.0 * M_tot) / r0);
+        const r1_arm = (m2 * r0 / M_tot).toFixed(2);
+        const r2_arm = (m1 * r0 / M_tot).toFixed(2);
+        const orbitType = (v0 < v_circ) 
+            ? 'Sub-circular Ellipse' 
+            : ((Math.abs(v0 - v_circ) < 0.05) ? 'Circular Orbit' : ((v0 < Math.sqrt(2)*v_circ) ? 'Super-circular Ellipse' : 'Unbound Escape (Hyperbola)'));
+        hud.innerHTML = `
+            <span class="param-hud-item"><i class="fa-solid fa-weight-scale" style="color:var(--accent)"></i> Reduced Mass μ: <span class="param-hud-val">${mu.toFixed(2)} M☉</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-bullseye" style="color:var(--success)"></i> Barycenter Arms (r₁:r₂): <span class="param-hud-val">${r1_arm} : ${r2_arm} AU</span></span>
+            <span class="param-hud-item"><i class="fa-solid fa-gauge" style="color:var(--warning)"></i> v_circ: <span class="param-hud-val">${v_circ.toFixed(2)} v_c</span></span>
+            <span class="param-status-chip status-laminar"><i class="fa-solid fa-circle"></i> ${orbitType}</span>
+        `;
     }
 }
 
@@ -619,21 +834,14 @@ function filterAssignments(cat, btn) {
             event_label: cat
         });
     }
-    document.querySelectorAll('.btn-modern').forEach(b => {
-        if (b.innerText.toLowerCase().includes('topic') || 
-            b.innerText.toLowerCase().includes('central') || 
-            b.innerText.toLowerCase().includes('scattering') || 
-            b.innerText.toLowerCase().includes('continuum') || 
-            b.innerText.toLowerCase().includes('mechanics') || 
-            b.innerText.toLowerCase().includes('electrodynamics') || 
-            b.innerText.toLowerCase().includes('quantum') || 
-            b.innerText.toLowerCase().includes('thermo')) {
-            b.classList.remove('btn-primary');
-            b.classList.add('btn-secondary');
-        }
+    document.querySelectorAll('.filter-topic-btn').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-secondary');
     });
-    btn.classList.remove('btn-secondary');
-    btn.classList.add('btn-primary');
+    if (btn) {
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary');
+    }
 
     document.querySelectorAll('.assignment-item').forEach(item => {
         if (cat === 'all' || item.getAttribute('data-category') === cat) {
@@ -657,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     if (labId) {
-        var labCard = document.getElementById('lab-' + labId);
+        var labCard = document.getElementById('assign-' + labId) || document.getElementById('lab-' + labId);
         if (labCard) {
             setTimeout(function() {
                 labCard.scrollIntoView({ behavior: 'smooth', block: 'start' });

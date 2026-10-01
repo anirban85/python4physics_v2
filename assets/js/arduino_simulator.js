@@ -3070,6 +3070,14 @@ void loop() {
         state.simStartTime = Date.now();
         state.simTick = 0;
 
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_simulation_start', {
+                preset: state.currentPreset,
+                components_count: state.components.length,
+                baud_rate: state.baudRate
+            });
+        }
+
         const btn = document.getElementById('tcStartSimBtn');
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop Simulation';
@@ -3220,8 +3228,16 @@ void loop() {
     }
 
     function stopSimulation() {
+        const durationSeconds = state.simStartTime > 0 ? Math.max(0, Math.round((Date.now() - state.simStartTime) / 1000)) : 0;
         state.isSimulating = false;
         state.firmwareCancelToken.cancelled = true;
+
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_simulation_stop', {
+                preset: state.currentPreset,
+                duration_seconds: durationSeconds
+            });
+        }
 
         if (state.simInterval) clearInterval(state.simInterval);
 
@@ -3532,6 +3548,11 @@ void loop() {
         }
         const freshSvg = document.getElementById('tcSchematicSvgDoc');
         if (!freshSvg) return;
+
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_export', { format: 'schematic_svg', preset: state.currentPreset });
+        }
+
         const serializer = new XMLSerializer();
         const src = serializer.serializeToString(freshSvg);
         const title = (document.getElementById('tcProjectTitle')?.value || `arduino_schematic_${state.currentPreset}`).replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -3602,6 +3623,9 @@ void loop() {
     }
 
     function downloadCircuitSvg() {
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_export', { format: 'circuit_svg', preset: state.currentPreset });
+        }
         const svgStr = exportCircuitSvgString();
         const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
         const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
@@ -3616,6 +3640,9 @@ void loop() {
     }
 
     function downloadCircuitPng() {
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_export', { format: 'circuit_png', preset: state.currentPreset });
+        }
         const svgStr = exportCircuitSvgString();
         const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
         const img = new Image();
@@ -3648,6 +3675,9 @@ void loop() {
     }
 
     function exportCodeIno() {
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_export', { format: 'ino', preset: state.currentPreset });
+        }
         const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
         const title = (document.getElementById('tcProjectTitle')?.value || 'sketch').replace(/[^a-zA-Z0-9_-]/g, '_');
         const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
@@ -3662,6 +3692,9 @@ void loop() {
     }
 
     function exportCodeCpp() {
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_export', { format: 'cpp', preset: state.currentPreset });
+        }
         const code = codeEditor ? codeEditor.getValue() : (document.getElementById('tcCodeTextarea')?.value || '');
         const title = (document.getElementById('tcProjectTitle')?.value || 'sketch').replace(/[^a-zA-Z0-9_-]/g, '_');
         const blob = new Blob([code], { type: 'text/x-c++src;charset=utf-8' });
@@ -3732,6 +3765,9 @@ void loop() {
     }
 
     function exportBomCsv() {
+        if (typeof window.trackPhysicsEvent === 'function') {
+            window.trackPhysicsEvent('arduino_export', { format: 'bom_csv', preset: state.currentPreset });
+        }
         let csv = 'Item #,Part Name,Designator,Properties / Value,Net Connections,Qty\n';
         const rows = document.querySelectorAll('#tcBomTable tbody tr');
         rows.forEach(tr => {
