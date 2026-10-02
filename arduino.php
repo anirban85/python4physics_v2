@@ -21,6 +21,8 @@ require_once __DIR__ . '/include/navbar.php';
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-ocean.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<!-- html2canvas for High-Fidelity Circuit Workbench PNG Export -->
+<script src="<?php echo $siteurl; ?>assets/js/html2canvas.min.js"></script>
 
 <main class="container-fluid" style="padding-top: 1.5rem; padding-bottom: 5rem; max-width: 1480px; margin: 0 auto; box-sizing: border-box; overflow-x: hidden;">
     
@@ -277,7 +279,7 @@ require_once __DIR__ . '/include/navbar.php';
                             <circle cx="20" cy="181" r="5" fill="#475569"/>
 
                             <!-- Main PCB Board (Authentic Arduino Uno Outline with mounting tabs) -->
-                            <path d="M 15 20 L 320 20 A 10 10 0 0 1 330 30 L 330 220 A 10 10 0 0 1 320 230 L 25 230 A 10 10 0 0 1 15 220 Z" 
+                            <path d="M 25 6 L 320 6 A 10 10 0 0 1 330 16 L 330 220 A 10 10 0 0 1 320 230 L 25 230 A 10 10 0 0 1 15 220 L 15 16 A 10 10 0 0 1 25 6 Z" 
                                   fill="url(#arduinoPcb)" stroke="#004d50" stroke-width="2.5" filter="url(#pcbShadow)"/>
 
                             <!-- Mounting Holes with Gold Annular Rings -->
@@ -328,14 +330,61 @@ require_once __DIR__ . '/include/navbar.php';
                             <!-- ================= TOP DIGITAL PIN HEADERS ================= -->
                             <!-- Digital Socket Header Black Bar (D0 to D13, GND, AREF) -->
                             <rect x="110" y="24" width="210" height="15" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-                            <!-- Silkscreen Header Labels -->
-                            <text x="114" y="18" fill="#e2e8f0" font-family="monospace" font-size="6.5">AREF GND 13 12 ~11 ~10 ~9 8   7 ~6 ~5 4 ~3 2 TX>1 RX<0</text>
+
+                            <!-- Silkscreen Header Labels - Aligned with each pin -->
+                            <g class="ard-digital-labels" text-anchor="middle" font-family="'JetBrains Mono', 'Segoe UI', monospace">
+                                <!-- Digital Header Category Title & Framing -->
+                                <text x="216" y="12" fill="#f8fafc" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="6" letter-spacing="0.6">DIGITAL (PWM ~)</text>
+                                <path d="M 144 14.5 L 144 13.5 L 165 13.5 M 267 13.5 L 291 13.5 L 291 14.5" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.6"/>
+
+                                <!-- Hardware Serial TX/RX Indicators -->
+                                <text x="304" y="12" fill="#38bdf8" font-size="5" font-weight="700">TX▸</text>
+                                <text x="317" y="12" fill="#38bdf8" font-size="5" font-weight="700">RX◂</text>
+
+                                <!-- Alignment Tick Guides -->
+                                <g stroke="#ffffff" stroke-width="0.8" opacity="0.6">
+                                    <line x1="118" y1="21.5" x2="118" y2="23.5"/>
+                                    <line x1="131" y1="21.5" x2="131" y2="23.5"/>
+                                    <line x1="144" y1="21.5" x2="144" y2="23.5"/>
+                                    <line x1="157" y1="21.5" x2="157" y2="23.5"/>
+                                    <line x1="170" y1="21.5" x2="170" y2="23.5"/>
+                                    <line x1="183" y1="21.5" x2="183" y2="23.5"/>
+                                    <line x1="196" y1="21.5" x2="196" y2="23.5"/>
+                                    <line x1="209" y1="21.5" x2="209" y2="23.5"/>
+                                    <line x1="226" y1="21.5" x2="226" y2="23.5"/>
+                                    <line x1="239" y1="21.5" x2="239" y2="23.5"/>
+                                    <line x1="252" y1="21.5" x2="252" y2="23.5"/>
+                                    <line x1="265" y1="21.5" x2="265" y2="23.5"/>
+                                    <line x1="278" y1="21.5" x2="278" y2="23.5"/>
+                                    <line x1="291" y1="21.5" x2="291" y2="23.5"/>
+                                    <line x1="304" y1="21.5" x2="304" y2="23.5"/>
+                                    <line x1="317" y1="21.5" x2="317" y2="23.5"/>
+                                </g>
+
+                                <!-- Individual Digital Pin Labels Positioned in Accordance with Each Pin -->
+                                <text x="118" y="20" fill="#e2e8f0" font-size="4.8" font-weight="700">AREF</text>
+                                <text x="131" y="20" fill="#e2e8f0" font-size="5" font-weight="700">GND</text>
+                                <text x="144" y="20" fill="#ffffff" font-size="6.2" font-weight="700">13</text>
+                                <text x="157" y="20" fill="#ffffff" font-size="6.2" font-weight="700">12</text>
+                                <text x="170" y="20" fill="#ffffff" font-size="6.2" font-weight="700"><tspan fill="#38bdf8" font-weight="800">~</tspan>11</text>
+                                <text x="183" y="20" fill="#ffffff" font-size="6.2" font-weight="700"><tspan fill="#38bdf8" font-weight="800">~</tspan>10</text>
+                                <text x="196" y="20" fill="#ffffff" font-size="6.2" font-weight="700"><tspan fill="#38bdf8" font-weight="800">~</tspan>9</text>
+                                <text x="209" y="20" fill="#ffffff" font-size="6.2" font-weight="700">8</text>
+                                <text x="226" y="20" fill="#ffffff" font-size="6.2" font-weight="700">7</text>
+                                <text x="239" y="20" fill="#ffffff" font-size="6.2" font-weight="700"><tspan fill="#38bdf8" font-weight="800">~</tspan>6</text>
+                                <text x="252" y="20" fill="#ffffff" font-size="6.2" font-weight="700"><tspan fill="#38bdf8" font-weight="800">~</tspan>5</text>
+                                <text x="265" y="20" fill="#ffffff" font-size="6.2" font-weight="700">4</text>
+                                <text x="278" y="20" fill="#ffffff" font-size="6.2" font-weight="700"><tspan fill="#38bdf8" font-weight="800">~</tspan>3</text>
+                                <text x="291" y="20" fill="#ffffff" font-size="6.2" font-weight="700">2</text>
+                                <text x="304" y="20" fill="#ffffff" font-size="6.2" font-weight="700">1</text>
+                                <text x="317" y="20" fill="#ffffff" font-size="6.2" font-weight="700">0</text>
+                            </g>
 
                             <!-- Individual Gold Pin Receptacles -->
                             <!-- AREF, GND, D13, D12, D11, D10, D9, D8 -->
                             <g fill="#1e293b" stroke="#eab308" stroke-width="1">
-                                <rect x="114" y="27" width="8" height="9" rx="1"/>
-                                <rect x="127" y="27" width="8" height="9" rx="1"/>
+                                <rect x="114" y="27" width="8" height="9" rx="1" id="pin-aref-rect"/>
+                                <rect x="127" y="27" width="8" height="9" rx="1" id="pin-gnd0-rect"/>
                                 <rect x="140" y="27" width="8" height="9" rx="1" id="pin-13-rect"/>
                                 <rect x="153" y="27" width="8" height="9" rx="1" id="pin-12-rect"/>
                                 <rect x="166" y="27" width="8" height="9" rx="1" id="pin-11-rect"/>
@@ -356,20 +405,62 @@ require_once __DIR__ . '/include/navbar.php';
                             <!-- ================= BOTTOM POWER & ANALOG PIN HEADERS ================= -->
                             <!-- Power Socket Header (IOREF, RESET, 3.3V, 5V, GND, GND, VIN) -->
                             <rect x="130" y="210" width="88" height="15" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-                            <text x="132" y="206" fill="#e2e8f0" font-family="monospace" font-size="6.5">IOREF RST 3.3V 5V GND GND VIN</text>
+                            
+                            <!-- Silkscreen Header Labels - Power Header -->
+                            <g class="ard-power-labels" text-anchor="middle" font-family="'JetBrains Mono', 'Segoe UI', monospace">
+                                <text x="173" y="196" fill="#f8fafc" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="6" letter-spacing="0.6">POWER</text>
+                                <path d="M 137 198.5 L 137 197.5 L 155 197.5 M 191 197.5 L 209 197.5 L 209 198.5" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.6"/>
+                                <g stroke="#ffffff" stroke-width="0.8" opacity="0.5">
+                                    <line x1="137" y1="207.5" x2="137" y2="209.5"/>
+                                    <line x1="149" y1="207.5" x2="149" y2="209.5"/>
+                                    <line x1="161" y1="207.5" x2="161" y2="209.5"/>
+                                    <line x1="173" y1="207.5" x2="173" y2="209.5"/>
+                                    <line x1="185" y1="207.5" x2="185" y2="209.5"/>
+                                    <line x1="197" y1="207.5" x2="197" y2="209.5"/>
+                                    <line x1="209" y1="207.5" x2="209" y2="209.5"/>
+                                </g>
+                                <text x="137" y="206" fill="#e2e8f0" font-size="4.5" font-weight="700">IOREF</text>
+                                <text x="149" y="206" fill="#e2e8f0" font-size="4.8" font-weight="700">RESET</text>
+                                <text x="161" y="206" fill="#38bdf8" font-size="5" font-weight="700">3.3V</text>
+                                <text x="173" y="206" fill="#ef4444" font-size="5.5" font-weight="800">5V</text>
+                                <text x="185" y="206" fill="#94a3b8" font-size="5" font-weight="700">GND</text>
+                                <text x="197" y="206" fill="#94a3b8" font-size="5" font-weight="700">GND</text>
+                                <text x="209" y="206" fill="#e2e8f0" font-size="5" font-weight="700">VIN</text>
+                            </g>
+
                             <g fill="#1e293b" stroke="#eab308" stroke-width="1">
-                                <rect x="133" y="213" width="8" height="9" rx="1"/>
-                                <rect x="145" y="213" width="8" height="9" rx="1"/>
-                                <rect x="157" y="213" width="8" height="9" rx="1"/>
+                                <rect x="133" y="213" width="8" height="9" rx="1" id="pin-ioref-rect"/>
+                                <rect x="145" y="213" width="8" height="9" rx="1" id="pin-reset-rect"/>
+                                <rect x="157" y="213" width="8" height="9" rx="1" id="pin-3v3-rect"/>
                                 <rect x="169" y="213" width="8" height="9" rx="1" id="pin-5v-rect"/>
                                 <rect x="181" y="213" width="8" height="9" rx="1" id="pin-gnd1-rect"/>
                                 <rect x="193" y="213" width="8" height="9" rx="1" id="pin-gnd2-rect"/>
-                                <rect x="205" y="213" width="8" height="9" rx="1"/>
+                                <rect x="205" y="213" width="8" height="9" rx="1" id="pin-vin-rect"/>
                             </g>
 
                             <!-- Analog In Socket Header (A0 to A5) -->
                             <rect x="235" y="210" width="75" height="15" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-                            <text x="237" y="206" fill="#e2e8f0" font-family="monospace" font-size="6.5">A0  A1  A2  A3  A4  A5</text>
+
+                            <!-- Silkscreen Header Labels - Analog In Header -->
+                            <g class="ard-analog-labels" text-anchor="middle" font-family="'JetBrains Mono', 'Segoe UI', monospace">
+                                <text x="272" y="196" fill="#f8fafc" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="6" letter-spacing="0.6">ANALOG IN</text>
+                                <path d="M 242 198.5 L 242 197.5 L 253 197.5 M 291 197.5 L 302 197.5 L 302 198.5" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.6"/>
+                                <g stroke="#ffffff" stroke-width="0.8" opacity="0.5">
+                                    <line x1="242" y1="207.5" x2="242" y2="209.5"/>
+                                    <line x1="254" y1="207.5" x2="254" y2="209.5"/>
+                                    <line x1="266" y1="207.5" x2="266" y2="209.5"/>
+                                    <line x1="278" y1="207.5" x2="278" y2="209.5"/>
+                                    <line x1="290" y1="207.5" x2="290" y2="209.5"/>
+                                    <line x1="302" y1="207.5" x2="302" y2="209.5"/>
+                                </g>
+                                <text x="242" y="206" fill="#ffffff" font-size="6" font-weight="700">A0</text>
+                                <text x="254" y="206" fill="#ffffff" font-size="6" font-weight="700">A1</text>
+                                <text x="266" y="206" fill="#ffffff" font-size="6" font-weight="700">A2</text>
+                                <text x="278" y="206" fill="#ffffff" font-size="6" font-weight="700">A3</text>
+                                <text x="290" y="206" fill="#ffffff" font-size="6" font-weight="700">A4</text>
+                                <text x="302" y="206" fill="#ffffff" font-size="6" font-weight="700">A5</text>
+                            </g>
+
                             <g fill="#1e293b" stroke="#eab308" stroke-width="1">
                                 <rect x="238" y="213" width="8" height="9" rx="1" id="pin-a0-rect"/>
                                 <rect x="250" y="213" width="8" height="9" rx="1" id="pin-a1-rect"/>

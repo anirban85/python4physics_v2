@@ -5739,41 +5739,52 @@ void loop() {
 
     function exportCircuitSvgString() {
         const uno = document.getElementById('arduinoUno');
-        const bb = document.getElementById('solderlessBreadboard');
+        const bb = document.getElementById('breadboardSmall');
         const wiresSvg = document.getElementById('tcWiresSvg');
 
         const width = 1100;
         const height = 650;
+        const serializer = new XMLSerializer();
 
-        let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">\n`;
+        let out = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        out += `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">\n`;
         out += `<defs>\n`;
         out += `  <pattern id="dotGridExport" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#cbd5e1"/></pattern>\n`;
         out += `</defs>\n`;
-        out += `<rect width="100%" height="100%" fill="#f8fafc"/>\n`;
+        out += `<rect width="100%" height="100%" fill="#ffffff"/>\n`;
         out += `<rect width="100%" height="100%" fill="url(#dotGridExport)"/>\n`;
 
-        const title = document.getElementById('tcProjectTitle')?.value || 'Arduino Breadboard Physics Circuit';
+        const title = (document.getElementById('tcProjectTitle')?.value || 'Arduino Breadboard Physics Circuit')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         out += `<text x="30" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="16" fill="#0284c7">${title}</text>\n`;
-        out += `<text x="30" y="55" font-family="sans-serif" font-size="11" fill="#64748b">Python4Physics Virtual Circuits Workbench • Autodesk Tinkercad Circuits Clone</text>\n`;
+        out += `<text x="30" y="55" font-family="sans-serif" font-size="11" fill="#64748b">Python4Physics Virtual Circuits Workbench • Experimental Physics Lab</text>\n`;
 
         if (uno) {
             const left = parseFloat(uno.style.left) || 35;
             const top = parseFloat(uno.style.top) || 75;
-            const svgContent = uno.querySelector('svg')?.innerHTML || '';
-            out += `<g transform="translate(${left}, ${top})">${svgContent}</g>\n`;
+            const unoSvg = uno.querySelector('svg');
+            if (unoSvg) {
+                let unoStr = serializer.serializeToString(unoSvg);
+                unoStr = unoStr.replace(/^<svg[^>]*>/i, '').replace(/<\/svg>$/i, '');
+                out += `<g transform="translate(${left}, ${top})">${unoStr}</g>\n`;
+            }
         }
 
         if (bb) {
-            const left = parseFloat(bb.style.left) || 450;
-            const top = parseFloat(bb.style.top) || 60;
-            const svgContent = bb.querySelector('svg')?.innerHTML || '';
-            out += `<g transform="translate(${left}, ${top})">${svgContent}</g>\n`;
+            const left = parseFloat(bb.style.left) || 430;
+            const top = parseFloat(bb.style.top) || 35;
+            const bbSvg = bb.querySelector('svg');
+            if (bbSvg) {
+                let bbStr = serializer.serializeToString(bbSvg);
+                bbStr = bbStr.replace(/^<svg[^>]*>/i, '').replace(/<\/svg>$/i, '');
+                out += `<g transform="translate(${left}, ${top})">${bbStr}</g>\n`;
+            }
         }
 
         if (wiresSvg) {
             const wiresGroup = document.getElementById('tcWiresGroup');
             if (wiresGroup) {
-                out += `<g>${wiresGroup.innerHTML}</g>\n`;
+                out += serializer.serializeToString(wiresGroup) + '\n';
             }
         }
 
@@ -5783,8 +5794,16 @@ void loop() {
                 const left = parseFloat(el.style.left) || comp.x;
                 const top = parseFloat(el.style.top) || comp.y;
                 const rot = comp.rotation || 0;
-                const compSvg = el.querySelector('svg')?.outerHTML || '';
-                out += `<g transform="translate(${left}, ${top}) rotate(${rot})">${compSvg}</g>\n`;
+                const compW = el.offsetWidth || 80;
+                const compH = el.offsetHeight || 60;
+                const compHtml = el.innerHTML.replace(/&(?!(amp|lt|gt|quot|apos);)/g, '&amp;');
+                out += `<g transform="translate(${left}, ${top}) rotate(${rot})">
+                    <foreignObject width="${compW}" height="${compH}">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;position:relative;">
+                            ${compHtml}
+                        </div>
+                    </foreignObject>
+                </g>\n`;
             }
         });
 
@@ -5797,7 +5816,7 @@ void loop() {
             window.trackPhysicsEvent('arduino_export', { format: 'circuit_svg', preset: state.currentPreset });
         }
         const svgStr = exportCircuitSvgString();
-        const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const title = (document.getElementById('tcProjectTitle')?.value || `arduino_circuit_${state.currentPreset || 'lab'}`).trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'arduino_circuit';
         const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -5806,18 +5825,189 @@ void loop() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        showToast('✓ Circuit vector exported successfully (.svg)');
     }
 
     function downloadCircuitPng() {
         if (typeof window.trackPhysicsEvent === 'function') {
             window.trackPhysicsEvent('arduino_export', { format: 'circuit_png', preset: state.currentPreset });
         }
+        const title = (document.getElementById('tcProjectTitle')?.value || `arduino_circuit_${state.currentPreset || 'lab'}`).trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'arduino_circuit';
+        showToast('Generating high-resolution circuit image...');
+
+        const stage = document.getElementById('tcCanvasStage');
+        if (!stage) {
+            fallbackSvgPngExport(title);
+            return;
+        }
+
+        if (typeof html2canvas === 'function') {
+            exportViaHtml2Canvas(stage, title);
+        } else {
+            fallbackSvgPngExport(title);
+        }
+    }
+
+    function exportViaHtml2Canvas(stage, title) {
+        const uno = document.getElementById('arduinoUno');
+        const bb = document.getElementById('breadboardSmall');
+
+        let minX = 9999, minY = 9999, maxX = 0, maxY = 0;
+
+        if (uno) {
+            const uLeft = parseFloat(uno.style.left) || 35;
+            const uTop = parseFloat(uno.style.top) || 75;
+            minX = Math.min(minX, uLeft);
+            minY = Math.min(minY, uTop);
+            maxX = Math.max(maxX, uLeft + 360);
+            maxY = Math.max(maxY, uTop + 250);
+        }
+
+        if (bb) {
+            const bLeft = parseFloat(bb.style.left) || 430;
+            const bTop = parseFloat(bb.style.top) || 35;
+            minX = Math.min(minX, bLeft);
+            minY = Math.min(minY, bTop);
+            maxX = Math.max(maxX, bLeft + 600);
+            maxY = Math.max(maxY, bTop + 330);
+        }
+
+        state.components.forEach(comp => {
+            const cLeft = comp.x;
+            const cTop = comp.y;
+            const cWidth = comp.width || 80;
+            const cHeight = comp.height || 60;
+            minX = Math.min(minX, cLeft);
+            minY = Math.min(minY, cTop);
+            maxX = Math.max(maxX, cLeft + cWidth);
+            maxY = Math.max(maxY, cTop + cHeight);
+        });
+
+        state.wires.forEach(w => {
+            if (w.fromPos) {
+                minX = Math.min(minX, w.fromPos.x);
+                maxX = Math.max(maxX, w.fromPos.x);
+                minY = Math.min(minY, w.fromPos.y);
+                maxY = Math.max(maxY, w.fromPos.y);
+            }
+            if (w.toPos) {
+                minX = Math.min(minX, w.toPos.x);
+                maxX = Math.max(maxX, w.toPos.x);
+                minY = Math.min(minY, w.toPos.y);
+                maxY = Math.max(maxY, w.toPos.y);
+            }
+            if (w.waypoints && w.waypoints.length) {
+                w.waypoints.forEach(pt => {
+                    minX = Math.min(minX, pt.x);
+                    maxX = Math.max(maxX, pt.x);
+                    minY = Math.min(minY, pt.y);
+                    maxY = Math.max(maxY, pt.y);
+                });
+            }
+        });
+
+        if (minX > maxX) { minX = 0; maxX = 1100; }
+        if (minY > maxY) { minY = 0; maxY = 500; }
+
+        const padding = 40;
+        const cropX = Math.max(0, Math.floor(minX - padding));
+        const cropY = Math.max(0, Math.floor(minY - padding));
+        const cropW = Math.ceil(maxX - minX + padding * 2);
+        const cropH = Math.ceil(maxY - minY + padding * 2);
+
+        const prevTransform = stage.style.transform;
+        const prevTransition = stage.style.transition;
+        stage.style.transition = 'none';
+        stage.style.transform = 'translate(0px, 0px) scale(1)';
+
+        const terms = document.getElementById('tcTerminalsContainer');
+        const prevTermsVis = terms ? terms.style.visibility : '';
+        if (terms) terms.style.visibility = 'hidden';
+
+        const rubber = document.getElementById('tcRubberbandWire');
+        const prevRubberDisplay = rubber ? rubber.style.display : '';
+        if (rubber) rubber.style.display = 'none';
+
+        const inspector = document.getElementById('tcComponentInspector');
+        const prevInspectorDisplay = inspector ? inspector.style.display : '';
+        if (inspector) inspector.style.display = 'none';
+
+        html2canvas(stage, {
+            x: cropX,
+            y: cropY,
+            width: cropW,
+            height: cropH,
+            scale: 2,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false
+        }).then(canvas => {
+            stage.style.transform = prevTransform;
+            stage.style.transition = prevTransition;
+            if (terms) terms.style.visibility = prevTermsVis;
+            if (rubber) rubber.style.display = prevRubberDisplay;
+            if (inspector) inspector.style.display = prevInspectorDisplay;
+
+            const bannerH = 50;
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = canvas.width;
+            finalCanvas.height = canvas.height + bannerH * 2;
+            const ctx = finalCanvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+            ctx.fillStyle = '#0284c7';
+            ctx.font = 'bold 28px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+            const projTitle = document.getElementById('tcProjectTitle')?.value || 'Arduino Breadboard Physics Circuit';
+            ctx.fillText(projTitle, 40, 42);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '18px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+            ctx.fillText('Python4Physics Virtual Circuits Workbench • Experimental Physics Lab', 40, 74);
+
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(40, 88);
+            ctx.lineTo(finalCanvas.width - 40, 88);
+            ctx.stroke();
+
+            ctx.drawImage(canvas, 0, bannerH * 2);
+
+            finalCanvas.toBlob(blob => {
+                if (!blob) {
+                    fallbackSvgPngExport(title);
+                    return;
+                }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                showToast('✓ Circuit image exported successfully (.png)');
+            }, 'image/png');
+        }).catch(err => {
+            console.warn('[html2canvas Error]', err);
+            stage.style.transform = prevTransform;
+            stage.style.transition = prevTransition;
+            if (terms) terms.style.visibility = prevTermsVis;
+            if (rubber) rubber.style.display = prevRubberDisplay;
+            if (inspector) inspector.style.display = prevInspectorDisplay;
+
+            fallbackSvgPngExport(title);
+        });
+    }
+
+    function fallbackSvgPngExport(title) {
         const svgStr = exportCircuitSvgString();
-        const title = (document.getElementById('tcProjectTitle')?.value || 'arduino_circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const img = new Image();
         const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
 
         img.onload = function () {
             const canvas = document.createElement('canvas');
@@ -5830,7 +6020,11 @@ void loop() {
             URL.revokeObjectURL(url);
 
             canvas.toBlob(function (pngBlob) {
-                if (!pngBlob) return;
+                if (!pngBlob) {
+                    showToast('✕ Error creating PNG blob. Downloading Vector SVG.');
+                    downloadCircuitSvg();
+                    return;
+                }
                 const pngUrl = URL.createObjectURL(pngBlob);
                 const a = document.createElement('a');
                 a.href = pngUrl;
@@ -5838,9 +6032,18 @@ void loop() {
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                URL.revokeObjectURL(pngUrl);
+                setTimeout(() => URL.revokeObjectURL(pngUrl), 2000);
+                showToast('✓ Circuit image exported successfully (.png)');
             }, 'image/png');
         };
+
+        img.onerror = function (err) {
+            console.warn('[SVG-PNG Fallback Error]', err);
+            URL.revokeObjectURL(url);
+            showToast('✕ Direct render failed. Exporting Vector SVG.');
+            downloadCircuitSvg();
+        };
+
         img.src = url;
     }
 
