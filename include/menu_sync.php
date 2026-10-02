@@ -144,7 +144,7 @@ if (!function_exists('ensure_visualization_installed')) {
               UNIQUE KEY `lang_menu_sub_unique` (`language`,`menu_id`,`submenu_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-            // Check / insert Module 1
+            // Check / insert Module 1 (Quantum Mechanics)
             $chkMenu = $conn->prepare("SELECT COUNT(*) FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 1");
             $chkMenu->execute();
             if ((int)$chkMenu->fetchColumn() === 0) {
@@ -152,7 +152,7 @@ if (!function_exists('ensure_visualization_installed')) {
                 $insMenu->execute();
             }
 
-            // Check / insert Subtopic 1
+            // Check / insert Subtopic 1.1 (QHO)
             $chkSub = $conn->prepare("SELECT COUNT(*) FROM `p4p_submenus` WHERE `language` = 'visualization' AND `menu_id` = 1 AND `submenu_id` = 1");
             $chkSub->execute();
             if ((int)$chkSub->fetchColumn() === 0) {
@@ -160,11 +160,61 @@ if (!function_exists('ensure_visualization_installed')) {
                 $insSub->execute();
             }
 
-            // Check / insert Program 1
+            // Check / insert Program 1.1.1 (QHO)
             $chkProg = $conn->prepare("SELECT COUNT(*) FROM `visualization` WHERE `menu_id` = 1 AND `submenu_id` = 1 AND `program_id` = 1");
             $chkProg->execute();
             if ((int)$chkProg->fetchColumn() === 0) {
-                $qho_content = "\"\"\"\nSolve 1-dimensional time-independent Schroedinger Equation (TISE) for \nQuantum Harmonic Oscillator (QHO) using shooting algorithm and Numerov method  \n\"\"\"\nimport numpy as np\nfrom scipy.integrate import odeint, trapezoid\nimport matplotlib.pyplot as plt\nfrom matplotlib.widgets import Slider\n\n\nfig, ax = plt.subplots()\nplt.subplots_adjust(left=0.25, bottom=0.25)\n\ndef V(x):\n    return 0.5*m*w**2*x**2\n    \nL, m, hbar, w, E0, En = 6, 1, 1, 1, 0, 10\n\ndEn = 0.1\nx = np.linspace(-L, L, 1000)\nu = [0, 0.1]\n    \ndef f(u, x, E):\n    y, z = u\n    f1, f2 = z, ((2*m)/(hbar)**2)*(V(x) -E)*y\n    return (f1, f2)\n\ndef psinorm(En):\n    psi = odeint(f, u, x, args = (En, ))[:,0]\n    normpsi = psi/np.sqrt(trapezoid(psi*psi, x)) #Normalize the wave function\n    return normpsi\n\ns = psinorm(1.5)\np, = plt.plot(x, s, lw = 2)\nplt.xlabel(\"x\")\nplt.ylabel(\"\\u03c8(x)\")\nplt.grid()\n\naxEn = plt.axes([0.25, 0.1, 0.65, 0.03])\nsEn = Slider(axEn, 'Energy', 0, 10, valinit=1.5, valstep=dEn)\n\ndef update(val):\n    En = sEn.val\n    p.set_ydata(psinorm(En))\n    fig.canvas.draw_idle()\n\nsEn.on_changed(update)\n        \nplt.show()";
+                $qho_content = <<<'PYCODE'
+"""
+Solve 1-dimensional time-independent Schroedinger Equation (TISE) for 
+Quantum Harmonic Oscillator (QHO) using shooting algorithm and Numerov method  
+"""
+import numpy as np
+from scipy.integrate import odeint, trapezoid
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+
+
+fig, ax = plt.subplots()
+plt.subplots_adjust(left=0.25, bottom=0.25)
+
+def V(x):
+    return 0.5*m*w**2*x**2
+    
+L, m, hbar, w, E0, En = 6, 1, 1, 1, 0, 10
+
+dEn = 0.1
+x = np.linspace(-L, L, 1000)
+u = [0, 0.1]
+    
+def f(u, x, E):
+    y, z = u
+    f1, f2 = z, ((2*m)/(hbar)**2)*(V(x) -E)*y
+    return (f1, f2)
+
+def psinorm(En):
+    psi = odeint(f, u, x, args = (En, ))[:,0]
+    normpsi = psi/np.sqrt(trapezoid(psi*psi, x)) #Normalize the wave function
+    return normpsi
+
+s = psinorm(1.5)
+p, = plt.plot(x, s, lw = 2)
+plt.xlabel("x")
+plt.ylabel("ψ(x)")
+plt.grid()
+
+axEn = plt.axes([0.25, 0.1, 0.65, 0.03])
+sEn = Slider(axEn, 'Energy', 0, 10, valinit=1.5, valstep=dEn)
+
+def update(val):
+    En = sEn.val
+    p.set_ydata(psinorm(En))
+    fig.canvas.draw_idle()
+
+sEn.on_changed(update)
+        
+plt.show()
+PYCODE;
 
                 $qho_algo = "Solve 1-dimensional time-independent Schroedinger Equation (TISE) for Quantum Harmonic Oscillator (QHO) using shooting algorithm and Numerov method";
 
@@ -260,11 +310,256 @@ if (!function_exists('ensure_visualization_installed')) {
                 ]);
             }
 
-            // 5. Ensure disk menu file exists
-            $menu_file = __DIR__ . '/../program/visualization/menu.php';
-            if (!file_exists($menu_file)) {
-                sync_menus_to_file('visualization', $conn);
+            // Check / insert Module 2 (Optics)
+            $chkMenu2 = $conn->prepare("SELECT COUNT(*) FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 2");
+            $chkMenu2->execute();
+            if ((int)$chkMenu2->fetchColumn() === 0) {
+                $insMenu2 = $conn->prepare("INSERT INTO `p4p_menus` (`language`, `menu_id`, `title`, `sort_order`) VALUES ('visualization', 2, 'Optics', 2)");
+                $insMenu2->execute();
             }
+
+            // Check / insert Subtopic 2.1 (Fraunhofer Diffraction in Double Slit)
+            $chkSub2 = $conn->prepare("SELECT COUNT(*) FROM `p4p_submenus` WHERE `language` = 'visualization' AND `menu_id` = 2 AND `submenu_id` = 1");
+            $chkSub2->execute();
+            if ((int)$chkSub2->fetchColumn() === 0) {
+                $insSub2 = $conn->prepare("INSERT INTO `p4p_submenus` (`language`, `menu_id`, `submenu_id`, `title`, `sort_order`) VALUES ('visualization', 2, 1, 'Fraunhofer Diffraction in Double Slit', 1)");
+                $insSub2->execute();
+            }
+
+            // Check / insert / update Program 2.1.1 (Double Slit Simulation)
+            $ds_content = <<<'PYCODE'
+"""
+Fraunhofer Diffraction at a Double Slit
+Intensity Distribution and Simulated Optical Fringe Pattern
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+from matplotlib.colors import LinearSegmentedColormap
+
+def wavelength_to_rgb(wl):
+    """Approximate visible spectrum wavelength (nm) to RGB color."""
+    wl = float(wl)
+    if wl < 440:
+        r = -(wl - 440) / (440 - 380); g = 0.0; b = 1.0
+    elif wl < 490:
+        r = 0.0; g = (wl - 440) / (490 - 440); b = 1.0
+    elif wl < 510:
+        r = 0.0; g = 1.0; b = -(wl - 510) / (510 - 490)
+    elif wl < 580:
+        r = (wl - 510) / (580 - 510); g = 1.0; b = 0.0
+    elif wl < 645:
+        r = 1.0; g = -(wl - 645) / (645 - 580); b = 0.0
+    else:
+        r = 1.0; g = 0.0; b = 0.0
+    return (max(0.0, min(1.0, r)), max(0.0, min(1.0, g)), max(0.0, min(1.0, b)))
+
+# Create figure with intensity curve (top) and fringe simulation (bottom)
+fig, (ax_curve, ax_fringe) = plt.subplots(2, 1, figsize=(9, 5.8), 
+                                         gridspec_kw={'height_ratios': [3, 1], 'hspace': 0.38})
+plt.subplots_adjust(bottom=0.32, top=0.91, left=0.12, right=0.92)
+
+# Initial parameter values
+w0, a0, d0, D0 = 632.8, 0.04, 0.20, 1.0
+x_max = 20.0  # Screen extent in mm (+/- 20 mm)
+x = np.linspace(-x_max, x_max, 1200)
+
+def compute_intensity(w_nm, a_mm, d_mm, D_m):
+    lam = w_nm * 1e-9      # meters
+    a = a_mm * 1e-3        # meters
+    d = d_mm * 1e-3        # meters
+    D = D_m                # meters
+    x_m = x * 1e-3         # meters
+    
+    sin_theta = x_m / np.sqrt(x_m**2 + D**2)
+    beta = (np.pi * a / lam) * sin_theta
+    alpha = (np.pi * d / lam) * sin_theta
+    
+    # Diffraction envelope (single slit): (sin(beta)/beta)^2
+    diffraction = np.where(np.abs(beta) < 1e-9, 1.0, (np.sin(beta) / beta)**2)
+    
+    # Interference fringes (double slit): cos^2(alpha)
+    interference = np.cos(alpha)**2
+    
+    # Total intensity: I(theta) = I0 * (sin(beta)/beta)^2 * cos^2(alpha)
+    return diffraction * interference, diffraction
+
+I_tot, I_env = compute_intensity(w0, a0, d0, D0)
+rgb = wavelength_to_rgb(w0)
+custom_cmap = LinearSegmentedColormap.from_list('laser', [(0, 0, 0), rgb])
+
+# 1. Intensity distribution curve
+line_tot, = ax_curve.plot(x, I_tot, color=rgb, lw=1.8, label=r'Double-Slit $I(\theta) = I_0 (\frac{\sin\beta}{\beta})^2 \cos^2\alpha$')
+line_env, = ax_curve.plot(x, I_env, color='#94a3b8', lw=1.2, ls='--', alpha=0.9, label=r'Diffraction Envelope $(\frac{\sin\beta}{\beta})^2$')
+
+ax_curve.set_xlim(-x_max, x_max)
+ax_curve.set_ylim(-0.04, 1.06)
+ax_curve.set_ylabel('Intensity $I / I_0$', fontsize=10)
+title_obj = ax_curve.set_title(f'Fraunhofer Double-Slit Diffraction | λ = {w0:.1f} nm, a = {a0*1e3:.0f} μm, d = {d0:.2f} mm (d/a = {d0/a0:.1f})', fontsize=10.5, fontweight='bold', pad=8)
+ax_curve.grid(True, linestyle=':', alpha=0.4)
+ax_curve.legend(loc='upper right', fontsize=8.5, framealpha=0.85)
+
+# 2. Simulated 2D optical fringe view
+im_fringe = ax_fringe.imshow(np.tile(I_tot, (30, 1)), extent=[-x_max, x_max, 0, 1], 
+                             aspect='auto', cmap=custom_cmap, vmin=0, vmax=1)
+ax_fringe.set_xlim(-x_max, x_max)
+ax_fringe.set_yticks([])
+ax_fringe.set_xlabel('Screen Position $x$ (mm)', fontsize=10)
+ax_fringe.set_title('Simulated Optical Fringes on Screen', fontsize=9.5, pad=4)
+
+# Interactive Parameter Sliders
+ax_lambda = plt.axes([0.22, 0.20, 0.68, 0.022])
+ax_a      = plt.axes([0.22, 0.15, 0.68, 0.022])
+ax_d      = plt.axes([0.22, 0.10, 0.68, 0.022])
+ax_D      = plt.axes([0.22, 0.05, 0.68, 0.022])
+
+s_lambda = Slider(ax_lambda, 'Wavelength λ (nm)', 400.0, 750.0, valinit=w0, valstep=5.0)
+s_a      = Slider(ax_a, 'Slit Width a (mm)', 0.01, 0.10, valinit=a0, valstep=0.005)
+s_d      = Slider(ax_d, 'Slit Separation d (mm)', 0.08, 0.60, valinit=d0, valstep=0.01)
+s_D      = Slider(ax_D, 'Screen Dist. D (m)', 0.5, 2.5, valinit=D0, valstep=0.05)
+
+def update(val):
+    w = s_lambda.val
+    a = s_a.val
+    d = s_d.val
+    D = s_D.val
+    if d < a:
+        d = a
+        s_d.set_val(d)
+        
+    I_new, env_new = compute_intensity(w, a, d, D)
+    color = wavelength_to_rgb(w)
+    
+    line_tot.set_ydata(I_new)
+    line_tot.set_color(color)
+    line_env.set_ydata(env_new)
+    
+    title_obj.set_text(f'Fraunhofer Double-Slit Diffraction | λ = {w:.1f} nm, a = {a*1e3:.0f} μm, d = {d:.2f} mm (d/a = {d/a:.1f})')
+    
+    cmap_new = LinearSegmentedColormap.from_list('laser', [(0, 0, 0), color])
+    im_fringe.set_data(np.tile(I_new, (30, 1)))
+    im_fringe.set_cmap(cmap_new)
+    fig.canvas.draw_idle()
+
+s_lambda.on_changed(update)
+s_a.on_changed(update)
+s_d.on_changed(update)
+s_D.on_changed(update)
+
+plt.show()
+PYCODE;
+
+            $ds_algo = "Fraunhofer Diffraction at a Double Slit: Intensity Distribution and Simulated Fringe Pattern";
+
+            $ds_explanation = '<div class="theory-article">
+    <div style="background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1.5rem;">
+        <h4 style="color: var(--accent); margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-lightbulb"></i> Fraunhofer Double-Slit Diffraction &amp; Interference
+        </h4>
+        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+            Fraunhofer diffraction at a double slit illustrates the fundamental interplay between <strong>single-slit diffraction</strong> and <strong>two-beam Young\'s interference</strong>. The resulting pattern features rapid interference oscillations enveloped by a broad diffraction profile.
+        </p>
+    </div>
+
+    <h4 style="color: var(--primary); margin-top: 1.25rem; margin-bottom: 0.5rem;">
+        1. Total Intensity Distribution
+    </h4>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        Consider a monochromatic plane wave of wavelength $\\lambda$ incident normally upon two long parallel slits, each of width $a$, with center-to-center separation $d$ ($d > a$). At a diffraction angle $\\theta$ on a distant screen at distance $D$, the resultant intensity is given by:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$I(\\theta) = I_0 \\left(\\frac{\\sin\\beta}{\\beta}\\right)^2 \\cos^2\\alpha$$
+    </div>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        where the dimensionless phase variables $\\beta$ and $\\alpha$ are defined by:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$\\beta = \\frac{\\pi a}{\\lambda}\\sin\\theta \\approx \\frac{\\pi a x}{\\lambda D}, \\qquad \\alpha = \\frac{\\pi d}{\\lambda}\\sin\\theta \\approx \\frac{\\pi d x}{\\lambda D}$$
+    </div>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        &bull; <strong>Diffraction Factor $\\left(\\frac{\\sin\\beta}{\\beta}\\right)^2$:</strong> Arises from phase differences between secondary wavelets originating across the width $a$ of each individual slit.<br>
+        &bull; <strong>Interference Factor $\\cos^2\\alpha$:</strong> Arises from phase differences between the two slits separated by distance $d$.
+    </p>
+
+    <h4 style="color: var(--primary); margin-top: 1.25rem; margin-bottom: 0.5rem;">
+        2. Interference Maxima &amp; Fringe Width
+    </h4>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        Bright interference maxima occur when $\\cos^2\\alpha = 1$, which requires:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$\\alpha = m\\pi \\implies d\\sin\\theta = m\\lambda \\implies x_m \\approx \\frac{m\\lambda D}{d}, \\quad m = 0, \\pm 1, \\pm 2, \\dots$$
+    </div>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        The linear fringe spacing $\\Delta x$ between consecutive interference maxima on the screen is:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$\\Delta x = \\frac{\\lambda D}{d}$$
+    </div>
+
+    <h4 style="color: var(--primary); margin-top: 1.25rem; margin-bottom: 0.5rem;">
+        3. Diffraction Minima &amp; Envelope Zeros
+    </h4>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        The overall diffraction envelope drops to zero whenever $\\sin\\beta = 0$ with $\\beta \\neq 0$:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$\\beta = p\\pi \\implies a\\sin\\theta = p\\lambda \\implies x_p \\approx \\frac{p\\lambda D}{a}, \\quad p = \\pm 1, \\pm 2, \\dots$$
+    </div>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        The central diffraction peak spans between the first minima at $p = \\pm 1$, with total angular width:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$2\\theta_0 = \\frac{2\\lambda}{a}$$
+    </div>
+
+    <h4 style="color: var(--primary); margin-top: 1.25rem; margin-bottom: 0.5rem;">
+        4. Missing Orders (Absent Spectra)
+    </h4>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        A crucial feature studied in optics laboratories is <strong>missing orders</strong>. If an interference maximum occurs at the exact same angle as a diffraction minimum, no light reaches that point, and the expected interference fringe vanishes completely:
+    </p>
+    <div style="background: var(--bg-secondary); padding: 0.85rem 1.25rem; border-radius: 8px; margin: 0.75rem 0; font-size: 1.05rem; overflow-x: auto; text-align: center;">
+        $$\\frac{d\\sin\\theta}{a\\sin\\theta} = \\frac{m\\lambda}{p\\lambda} \\implies \\frac{d}{a} = \\frac{m}{p}$$
+    </div>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        For instance, when $d = 5a$ (as set initially in this simulation), the missing interference orders are $m = \\pm 5, \\pm 10, \\pm 15, \\dots$. Within the central diffraction peak, exactly $2(d/a) - 1 = 9$ bright interference fringes are visible!
+    </p>
+
+    <h4 style="color: var(--primary); margin-top: 1.25rem; margin-bottom: 0.5rem;">
+        5. Interactive Parameter Controls
+    </h4>
+    <p style="font-size: 0.95rem; line-height: 1.6;">
+        Use the live sliders below to explore how physical parameters alter the optical pattern:
+        <br>&bull; <strong>Wavelength $\\lambda$ (400&ndash;750 nm):</strong> Alters the laser color in real time and scales fringe spacing proportionally ($\\Delta x \\propto \\lambda$).
+        <br>&bull; <strong>Slit Width $a$ (0.01&ndash;0.10 mm):</strong> Narrower slits widen the envelope, revealing more interference fringes inside the central peak.
+        <br>&bull; <strong>Slit Separation $d$ (0.08&ndash;0.60 mm):</strong> Greater separation packs the interference fringes closer together.
+        <br>&bull; <strong>Screen Distance $D$ (0.5&ndash;2.5 m):</strong> Increases linear magnification on the detection screen.
+    </p>
+</div>';
+
+            $chkProg2 = $conn->prepare("SELECT id, content FROM `visualization` WHERE `menu_id` = 2 AND `submenu_id` = 1 AND `program_id` = 1");
+            $chkProg2->execute();
+            $existing_row = $chkProg2->fetch(PDO::FETCH_ASSOC);
+            if (!$existing_row) {
+                $insProg2 = $conn->prepare("INSERT INTO `visualization` (`menu_id`, `submenu_id`, `program_id`, `content`, `algo`, `explanation`) VALUES (2, 1, 1, :content, :algo, :explanation)");
+                $insProg2->execute([
+                    ':content'     => $ds_content,
+                    ':algo'        => $ds_algo,
+                    ':explanation' => $ds_explanation
+                ]);
+            } else if (strpos($existing_row['content'], '(\theta)') !== false || strpos($existing_row['content'], 'Intensity  /') !== false) {
+                $updProg2 = $conn->prepare("UPDATE `visualization` SET `content` = :content, `algo` = :algo, `explanation` = :explanation WHERE `id` = :id");
+                $updProg2->execute([
+                    ':content'     => $ds_content,
+                    ':algo'        => $ds_algo,
+                    ':explanation' => $ds_explanation,
+                    ':id'          => $existing_row['id']
+                ]);
+            }
+
+            // Always synchronize disk menu file
+            sync_menus_to_file('visualization', $conn);
 
             return true;
         } catch (Throwable $t) {
