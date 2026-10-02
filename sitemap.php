@@ -164,6 +164,12 @@ function generate_sitemap_xml_string($urls) {
  */
 function sync_sitemap_to_disk($xml_content) {
     $target = __DIR__ . '/sitemap.xml';
+    if (file_exists($target)) {
+        $existing = file_get_contents($target);
+        if ($existing === $xml_content) {
+            return true; // Exactly identical, do not touch or write to disk
+        }
+    }
     $temp = __DIR__ . '/sitemap.xml.tmp';
     if (@file_put_contents($temp, $xml_content) !== false) {
         @rename($temp, $target);
@@ -172,19 +178,22 @@ function sync_sitemap_to_disk($xml_content) {
     return @file_put_contents($target, $xml_content) !== false;
 }
 
-// Generate sitemap
-$urls = build_sitemap_urls($base_url, $conn ?? null);
-$xml_output = generate_sitemap_xml_string($urls);
+// Only auto-run if sitemap.php is accessed directly (not when included via require_once)
+if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'sitemap.php' || php_sapi_name() === 'cli') {
+    // Generate sitemap
+    $urls = build_sitemap_urls($base_url ?? 'https://v2.python4physics.in', $conn ?? null);
+    $xml_output = generate_sitemap_xml_string($urls);
 
-// Automatically sync to disk file
-sync_sitemap_to_disk($xml_output);
+    // Automatically sync to disk file only when needed
+    sync_sitemap_to_disk($xml_output);
 
-// Serve response based on SAPI
-if (php_sapi_name() !== 'cli') {
-    header("Content-Type: application/xml; charset=utf-8");
-    header("Cache-Control: public, max-age=3600");
-    echo $xml_output;
-    exit;
-} else {
-    echo "Dynamic sitemap generated successfully with " . count($urls) . " URLs synced to sitemap.xml.\n";
+    // Serve response based on SAPI
+    if (php_sapi_name() !== 'cli') {
+        header("Content-Type: application/xml; charset=utf-8");
+        header("Cache-Control: public, max-age=3600");
+        echo $xml_output;
+        exit;
+    } else {
+        echo "Dynamic sitemap generated successfully with " . count($urls) . " URLs synced to sitemap.xml.\n";
+    }
 }

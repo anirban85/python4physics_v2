@@ -32,11 +32,10 @@ if (!function_exists('sync_menus_to_file')) {
             $submenus[$m_id][$s_id] = $s['title'];
         }
 
-        // Generate PHP content
+        // Generate PHP content without volatile timestamps
         $code = "<?php\n";
         $code .= "// Automatically synced from Database via Admin Manager\n";
-        $code .= "// Language: " . strtoupper($lang) . "\n";
-        $code .= "// Last Updated: " . date('Y-m-d H:i:s') . "\n\n";
+        $code .= "// Language: " . strtoupper($lang) . "\n\n";
 
         $code .= "\$menu_titles = " . var_export($menus, true) . ";\n\n";
         $code .= "\$sub_menu_titles = " . var_export($submenus, true) . ";\n";
@@ -46,11 +45,18 @@ if (!function_exists('sync_menus_to_file')) {
             mkdir($target_dir, 0777, true);
         }
         $target_file = "{$target_dir}/menu.php";
-        $saved = file_put_contents($target_file, $code) !== false;
-        
-        // Also automatically re-sync dynamic sitemap.xml
-        sync_sitemap_xml($conn);
 
+        // Check if existing file on disk already has identical structure
+        if (file_exists($target_file)) {
+            $existing = file_get_contents($target_file);
+            $clean_existing = preg_replace('/\/\/ Last Updated: [^\n]+\n+/', '', $existing);
+            $clean_code = preg_replace('/\/\/ Last Updated: [^\n]+\n+/', '', $code);
+            if (trim($clean_existing) === trim($clean_code)) {
+                return true; // Already identical, do not touch file on disk
+            }
+        }
+
+        $saved = file_put_contents($target_file, $code) !== false;
         return $saved;
     }
 }
@@ -556,8 +562,11 @@ PYCODE;
                 ]);
             }
 
-            // Always synchronize disk menu file
-            sync_menus_to_file('visualization', $conn);
+            // Only synchronize disk menu file if it does not yet exist
+            $vis_menu_file = __DIR__ . '/../program/visualization/menu.php';
+            if (!file_exists($vis_menu_file)) {
+                sync_menus_to_file('visualization', $conn);
+            }
 
             return true;
         } catch (Throwable $t) {
