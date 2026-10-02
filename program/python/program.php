@@ -159,9 +159,12 @@ require_once __DIR__ . '/../../include/navbar.php';
                             </div>
                             <!-- Editor Actions -->
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
-                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                                     <button type="button" class="btn-modern btn-primary" id="run_btn_<?php echo $pid; ?>" onclick="executeProgram('<?php echo $pid; ?>')">
                                         <i class="fa-solid fa-play"></i> Run Code (Ctrl+Enter)
+                                    </button>
+                                    <button type="button" class="btn-modern btn-danger" id="stop_btn_<?php echo $pid; ?>" onclick="stopProgram('<?php echo $pid; ?>')" style="display: none;">
+                                        <i class="fa-solid fa-stop"></i> Stop
                                     </button>
                                     <button type="button" class="btn-modern btn-secondary" onclick="resetProgramCode('<?php echo $pid; ?>')">
                                         <i class="fa-solid fa-rotate-left"></i> Reset
@@ -288,31 +291,73 @@ async function executeProgram(pid) {
 
     var code = editor.getValue();
     var runBtn = document.getElementById('run_btn_' + pid);
+    var stopBtn = document.getElementById('stop_btn_' + pid);
     var statusBadge = document.getElementById('status_' + pid);
     var consoleEl = document.getElementById('console_' + pid);
     var plotsEl = document.getElementById('plots_' + pid);
     var timeEl = document.getElementById('time_' + pid);
 
+    if (stopBtn) stopBtn.style.display = 'inline-flex';
     runBtn.disabled = true;
     runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running...';
     statusBadge.className = 'badge badge-amber';
     statusBadge.innerText = 'Executing...';
 
+    // If code uses plotting, switch to plots tab immediately so student sees live animation
+    if (code.includes('plt.') || code.includes('matplotlib')) {
+        switchProgramTab(pid, 'plots');
+    }
+
     try {
         await window.physicsRunner.run(code, {
+            pid: pid,
             onStatus: function(msg) { statusBadge.innerText = msg; },
+            onPlotsReady: function(count, isAnim) {
+                switchProgramTab(pid, 'plots');
+                var plotBtn = document.getElementById('tab_plots_btn_' + pid);
+                if (plotBtn) {
+                    plotBtn.innerHTML = isAnim 
+                        ? '<i class="fa-solid fa-play" style="color: #10b981;"></i> Animated View (' + count + ')' 
+                        : '<i class="fa-regular fa-image"></i> Rendered Plots (' + count + ')';
+                }
+                if (isAnim) {
+                    statusBadge.className = 'badge badge-emerald';
+                    statusBadge.innerText = 'Animating';
+                }
+            },
             consoleEl: consoleEl,
             plotsEl: plotsEl,
             timeEl: timeEl
         });
-        statusBadge.className = 'badge badge-emerald';
-        statusBadge.innerText = 'Completed';
+        if (statusBadge.innerText !== 'Animating') {
+            statusBadge.className = 'badge badge-emerald';
+            statusBadge.innerText = 'Completed';
+        }
     } catch (err) {
         statusBadge.className = 'badge badge-purple';
         statusBadge.innerText = 'Failed';
+        if (stopBtn) stopBtn.style.display = 'none';
     } finally {
         runBtn.disabled = false;
         runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code (Ctrl+Enter)';
+    }
+}
+
+function stopProgram(pid) {
+    if (window.physicsRunner) {
+        window.physicsRunner.stopAnimation(pid);
+    }
+    var runBtn = document.getElementById('run_btn_' + pid);
+    var stopBtn = document.getElementById('stop_btn_' + pid);
+    var statusBadge = document.getElementById('status_' + pid);
+    if (stopBtn) stopBtn.style.display = 'none';
+    if (runBtn) {
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code (Ctrl+Enter)';
+    }
+    if (statusBadge) {
+        statusBadge.className = 'badge badge-purple';
+        statusBadge.innerText = 'Stopped';
     }
 }
 
