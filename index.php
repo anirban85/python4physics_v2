@@ -545,7 +545,7 @@ plt.show()
 
 <!-- Load Physics Simulation Canvas Script & Pyodide Runner Script -->
 <script src="<?php echo $siteurl; ?>assets/js/physics-canvas.js"></script>
-<script src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js"></script>
+<script src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js?v=<?php echo file_exists(__DIR__ . '/assets/js/pyodide-runner.js') ? filemtime(__DIR__ . '/assets/js/pyodide-runner.js') : time(); ?>"></script>
 
 <!-- Live Sandbox Interactive Logic -->
 <script>

@@ -237,7 +237,7 @@ require_once __DIR__ . '/../../include/navbar.php';
 </div>
 
 <!-- Pyodide Execution Engine Script -->
-<script src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js"></script>
+<script src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js?v=<?php echo file_exists(__DIR__ . '/../../assets/js/pyodide-runner.js') ? filemtime(__DIR__ . '/../../assets/js/pyodide-runner.js') : time(); ?>"></script>
 
 <script>
 var p4pEditors = {};
@@ -312,15 +312,22 @@ async function executeProgram(pid) {
         await window.physicsRunner.run(code, {
             pid: pid,
             onStatus: function(msg) { statusBadge.innerText = msg; },
-            onPlotsReady: function(count, isAnim) {
+            onPlotsReady: function(count, isAnim, hasSliders) {
                 switchProgramTab(pid, 'plots');
                 var plotBtn = document.getElementById('tab_plots_btn_' + pid);
                 if (plotBtn) {
-                    plotBtn.innerHTML = isAnim 
-                        ? '<i class="fa-solid fa-play" style="color: #10b981;"></i> Animated View (' + count + ')' 
-                        : '<i class="fa-regular fa-image"></i> Rendered Plots (' + count + ')';
+                    if (hasSliders) {
+                        plotBtn.innerHTML = '<i class="fa-solid fa-sliders" style="color: #818cf8;"></i> Interactive Controls';
+                    } else if (isAnim) {
+                        plotBtn.innerHTML = '<i class="fa-solid fa-play" style="color: #10b981;"></i> Animated View (' + count + ')';
+                    } else {
+                        plotBtn.innerHTML = '<i class="fa-regular fa-image"></i> Rendered Plots (' + count + ')';
+                    }
                 }
-                if (isAnim) {
+                if (hasSliders) {
+                    statusBadge.className = 'badge badge-primary';
+                    statusBadge.innerText = 'Interactive';
+                } else if (isAnim) {
                     statusBadge.className = 'badge badge-emerald';
                     statusBadge.innerText = 'Animating';
                 }
@@ -329,7 +336,7 @@ async function executeProgram(pid) {
             plotsEl: plotsEl,
             timeEl: timeEl
         });
-        if (statusBadge.innerText !== 'Animating') {
+        if (statusBadge.innerText !== 'Animating' && statusBadge.innerText !== 'Interactive') {
             statusBadge.className = 'badge badge-emerald';
             statusBadge.innerText = 'Completed';
         }
@@ -346,6 +353,7 @@ async function executeProgram(pid) {
 function stopProgram(pid) {
     if (window.physicsRunner) {
         window.physicsRunner.stopAnimation(pid);
+        window.physicsRunner.stopSliders(pid);
     }
     var runBtn = document.getElementById('run_btn_' + pid);
     var stopBtn = document.getElementById('stop_btn_' + pid);
