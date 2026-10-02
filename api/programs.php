@@ -23,6 +23,12 @@ if (!in_array($lang, $valid_tables)) {
     exit;
 }
 
+require_once __DIR__ . '/../include/menu_sync.php';
+
+if ($lang === 'visualization' && isset($conn) && $conn !== null) {
+    ensure_visualization_installed($conn);
+}
+
 if (!isset($conn) || $conn === null) {
     echo json_encode(['success' => false, 'error' => 'Database connection unavailable']);
     exit;

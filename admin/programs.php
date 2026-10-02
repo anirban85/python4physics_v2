@@ -14,6 +14,9 @@ $selected_lang = $_GET['lang'] ?? 'python';
 if (!in_array($selected_lang, $valid_langs)) {
     $selected_lang = 'python';
 }
+if ($selected_lang === 'visualization' && isset($conn) && $conn !== null) {
+    ensure_visualization_installed($conn);
+}
 
 $notice = "";
 $error = "";
@@ -24,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lang = $_POST['language'] ?? 'python';
     if (!in_array($lang, $valid_langs)) {
         $lang = 'python';
+    }
+    if ($lang === 'visualization' && isset($conn) && $conn !== null) {
+        ensure_visualization_installed($conn);
     }
 
     if ($post_action === 'save_program') {

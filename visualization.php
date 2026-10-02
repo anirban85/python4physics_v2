@@ -6,7 +6,27 @@
  */
 require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
-include_once __DIR__ . '/program/visualization/menu.php';
+require_once __DIR__ . '/include/menu_sync.php';
+
+// Proactively verify visualization table exists and is populated
+if (isset($conn) && $conn !== null) {
+    try {
+        $conn->query("SELECT 1 FROM `visualization` LIMIT 1");
+    } catch (Throwable $t) {
+        ensure_visualization_installed($conn);
+    }
+}
+
+// Load menu definitions (after auto-heal ensures file or DB is ready)
+$menu_file = __DIR__ . '/program/visualization/menu.php';
+if (file_exists($menu_file)) {
+    include $menu_file;
+} else if (isset($conn) && $conn !== null) {
+    ensure_visualization_installed($conn);
+    if (file_exists($menu_file)) {
+        include $menu_file;
+    }
+}
 
 $menu_id    = isset($_GET['menu_id']) ? intval($_GET['menu_id']) : 1;
 $submenu_id = isset($_GET['submenu_id']) ? intval($_GET['submenu_id']) : 1;
@@ -20,13 +40,30 @@ $page_description = "Interactive computational physics simulation for {$subtopic
 
 // Fetch programs from visualization table
 $programs = [];
+$db_error = null;
+
 if (isset($conn) && $conn !== null) {
     try {
         $stmt = $conn->prepare("SELECT id, program_id, content, algo, explanation FROM visualization WHERE menu_id = ? AND submenu_id = ? ORDER BY program_id");
         $stmt->execute([$menu_id, $submenu_id]);
         $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($programs) && $menu_id === 1 && $submenu_id === 1) {
+            ensure_visualization_installed($conn);
+            $stmt->execute([$menu_id, $submenu_id]);
+            $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (Exception $e) {
-        $db_error = $e->getMessage();
+        // Self-heal on missing table error (SQLSTATE 42S02, Error 1146)
+        try {
+            ensure_visualization_installed($conn);
+            $stmt = $conn->prepare("SELECT id, program_id, content, algo, explanation FROM visualization WHERE menu_id = ? AND submenu_id = ? ORDER BY program_id");
+            $stmt->execute([$menu_id, $submenu_id]);
+            $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $db_error = null;
+        } catch (Exception $e2) {
+            $db_error = $e2->getMessage();
+        }
     }
 }
 

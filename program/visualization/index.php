@@ -1,6 +1,13 @@
 <?php
 require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
+require_once __DIR__ . '/../../include/menu_sync.php';
+
+if (isset($conn) && $conn !== null) {
+    if (!file_exists(__DIR__ . '/menu.php')) {
+        ensure_visualization_installed($conn);
+    }
+}
 include_once __DIR__ . '/menu.php';
 
 $page_title = "Physics Visualization - Interactive Computational Simulations with Sliders";
