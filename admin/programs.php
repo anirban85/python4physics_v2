@@ -49,12 +49,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $content = $uploaded_content;
             }
         }
+        $content = trim($content);
 
-        if ($menu_id <= 0 || $submenu_id <= 0 || empty($algo) || empty($content)) {
-            $error = "Please fill in all required fields (Chapter, Subtopic, Title, and Program Code).";
+        // Auto-extract Algorithm / Program Title if left empty
+        if (empty($algo) && !empty($content)) {
+            // 1. Check for Python / multiline docstring """...""" or '''...'''
+            if (preg_match('/^[\s\r\n]*(?:"""|\'\'\')([\s\S]*?)(?:"""|\'\'\')/u', $content, $m)) {
+                $lines = array_filter(array_map('trim', explode("\n", $m[1])));
+                if (!empty($lines)) {
+                    $algo = reset($lines);
+                }
+            } elseif (preg_match('/^#\s*(.+)$/m', $content, $m)) {
+                $algo = trim($m[1]);
+            }
+            
+            // 2. Fallback to subtopic title from database
+            if (empty($algo)) {
+                $sub_stmt = $conn->prepare("SELECT title FROM `p4p_submenus` WHERE `language` = :lang AND `menu_id` = :m AND `submenu_id` = :s");
+                $sub_stmt->execute([':lang' => $lang, ':m' => $menu_id, ':s' => $submenu_id]);
+                $sub_title = $sub_stmt->fetchColumn();
+                $algo = $sub_title ?: "Program #{$program_id}";
+            }
+        }
+
+        if ($menu_id <= 0 || $submenu_id <= 0 || empty($content)) {
+            $error = "Please fill in all required fields (Chapter, Subtopic, and Program Code).";
         } else {
             try {
-                $table = $lang; // table name matches 'python', 'gnuplot', 'latex'
+                $table = $lang; // table name matches 'python', 'gnuplot', 'latex', 'visualization'
+
+                // If inserting new program, check if (menu_id, submenu_id, program_id) already exists
+                if ($id <= 0) {
+                    $chk_exist = $conn->prepare("SELECT id FROM `$table` WHERE `menu_id` = :menu_id AND `submenu_id` = :submenu_id AND `program_id` = :program_id");
+                    $chk_exist->execute([
+                        ':menu_id'    => $menu_id,
+                        ':submenu_id' => $submenu_id,
+                        ':program_id' => $program_id
+                    ]);
+                    $existing_id = $chk_exist->fetchColumn();
+                    if ($existing_id) {
+                        $id = (int)$existing_id; // Seamlessly update existing record
+                    }
+                }
 
                 if ($id > 0) {
                     // Update existing
@@ -82,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             ':id' => $id
                         ]);
                     }
-                    $notice = "Program #{$program_id} updated successfully!";
+                    $notice = "Program #{$program_id} ('" . htmlspecialchars($algo) . "') updated successfully in database!";
                 } else {
                     // Insert new
                     if ($lang === 'gnuplot') {
@@ -107,7 +143,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             ':content' => $content
                         ]);
                     }
-                    $notice = "New {$lang} program #{$program_id} ('" . htmlspecialchars($algo) . "') published successfully!";
+                    $notice = "New {$lang} program #{$program_id} ('" . htmlspecialchars($algo) . "') published successfully in database!";
+                }
+                if ($lang === 'visualization') {
+                    sync_menus_to_file('visualization', $conn);
                 }
                 sync_sitemap_xml($conn);
                 $action = 'list';
@@ -227,7 +266,7 @@ require_once __DIR__ . '/layout_top.php';
             </h2>
         </div>
 
-        <form method="POST" enctype="multipart/form-data" id="programForm">
+        <form method="POST" enctype="multipart/form-data" id="programForm" novalidate>
             <input type="hidden" name="post_action" value="save_program">
             <input type="hidden" name="id" value="<?php echo $edit_program['id'] ?? 0; ?>">
 
@@ -263,13 +302,13 @@ require_once __DIR__ . '/layout_top.php';
             </div>
 
             <div class="admin-form-group">
-                <label class="admin-label" for="prog_algo">Program Title / Algorithm Name *</label>
-                <input type="text" name="algo" id="prog_algo" class="admin-input" placeholder="e.g. Runge-Kutta 4th Order Simulation of Damped Driven Oscillator" value="<?php echo htmlspecialchars($edit_program['algo'] ?? ''); ?>" required>
+                <label class="admin-label" for="prog_algo">Program Title / Algorithm Name</label>
+                <input type="text" name="algo" id="prog_algo" class="admin-input" placeholder="e.g. Fraunhofer Diffraction at a Double Slit (Optional: auto-detected from file)" value="<?php echo htmlspecialchars($edit_program['algo'] ?? ''); ?>">
             </div>
 
             <div class="admin-form-group">
                 <label class="admin-label" for="prog_explanation">Physical Theory / Algorithm Explanation (Supports KaTeX/Math)</label>
-                <textarea name="explanation" id="prog_explanation" class="admin-textarea" rows="3" placeholder="Explain the underlying physical formula or numerical algorithm..."><?php echo htmlspecialchars($edit_program['explanation'] ?? ''); ?></textarea>
+                <textarea name="explanation" id="prog_explanation" class="admin-textarea" rows="3" placeholder="Explain the underlying physical formula or numerical algorithm (optional)..."><?php echo htmlspecialchars($edit_program['explanation'] ?? ''); ?></textarea>
             </div>
 
             <!-- Drag & Drop / Direct Code File Upload -->
@@ -287,7 +326,7 @@ require_once __DIR__ . '/layout_top.php';
                     <label class="admin-label" style="margin-bottom: 0;">Program Source Code *</label>
                     <span id="fileLoadedBadge" class="admin-badge admin-badge-cyan" style="display: none;">File Content Loaded</span>
                 </div>
-                <textarea name="content" id="prog_content" class="admin-textarea" rows="16" required><?php echo htmlspecialchars($edit_program['content'] ?? ''); ?></textarea>
+                <textarea name="content" id="prog_content" class="admin-textarea" rows="16"><?php echo htmlspecialchars($edit_program['content'] ?? ''); ?></textarea>
             </div>
 
             <div class="admin-form-group" id="gnuplotOutputGroup" style="display: none;">
@@ -322,6 +361,11 @@ require_once __DIR__ . '/layout_top.php';
         });
         editorInstance.setSize("100%", "380px");
 
+        // Keep hidden textarea updated continuously on every keystroke
+        editorInstance.on('change', () => {
+            document.getElementById('prog_content').value = editorInstance.getValue();
+        });
+
         updateChapterOptions(currentMenu);
         checkGnuplotOutputField();
 
@@ -347,9 +391,47 @@ require_once __DIR__ . '/layout_top.php';
             const dt = e.dataTransfer;
             const files = dt.files;
             if (files.length > 0) {
+                try {
+                    document.getElementById('fileInput').files = files;
+                } catch(err) {}
                 loadFile(files[0]);
             }
         });
+
+        // Form submit handler with guaranteed CodeMirror sync & validation
+        const progForm = document.getElementById('programForm');
+        if (progForm) {
+            progForm.addEventListener('submit', function(e) {
+                if (editorInstance) {
+                    editorInstance.save();
+                    document.getElementById('prog_content').value = editorInstance.getValue();
+                }
+                const codeVal = (document.getElementById('prog_content').value || '').trim();
+                if (!codeVal) {
+                    e.preventDefault();
+                    alert('Please enter or upload program source code.');
+                    return false;
+                }
+
+                // If title was omitted, auto-derive from docstring or subtopic
+                const algoInput = document.getElementById('prog_algo');
+                if (!algoInput.value.trim()) {
+                    const docMatch = codeVal.match(/^\s*(?:"""|''')([\s\S]*?)(?:"""|''')/);
+                    if (docMatch) {
+                        const lines = docMatch[1].trim().split('\n').map(l => l.trim()).filter(Boolean);
+                        if (lines.length > 0) {
+                            algoInput.value = lines[0];
+                        }
+                    }
+                    if (!algoInput.value.trim()) {
+                        const subSelect = document.getElementById('prog_submenu');
+                        const subText = subSelect.options[subSelect.selectedIndex]?.textContent || '';
+                        const cleanSub = subText.replace(/^\d+\.\d+:\s*/, '').trim();
+                        algoInput.value = cleanSub || 'Simulation Program';
+                    }
+                }
+            });
+        }
     });
 
     function updateChapterOptions(preselectMenu = 0) {
@@ -424,9 +506,29 @@ require_once __DIR__ . '/layout_top.php';
             const text = e.target.result;
             if (editorInstance) {
                 editorInstance.setValue(text);
-            } else {
-                document.getElementById('prog_content').value = text;
             }
+            document.getElementById('prog_content').value = text;
+
+            // Auto-populate Title if empty
+            const algoInput = document.getElementById('prog_algo');
+            if (!algoInput.value.trim()) {
+                const docMatch = text.match(/^\s*(?:"""|''')([\s\S]*?)(?:"""|''')/);
+                if (docMatch) {
+                    const lines = docMatch[1].trim().split('\n').map(l => l.trim()).filter(Boolean);
+                    if (lines.length > 0) {
+                        algoInput.value = lines[0];
+                    }
+                } else {
+                    const commentMatch = text.match(/^\s*#\s*(.+)$/m);
+                    if (commentMatch && commentMatch[1].trim()) {
+                        algoInput.value = commentMatch[1].trim();
+                    } else {
+                        const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+                        algoInput.value = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+                    }
+                }
+            }
+
             const badge = document.getElementById('fileLoadedBadge');
             badge.style.display = 'inline-block';
             badge.textContent = `Loaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
@@ -460,8 +562,8 @@ require_once __DIR__ . '/layout_top.php';
                 <label class="admin-label" style="margin-bottom: 0;">Filter Chapter:</label>
                 <select name="menu" class="admin-select" style="width: auto; min-width: 200px;" onchange="this.form.submit()">
                     <option value="">All Chapters</option>
-                    <?php if (isset($cascadeData[$selected_lang])): ?>
-                        <?php foreach ($cascadeData[$selected_lang] as $mId => $mData): ?>
+                    <?php if (isset($cascade_data[$selected_lang])): ?>
+                        <?php foreach ($cascade_data[$selected_lang] as $mId => $mData): ?>
                             <option value="<?php echo $mId; ?>" <?php echo $filter_menu === (int)$mId ? 'selected' : ''; ?>>
                                 Chapter <?php echo $mId; ?>: <?php echo htmlspecialchars($mData['title']); ?>
                             </option>

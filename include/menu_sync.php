@@ -110,14 +110,20 @@ if (!function_exists('ensure_visualization_installed')) {
             // 1. Ensure visualization table exists
             $conn->exec("CREATE TABLE IF NOT EXISTS `visualization` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
-              `menu_id` int(11) NOT NULL,
-              `submenu_id` int(11) NOT NULL,
-              `program_id` int(11) DEFAULT NULL,
+              `menu_id` int(11) NOT NULL DEFAULT 1,
+              `submenu_id` int(11) NOT NULL DEFAULT 1,
+              `program_id` int(11) DEFAULT 1,
               `content` longtext DEFAULT NULL,
               `algo` longtext DEFAULT NULL,
-              `explanation` longtext NOT NULL,
+              `explanation` longtext DEFAULT NULL,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            try {
+                $conn->exec("ALTER TABLE `visualization` MODIFY `explanation` longtext NULL DEFAULT NULL");
+                $conn->exec("ALTER TABLE `visualization` MODIFY `algo` longtext NULL DEFAULT NULL");
+                $conn->exec("ALTER TABLE `visualization` MODIFY `content` longtext NULL DEFAULT NULL");
+            } catch (Throwable $alterE) {}
 
             // 2. Ensure p4p_menus table exists and has Module 1
             $conn->exec("CREATE TABLE IF NOT EXISTS `p4p_menus` (
@@ -547,14 +553,6 @@ PYCODE;
                     ':content'     => $ds_content,
                     ':algo'        => $ds_algo,
                     ':explanation' => $ds_explanation
-                ]);
-            } else if (strpos($existing_row['content'], '(\theta)') !== false || strpos($existing_row['content'], 'Intensity  /') !== false) {
-                $updProg2 = $conn->prepare("UPDATE `visualization` SET `content` = :content, `algo` = :algo, `explanation` = :explanation WHERE `id` = :id");
-                $updProg2->execute([
-                    ':content'     => $ds_content,
-                    ':algo'        => $ds_algo,
-                    ':explanation' => $ds_explanation,
-                    ':id'          => $existing_row['id']
                 ]);
             }
 

@@ -1,7 +1,7 @@
 <?php
 // Automatically synced from Database via Admin Manager
 // Language: VISUALIZATION
-// Last Updated: 2026-10-02 17:46:15
+// Last Updated: 2026-10-02 18:03:53
 
 $menu_titles = array (
   1 => 'Quantum Mechanics & Wave Equations',
