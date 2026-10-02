@@ -10,7 +10,7 @@ $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $lang = isset($_GET['lang']) ? strtolower(trim($_GET['lang'])) : 'python';
 $format = isset($_GET['format']) ? strtolower(trim($_GET['format'])) : 'ipynb';
 
-$valid_tables = ['python', 'gnuplot', 'latex'];
+$valid_tables = ['python', 'gnuplot', 'latex', 'visualization'];
 if (!in_array($lang, $valid_tables) || !$id || !isset($conn)) {
     die("Invalid request parameters.");
 }

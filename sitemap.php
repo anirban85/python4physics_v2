@@ -39,6 +39,8 @@ function build_sitemap_urls($base_url, $conn = null) {
         ['path' => '', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
         ['path' => 'index.php', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
         ['path' => 'assignments.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'assignments.php'],
+        ['path' => 'visualization.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'visualization.php'],
+        ['path' => 'program/visualization/index.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'program/visualization/index.php'],
         ['path' => 'program/python/index.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'program/python/index.php'],
         ['path' => 'program/gnuplot/index.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'program/gnuplot/index.php'],
         ['path' => 'program/latex/index.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'program/latex/index.php'],
@@ -86,6 +88,7 @@ function build_sitemap_urls($base_url, $conn = null) {
     // 3. Curriculum Chapters & Subtopics (Python, GNUplot, LaTeX)
     $languages = [
         'python' => ['prio' => 0.80, 'path' => 'program/python/program.php'],
+        'visualization' => ['prio' => 0.85, 'path' => 'program/visualization/program.php'],
         'gnuplot' => ['prio' => 0.75, 'path' => 'program/gnuplot/program.php'],
         'latex' => ['prio' => 0.75, 'path' => 'program/latex/program.php']
     ];

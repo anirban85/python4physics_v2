@@ -11,7 +11,7 @@ if (!isset($siteurl) || empty($siteurl)) {
     $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
     
     // Strip nested folders to find the project root
-    $subDirs = ['/program/python', '/program/gnuplot', '/program/latex', '/program', '/api', '/include', '/assets', '/admin'];
+    $subDirs = ['/program/visualization', '/program/python', '/program/gnuplot', '/program/latex', '/program', '/api', '/include', '/assets', '/admin'];
     $basePath = $scriptDir;
     foreach ($subDirs as $sub) {
         if (str_ends_with($basePath, $sub)) {

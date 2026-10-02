@@ -9,8 +9,9 @@ require_once __DIR__ . '/auth.php';
 $page_title = "Manage & Upload Programs";
 
 $action = $_GET['action'] ?? 'list';
+$valid_langs = ['python', 'gnuplot', 'latex', 'visualization'];
 $selected_lang = $_GET['lang'] ?? 'python';
-if (!in_array($selected_lang, ['python', 'gnuplot', 'latex'])) {
+if (!in_array($selected_lang, $valid_langs)) {
     $selected_lang = 'python';
 }
 
@@ -21,7 +22,7 @@ $error = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $post_action = $_POST['post_action'] ?? '';
     $lang = $_POST['language'] ?? 'python';
-    if (!in_array($lang, ['python', 'gnuplot', 'latex'])) {
+    if (!in_array($lang, $valid_langs)) {
         $lang = 'python';
     }
 
@@ -112,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($post_action === 'delete_program') {
         $del_id = (int)($_POST['id'] ?? 0);
         $del_lang = $_POST['language'] ?? 'python';
-        if ($del_id > 0 && in_array($del_lang, ['python', 'gnuplot', 'latex'])) {
+        if ($del_id > 0 && in_array($del_lang, $valid_langs)) {
             try {
                 $stmt = $conn->prepare("DELETE FROM `$del_lang` WHERE `id` = :id");
                 $stmt->execute([':id' => $del_id]);
@@ -134,7 +135,7 @@ $subs_stmt = $conn->query("SELECT language, menu_id, submenu_id, title FROM `p4p
 $all_submenus = $subs_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Map for Javascript cascading select
-$cascade_data = ['python' => [], 'gnuplot' => [], 'latex' => []];
+$cascade_data = ['python' => [], 'gnuplot' => [], 'latex' => [], 'visualization' => []];
 foreach ($all_menus as $m) {
     $cascade_data[$m['language']][$m['menu_id']] = [
         'title' => $m['title'],
@@ -152,7 +153,7 @@ $edit_program = null;
 if ($action === 'edit') {
     $edit_id = (int)($_GET['id'] ?? 0);
     $edit_lang = $_GET['lang'] ?? 'python';
-    if ($edit_id > 0 && in_array($edit_lang, ['python', 'gnuplot', 'latex'])) {
+    if ($edit_id > 0 && in_array($edit_lang, $valid_langs)) {
         $stmt = $conn->prepare("SELECT * FROM `$edit_lang` WHERE `id` = :id");
         $stmt->execute([':id' => $edit_id]);
         $edit_program = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -229,6 +230,7 @@ require_once __DIR__ . '/layout_top.php';
                     <label class="admin-label" for="prog_lang">Language Suite *</label>
                     <select name="language" id="prog_lang" class="admin-select" onchange="updateChapterOptions()">
                         <option value="python" <?php echo ($edit_program['lang'] ?? $selected_lang) === 'python' ? 'selected' : ''; ?>>Python 3</option>
+                        <option value="visualization" <?php echo ($edit_program['lang'] ?? $selected_lang) === 'visualization' ? 'selected' : ''; ?>>Visualization (Interactive Simulations)</option>
                         <option value="gnuplot" <?php echo ($edit_program['lang'] ?? $selected_lang) === 'gnuplot' ? 'selected' : ''; ?>>GNUplot 6.0</option>
                         <option value="latex" <?php echo ($edit_program['lang'] ?? $selected_lang) === 'latex' ? 'selected' : ''; ?>>LaTeX Typesetting</option>
                     </select>
@@ -432,6 +434,9 @@ require_once __DIR__ . '/layout_top.php';
     <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--admin-border); padding-bottom: 0.75rem; overflow-x: auto;">
         <a href="?lang=python" class="btn-admin <?php echo $selected_lang === 'python' ? 'btn-admin-primary' : 'btn-admin-secondary'; ?>">
             <i class="fa-brands fa-python"></i> Python Programs
+        </a>
+        <a href="?lang=visualization" class="btn-admin <?php echo $selected_lang === 'visualization' ? 'btn-admin-primary' : 'btn-admin-secondary'; ?>">
+            <i class="fa-solid fa-sliders"></i> Visualization Programs
         </a>
         <a href="?lang=gnuplot" class="btn-admin <?php echo $selected_lang === 'gnuplot' ? 'btn-admin-primary' : 'btn-admin-secondary'; ?>">
             <i class="fa-solid fa-chart-line"></i> GNUplot Programs

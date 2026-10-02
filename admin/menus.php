@@ -7,8 +7,9 @@ require_once __DIR__ . '/../include/menu_sync.php';
 require_once __DIR__ . '/auth.php';
 
 $page_title = "Manage Menus & Submenus";
+$valid_langs = ['python', 'gnuplot', 'latex', 'visualization'];
 $selected_lang = $_GET['lang'] ?? 'python';
-if (!in_array($selected_lang, ['python', 'gnuplot', 'latex'])) {
+if (!in_array($selected_lang, $valid_langs)) {
     $selected_lang = 'python';
 }
 
@@ -178,6 +179,9 @@ require_once __DIR__ . '/layout_top.php';
 <div style="display: flex; gap: 0.5rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--admin-border); padding-bottom: 0.75rem; overflow-x: auto;">
     <a href="?lang=python" class="btn-admin <?php echo $selected_lang === 'python' ? 'btn-admin-primary' : 'btn-admin-secondary'; ?>">
         <i class="fa-brands fa-python"></i> Python Chapters (<?php echo count(get_admin_menus('python', $conn)); ?>)
+    </a>
+    <a href="?lang=visualization" class="btn-admin <?php echo $selected_lang === 'visualization' ? 'btn-admin-primary' : 'btn-admin-secondary'; ?>">
+        <i class="fa-solid fa-sliders"></i> Visualization Modules (<?php echo count(get_admin_menus('visualization', $conn)); ?>)
     </a>
     <a href="?lang=gnuplot" class="btn-admin <?php echo $selected_lang === 'gnuplot' ? 'btn-admin-primary' : 'btn-admin-secondary'; ?>">
         <i class="fa-solid fa-chart-line"></i> GNUplot Chapters (<?php echo count(get_admin_menus('gnuplot', $conn)); ?>)

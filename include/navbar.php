@@ -26,11 +26,10 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
                 <li><a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="nav-link-item <?php echo (strpos($current_uri, 'gnuplot') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-chart-line"></i> GNUplot</a></li>
                 <li><a href="<?php echo $siteurl; ?>program/latex/index.php" class="nav-link-item <?php echo (strpos($current_uri, 'latex') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-file-code"></i> LaTeX</a></li>
                 <li><a href="<?php echo $siteurl; ?>assignments.php" class="nav-link-item <?php echo ($current_script == 'assignments.php') ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> Assignments</a></li>
+                <li><a href="<?php echo $siteurl; ?>visualization.php" class="nav-link-item <?php echo ($current_script == 'visualization.php' || strpos($current_uri, 'visualization') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-sliders"></i> Visualization</a></li>
                 <li><a href="<?php echo $siteurl; ?>arduino.php" class="nav-link-item <?php echo ($current_script == 'arduino.php') ? 'active' : ''; ?>"><i class="fa-solid fa-microchip"></i> Arduino Lab</a></li>
-                <li><a href="<?php echo $siteurl; ?>api/docs.php" class="nav-link-item <?php echo (strpos($current_uri, 'api') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-terminal"></i> API</a></li>
                 <li><a href="<?php echo $siteurl; ?>feedback.php" class="nav-link-item <?php echo ($current_script == 'feedback.php') ? 'active' : ''; ?>"><i class="fa-regular fa-comment-dots"></i> Feedback</a></li>
                 <li><a href="<?php echo $siteurl; ?>contact.php" class="nav-link-item <?php echo ($current_script == 'contact.php') ? 'active' : ''; ?>"><i class="fa-solid fa-user-graduate"></i> Contact</a></li>
-                <li><a href="<?php echo $siteurl; ?>admin/index.php" class="nav-link-item" title="Admin Control Center"><i class="fa-solid fa-shield-halved"></i> Admin</a></li>
             </ul>
 
             <!-- Nav Actions: Search & Theme Toggle -->
@@ -72,11 +71,10 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
             <li><a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="nav-link-item"><i class="fa-solid fa-chart-line fa-fw"></i> GNUplot Visualizer</a></li>
             <li><a href="<?php echo $siteurl; ?>program/latex/index.php" class="nav-link-item"><i class="fa-solid fa-file-code fa-fw"></i> LaTeX Formulations</a></li>
             <li><a href="<?php echo $siteurl; ?>assignments.php" class="nav-link-item"><i class="fa-solid fa-list-check fa-fw"></i> Interactive Assignments</a></li>
+            <li><a href="<?php echo $siteurl; ?>visualization.php" class="nav-link-item"><i class="fa-solid fa-sliders fa-fw"></i> Interactive Visualization</a></li>
             <li><a href="<?php echo $siteurl; ?>arduino.php" class="nav-link-item"><i class="fa-solid fa-microchip fa-fw"></i> Arduino Physics Lab</a></li>
-            <li><a href="<?php echo $siteurl; ?>api/docs.php" class="nav-link-item"><i class="fa-solid fa-terminal fa-fw"></i> Developer REST API</a></li>
             <li><a href="<?php echo $siteurl; ?>feedback.php" class="nav-link-item"><i class="fa-regular fa-comment-dots fa-fw"></i> Submit Feedback</a></li>
             <li><a href="<?php echo $siteurl; ?>contact.php" class="nav-link-item"><i class="fa-solid fa-user-graduate fa-fw"></i> Faculty & Contact</a></li>
-            <li><a href="<?php echo $siteurl; ?>admin/index.php" class="nav-link-item"><i class="fa-solid fa-shield-halved fa-fw"></i> Admin Portal</a></li>
         </ul>
     </div>
 </header>

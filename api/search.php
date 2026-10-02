@@ -22,6 +22,15 @@ include_once __DIR__ . '/../program/latex/menu.php';
 $latex_menus = $menu_titles ?? [];
 $latex_submenus = $sub_menu_titles ?? [];
 
+if (file_exists(__DIR__ . '/../program/visualization/menu.php')) {
+    include_once __DIR__ . '/../program/visualization/menu.php';
+    $vis_menus = $menu_titles ?? [];
+    $vis_submenus = $sub_menu_titles ?? [];
+} else {
+    $vis_menus = [];
+    $vis_submenus = [];
+}
+
 $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 $limit = isset($_GET['limit']) ? min(intval($_GET['limit']), 30) : 15;
 
@@ -148,6 +157,41 @@ if (isset($conn) && $conn !== null) {
         }
     } catch (Exception $e) {
         error_log("Search LaTeX error: " . $e->getMessage());
+    }
+
+    // 4. Search Visualization programs
+    try {
+        $stmt = $conn->prepare("
+            SELECT id, menu_id, submenu_id, program_id, algo, content, explanation
+            FROM visualization
+            WHERE algo LIKE ? OR content LIKE ? OR explanation LIKE ?
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, $search_term, PDO::PARAM_STR);
+        $stmt->bindValue(2, $search_term, PDO::PARAM_STR);
+        $stmt->bindValue(3, $search_term, PDO::PARAM_STR);
+        $stmt->bindValue(4, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        while ($row = $stmt->fetch()) {
+            $menu_id = $row['menu_id'];
+            $sub_id = $row['submenu_id'];
+            $topic = $vis_submenus[$menu_id][$sub_id] ?? ($vis_menus[$menu_id] ?? "Visualization Module $menu_id");
+            $title = !empty(trim(strip_tags($row['algo']))) ? trim(strip_tags($row['algo'])) : "$topic - Simulation {$row['program_id']}";
+
+            $results[] = [
+                'id'         => $row['id'],
+                'lang'       => 'visualization',
+                'menu_id'    => $menu_id,
+                'submenu_id' => $sub_id,
+                'program_id' => $row['program_id'],
+                'title'      => $title,
+                'topic'      => $topic,
+                'url'        => "{$siteurl}program/visualization/program.php?menu_id={$menu_id}&submenu_id={$sub_id}"
+            ];
+        }
+    } catch (Exception $e) {
+        error_log("Search Visualization error: " . $e->getMessage());
     }
 }
 

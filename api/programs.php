@@ -14,7 +14,7 @@ $menu_id = isset($_GET['menu_id']) ? intval($_GET['menu_id']) : null;
 $submenu_id = isset($_GET['submenu_id']) ? intval($_GET['submenu_id']) : null;
 $id = isset($_GET['id']) ? intval($_GET['id']) : null;
 
-$valid_tables = ['python', 'gnuplot', 'latex'];
+$valid_tables = ['python', 'gnuplot', 'latex', 'visualization'];
 if (!in_array($lang, $valid_tables)) {
     echo json_encode([
         'success' => false,

@@ -7,7 +7,7 @@ require_once __DIR__ . '/../db.php';
 
 if (!function_exists('sync_menus_to_file')) {
     function sync_menus_to_file($lang, $conn) {
-        $valid_langs = ['python', 'gnuplot', 'latex'];
+        $valid_langs = ['python', 'gnuplot', 'latex', 'visualization'];
         if (!in_array($lang, $valid_langs)) {
             return false;
         }
@@ -41,7 +41,11 @@ if (!function_exists('sync_menus_to_file')) {
         $code .= "\$menu_titles = " . var_export($menus, true) . ";\n\n";
         $code .= "\$sub_menu_titles = " . var_export($submenus, true) . ";\n";
 
-        $target_file = __DIR__ . "/../program/{$lang}/menu.php";
+        $target_dir = __DIR__ . "/../program/{$lang}";
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0777, true);
+        }
+        $target_file = "{$target_dir}/menu.php";
         $saved = file_put_contents($target_file, $code) !== false;
         
         // Also automatically re-sync dynamic sitemap.xml

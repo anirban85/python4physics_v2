@@ -19,6 +19,7 @@ function safe_count($conn, $table) {
 }
 
 $python_count   = safe_count($conn, 'python');
+$vis_count      = safe_count($conn, 'visualization');
 $gnuplot_count  = safe_count($conn, 'gnuplot');
 $latex_count    = safe_count($conn, 'latex');
 $assign_count   = safe_count($conn, 'assignments');
@@ -48,11 +49,13 @@ $recent_programs = [];
 try {
     if ($conn) {
         $recent_stmt = $conn->query("
-            (SELECT 'python' as lang, id, menu_id, submenu_id, program_id, algo FROM python ORDER BY id DESC LIMIT 4)
+            (SELECT 'python' as lang, id, menu_id, submenu_id, program_id, algo FROM python ORDER BY id DESC LIMIT 3)
             UNION ALL
-            (SELECT 'gnuplot' as lang, id, menu_id, submenu_id, program_id, algo FROM gnuplot ORDER BY id DESC LIMIT 4)
+            (SELECT 'visualization' as lang, id, menu_id, submenu_id, program_id, algo FROM visualization ORDER BY id DESC LIMIT 3)
             UNION ALL
-            (SELECT 'latex' as lang, id, menu_id, submenu_id, program_id, algo FROM latex ORDER BY id DESC LIMIT 4)
+            (SELECT 'gnuplot' as lang, id, menu_id, submenu_id, program_id, algo FROM gnuplot ORDER BY id DESC LIMIT 3)
+            UNION ALL
+            (SELECT 'latex' as lang, id, menu_id, submenu_id, program_id, algo FROM latex ORDER BY id DESC LIMIT 3)
             ORDER BY id DESC LIMIT 8
         ");
         if ($recent_stmt) {
@@ -87,6 +90,15 @@ try {
         <div class="admin-stat-value"><?php echo number_format($python_count); ?></div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Active computational scripts
+        </div>
+    </div>
+
+    <div class="admin-stat-card">
+        <i class="fa-solid fa-sliders admin-stat-icon" style="color: #06b6d4;"></i>
+        <div class="admin-stat-label">Visualizations</div>
+        <div class="admin-stat-value"><?php echo number_format($vis_count); ?></div>
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+            Interactive simulations &amp; sliders
         </div>
     </div>
 
@@ -159,6 +171,10 @@ try {
                 <i class="fa-brands fa-python" style="font-size: 1.5rem; color: #38bdf8; margin-bottom: 0.35rem;"></i>
                 <span>Add Python Code</span>
             </a>
+            <a href="programs.php?action=create&lang=visualization" class="btn-admin btn-admin-secondary" style="justify-content: center; padding: 1rem; flex-direction: column; text-align: center;">
+                <i class="fa-solid fa-sliders" style="font-size: 1.5rem; color: #06b6d4; margin-bottom: 0.35rem;"></i>
+                <span>Add Visualization</span>
+            </a>
             <a href="programs.php?action=create&lang=gnuplot" class="btn-admin btn-admin-secondary" style="justify-content: center; padding: 1rem; flex-direction: column; text-align: center;">
                 <i class="fa-solid fa-chart-line" style="font-size: 1.5rem; color: #f59e0b; margin-bottom: 0.35rem;"></i>
                 <span>Add GNUplot Code</span>
@@ -205,6 +221,8 @@ try {
                             <td>
                                 <?php if ($p['lang'] === 'python'): ?>
                                     <span class="admin-badge admin-badge-cyan"><i class="fa-brands fa-python"></i> Python</span>
+                                <?php elseif ($p['lang'] === 'visualization'): ?>
+                                    <span class="admin-badge" style="background: rgba(6, 182, 212, 0.2); color: #06b6d4;"><i class="fa-solid fa-sliders"></i> Visualization</span>
                                 <?php elseif ($p['lang'] === 'gnuplot'): ?>
                                     <span class="admin-badge admin-badge-amber"><i class="fa-solid fa-chart-line"></i> GNUplot</span>
                                 <?php else: ?>
