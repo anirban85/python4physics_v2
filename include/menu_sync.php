@@ -51,11 +51,14 @@ if (!function_exists('sync_menus_to_file')) {
             $existing = file_get_contents($target_file);
             $clean_existing = preg_replace('/\/\/ Last Updated: [^\n]+\n+/', '', $existing);
             $clean_code = preg_replace('/\/\/ Last Updated: [^\n]+\n+/', '', $code);
-            if (trim($clean_existing) === trim($clean_code)) {
+            $norm_existing = str_replace(["\r\n", "\r"], "\n", $clean_existing);
+            $norm_code = str_replace(["\r\n", "\r"], "\n", $clean_code);
+            if (trim($norm_existing) === trim($norm_code)) {
                 return true; // Already identical, do not touch file on disk
             }
         }
 
+        $code = str_replace(["\r\n", "\r"], "\n", $code);
         $saved = file_put_contents($target_file, $code) !== false;
         return $saved;
     }

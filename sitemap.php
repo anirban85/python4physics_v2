@@ -164,18 +164,20 @@ function generate_sitemap_xml_string($urls) {
  */
 function sync_sitemap_to_disk($xml_content) {
     $target = __DIR__ . '/sitemap.xml';
+    $norm_xml = str_replace(["\r\n", "\r"], "\n", $xml_content);
     if (file_exists($target)) {
         $existing = file_get_contents($target);
-        if ($existing === $xml_content) {
+        $norm_existing = str_replace(["\r\n", "\r"], "\n", $existing);
+        if (trim($norm_existing) === trim($norm_xml)) {
             return true; // Exactly identical, do not touch or write to disk
         }
     }
     $temp = __DIR__ . '/sitemap.xml.tmp';
-    if (@file_put_contents($temp, $xml_content) !== false) {
+    if (@file_put_contents($temp, $norm_xml) !== false) {
         @rename($temp, $target);
         return true;
     }
-    return @file_put_contents($target, $xml_content) !== false;
+    return @file_put_contents($target, $norm_xml) !== false;
 }
 
 // Only auto-run if sitemap.php is accessed directly (not when included via require_once)
