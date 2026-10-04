@@ -156,26 +156,50 @@ if (!function_exists('ensure_visualization_installed')) {
               UNIQUE KEY `lang_menu_sub_unique` (`language`,`menu_id`,`submenu_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-            // Check / insert Module 1 (Quantum Mechanics)
-            $chkMenu = $conn->prepare("SELECT COUNT(*) FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 1");
-            $chkMenu->execute();
-            if ((int)$chkMenu->fetchColumn() === 0) {
-                $insMenu = $conn->prepare("INSERT INTO `p4p_menus` (`language`, `menu_id`, `title`, `sort_order`) VALUES ('visualization', 1, 'Quantum Mechanics & Wave Equations', 1)");
-                $insMenu->execute();
+            // Check Module 1 (Vectors)
+            $chkMenu1 = $conn->prepare("SELECT title FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 1");
+            $chkMenu1->execute();
+            $m1_title = $chkMenu1->fetchColumn();
+            $chkProg1Count = (int)$conn->query("SELECT COUNT(*) FROM `visualization` WHERE `menu_id` = 1")->fetchColumn();
+
+            if (!$m1_title || !str_contains(strtolower($m1_title), 'vector') || $chkProg1Count < 5) {
+                if (file_exists(__DIR__ . '/../seed_module1_vectors.php')) {
+                    require_once __DIR__ . '/../seed_module1_vectors.php';
+                }
             }
 
-            // Check / insert Subtopic 1.1 (QHO)
-            $chkSub = $conn->prepare("SELECT COUNT(*) FROM `p4p_submenus` WHERE `language` = 'visualization' AND `menu_id` = 1 AND `submenu_id` = 1");
-            $chkSub->execute();
-            if ((int)$chkSub->fetchColumn() === 0) {
-                $insSub = $conn->prepare("INSERT INTO `p4p_submenus` (`language`, `menu_id`, `submenu_id`, `title`, `sort_order`) VALUES ('visualization', 1, 1, '1D Time-Independent Schroedinger Equation (TISE) - QHO Shooting Method', 1)");
-                $insSub->execute();
+            // Check Module 2 (Tensors)
+            $chkMenu2 = $conn->prepare("SELECT title FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 2");
+            $chkMenu2->execute();
+            $m2_title = $chkMenu2->fetchColumn();
+            $chkProg2Count = (int)$conn->query("SELECT COUNT(*) FROM `visualization` WHERE `menu_id` = 2")->fetchColumn();
+
+            if (!$m2_title || !str_contains(strtolower($m2_title), 'tensor') || $chkProg2Count < 5) {
+                if (file_exists(__DIR__ . '/../seed_module2_tensors.php')) {
+                    require_once __DIR__ . '/../seed_module2_tensors.php';
+                }
             }
 
-            // Check / insert Program 1.1.1 (QHO)
-            $chkProg = $conn->prepare("SELECT COUNT(*) FROM `visualization` WHERE `menu_id` = 1 AND `submenu_id` = 1 AND `program_id` = 1");
-            $chkProg->execute();
-            if ((int)$chkProg->fetchColumn() === 0) {
+            // Check / insert Module 3 (Quantum Mechanics)
+            $chkMenu3 = $conn->prepare("SELECT COUNT(*) FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 3");
+            $chkMenu3->execute();
+            if ((int)$chkMenu3->fetchColumn() === 0) {
+                $insMenu3 = $conn->prepare("INSERT INTO `p4p_menus` (`language`, `menu_id`, `title`, `sort_order`) VALUES ('visualization', 3, 'Quantum Mechanics & Wave Equations', 3)");
+                $insMenu3->execute();
+            }
+
+            // Check / insert Subtopic 3.1 (QHO)
+            $chkSub3 = $conn->prepare("SELECT COUNT(*) FROM `p4p_submenus` WHERE `language` = 'visualization' AND `menu_id` = 3 AND `submenu_id` = 1");
+            $chkSub3->execute();
+            if ((int)$chkSub3->fetchColumn() === 0) {
+                $insSub3 = $conn->prepare("INSERT INTO `p4p_submenus` (`language`, `menu_id`, `submenu_id`, `title`, `sort_order`) VALUES ('visualization', 3, 1, '1D Time-Independent Schroedinger Equation (TISE) - QHO Shooting Method', 1)");
+                $insSub3->execute();
+            }
+
+            // Check / insert Program 3.1.1 (QHO)
+            $chkProg3 = $conn->prepare("SELECT COUNT(*) FROM `visualization` WHERE `menu_id` = 3 AND `submenu_id` = 1 AND `program_id` = 1");
+            $chkProg3->execute();
+            if ((int)$chkProg3->fetchColumn() === 0) {
                 $qho_content = <<<'PYCODE'
 """
 Solve 1-dimensional time-independent Schroedinger Equation (TISE) for 
@@ -314,7 +338,7 @@ PYCODE;
     </p>
 </div>';
 
-                $insProg = $conn->prepare("INSERT INTO `visualization` (`menu_id`, `submenu_id`, `program_id`, `content`, `algo`, `explanation`) VALUES (1, 1, 1, :content, :algo, :explanation)");
+                $insProg = $conn->prepare("INSERT INTO `visualization` (`menu_id`, `submenu_id`, `program_id`, `content`, `algo`, `explanation`) VALUES (3, 1, 1, :content, :algo, :explanation)");
                 $insProg->execute([
                     ':content'     => $qho_content,
                     ':algo'        => $qho_algo,
@@ -322,23 +346,23 @@ PYCODE;
                 ]);
             }
 
-            // Check / insert Module 2 (Optics)
-            $chkMenu2 = $conn->prepare("SELECT COUNT(*) FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 2");
-            $chkMenu2->execute();
-            if ((int)$chkMenu2->fetchColumn() === 0) {
-                $insMenu2 = $conn->prepare("INSERT INTO `p4p_menus` (`language`, `menu_id`, `title`, `sort_order`) VALUES ('visualization', 2, 'Optics', 2)");
-                $insMenu2->execute();
+            // Check / insert Module 4 (Optics)
+            $chkMenu4 = $conn->prepare("SELECT COUNT(*) FROM `p4p_menus` WHERE `language` = 'visualization' AND `menu_id` = 4");
+            $chkMenu4->execute();
+            if ((int)$chkMenu4->fetchColumn() === 0) {
+                $insMenu4 = $conn->prepare("INSERT INTO `p4p_menus` (`language`, `menu_id`, `title`, `sort_order`) VALUES ('visualization', 4, 'Optics', 4)");
+                $insMenu4->execute();
             }
 
-            // Check / insert Subtopic 2.1 (Fraunhofer Diffraction in Double Slit)
-            $chkSub2 = $conn->prepare("SELECT COUNT(*) FROM `p4p_submenus` WHERE `language` = 'visualization' AND `menu_id` = 2 AND `submenu_id` = 1");
-            $chkSub2->execute();
-            if ((int)$chkSub2->fetchColumn() === 0) {
-                $insSub2 = $conn->prepare("INSERT INTO `p4p_submenus` (`language`, `menu_id`, `submenu_id`, `title`, `sort_order`) VALUES ('visualization', 2, 1, 'Fraunhofer Diffraction in Double Slit', 1)");
-                $insSub2->execute();
+            // Check / insert Subtopic 4.1 (Fraunhofer Diffraction in Double Slit)
+            $chkSub4 = $conn->prepare("SELECT COUNT(*) FROM `p4p_submenus` WHERE `language` = 'visualization' AND `menu_id` = 4 AND `submenu_id` = 1");
+            $chkSub4->execute();
+            if ((int)$chkSub4->fetchColumn() === 0) {
+                $insSub4 = $conn->prepare("INSERT INTO `p4p_submenus` (`language`, `menu_id`, `submenu_id`, `title`, `sort_order`) VALUES ('visualization', 4, 1, 'Fraunhofer Diffraction in Double Slit', 1)");
+                $insSub4->execute();
             }
 
-            // Check / insert / update Program 2.1.1 (Double Slit Simulation)
+            // Check / insert / update Program 4.1.1 (Double Slit Simulation)
             $ds_content = <<<'PYCODE'
 """
 Fraunhofer Diffraction at a Double Slit
@@ -550,12 +574,12 @@ PYCODE;
     </p>
 </div>';
 
-            $chkProg2 = $conn->prepare("SELECT id, content FROM `visualization` WHERE `menu_id` = 2 AND `submenu_id` = 1 AND `program_id` = 1");
-            $chkProg2->execute();
-            $existing_row = $chkProg2->fetch(PDO::FETCH_ASSOC);
+            $chkProg4 = $conn->prepare("SELECT id, content FROM `visualization` WHERE `menu_id` = 4 AND `submenu_id` = 1 AND `program_id` = 1");
+            $chkProg4->execute();
+            $existing_row = $chkProg4->fetch(PDO::FETCH_ASSOC);
             if (!$existing_row) {
-                $insProg2 = $conn->prepare("INSERT INTO `visualization` (`menu_id`, `submenu_id`, `program_id`, `content`, `algo`, `explanation`) VALUES (2, 1, 1, :content, :algo, :explanation)");
-                $insProg2->execute([
+                $insProg4 = $conn->prepare("INSERT INTO `visualization` (`menu_id`, `submenu_id`, `program_id`, `content`, `algo`, `explanation`) VALUES (4, 1, 1, :content, :algo, :explanation)");
+                $insProg4->execute([
                     ':content'     => $ds_content,
                     ':algo'        => $ds_algo,
                     ':explanation' => $ds_explanation

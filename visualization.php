@@ -161,12 +161,24 @@ require_once __DIR__ . '/include/navbar.php';
                     $algo = $prog['algo'];
                     $explanation = $prog['explanation'];
                 ?>
-                <section class="glass-card" style="margin-bottom: 2.5rem; max-width: 100%; box-sizing: border-box;" id="prog-<?php echo $progNumber; ?>">
+                    <?php
+                        $progDisplayTitle = $subtopic_title;
+                        if (!empty($algo)) {
+                            $cleanAlgo = strip_tags($algo);
+                            if (str_contains($cleanAlgo, ':')) {
+                                $parts = explode(':', $cleanAlgo, 2);
+                                $progDisplayTitle = trim($parts[0]);
+                                if (count($programs) > 1 && !empty(trim($parts[1] ?? ''))) {
+                                    $progDisplayTitle .= ' - ' . trim(explode('.', $parts[1])[0]);
+                                }
+                            }
+                        }
+                    ?>
                     <!-- Program Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
                             <span class="badge badge-emerald" style="font-size: 0.85rem; flex-shrink: 0;"><i class="fa-solid fa-sliders"></i> Simulation <?php echo $progNumber; ?></span>
-                            <h2 style="font-size: 1.35rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?php echo htmlspecialchars($subtopic_title); ?></h2>
+                            <h2 style="font-size: 1.25rem; margin: 0; font-weight: 600;"><?php echo htmlspecialchars($progDisplayTitle); ?></h2>
                         </div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <button type="button" class="btn-modern btn-secondary btn-sm" onclick="copyProgramCode('code_<?php echo $pid; ?>')" title="Copy Code to Clipboard">
@@ -249,18 +261,18 @@ require_once __DIR__ . '/include/navbar.php';
                             <!-- Theory & Algorithm Formulation -->
                             <?php if (!empty(trim($algo ?? '')) || !empty(trim($explanation ?? ''))): ?>
                             <div id="panel_theory_<?php echo $pid; ?>" class="tab-content">
-                                <div class="theory-card" style="min-height: 380px; max-height: 520px; overflow-y: auto;">
+                                <div class="theory-card" style="min-height: 380px; max-height: 650px; overflow-y: auto;">
                                     <?php if (!empty(trim($algo ?? ''))): ?>
                                         <div style="margin-bottom: 1.25rem;">
                                             <h4 style="color: var(--accent); margin-bottom: 0.5rem;"><i class="fa-solid fa-diagram-project"></i> Mathematical Problem Formulation</h4>
-                                            <div><?php echo $algo; ?></div>
+                                            <div><?php echo str_replace('{{SITEURL}}', $siteurl, $algo); ?></div>
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if (!empty(trim($explanation ?? ''))): ?>
                                         <div>
                                             <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-book-open-reader"></i> Theoretical Background &amp; Explanation</h4>
-                                            <div><?php echo $explanation; ?></div>
+                                            <div><?php echo str_replace('{{SITEURL}}', $siteurl, $explanation); ?></div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
