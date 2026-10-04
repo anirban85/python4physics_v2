@@ -168,8 +168,14 @@ function sync_sitemap_to_disk($xml_content) {
     if (file_exists($target)) {
         $existing = file_get_contents($target);
         $norm_existing = str_replace(["\r\n", "\r"], "\n", $existing);
-        if (trim($norm_existing) === trim($norm_xml)) {
-            return true; // Exactly identical, do not touch or write to disk
+        
+        // Strip volatile <lastmod> timestamps for structural comparison to prevent git dirtying
+        $strip_dates = function($str) {
+            return preg_replace('/<lastmod>[^<]*<\/lastmod>/', '', $str);
+        };
+        
+        if (trim($strip_dates($norm_existing)) === trim($strip_dates($norm_xml))) {
+            return true; // Structure, URLs, and priorities are identical - do not touch file on disk!
         }
     }
     $temp = __DIR__ . '/sitemap.xml.tmp';
