@@ -39,8 +39,13 @@ require_once __DIR__ . '/../../include/navbar.php';
         <?php
         if (isset($menu_titles) && is_array($menu_titles)) {
             $icons = [
-                1 => 'fa-arrows-split-up-and-left', 2 => 'fa-shapes', 3 => 'fa-atom', 4 => 'fa-wave-square',
-                5 => 'fa-circle-nodes', 6 => 'fa-chart-line', 7 => 'fa-magnet'
+                1 => 'fa-arrows-split-up-and-left', 
+                2 => 'fa-shapes', 
+                3 => 'fa-compass-drafting', 
+                4 => 'fa-atom', 
+                5 => 'fa-lightbulb', 
+                6 => 'fa-chart-line', 
+                7 => 'fa-magnet'
             ];
 
             foreach ($menu_titles as $mid => $mtitle) {

@@ -15,6 +15,7 @@
 *.yml text eol=lf
 *.yaml text eol=lf
 *.htaccess text eol=lf
+*.svg text eol=lf
 *.bat text eol=crlf
 
 # Binary files

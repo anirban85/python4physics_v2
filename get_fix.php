@@ -102,6 +102,16 @@ if ($action === 'fix_and_pull' || $action === 'force_reset') {
         $steps[] = "seed_module2_tensors.php not found. Please sync git first.";
     }
 
+    $steps[] = "\n=== Seeding Module 3 (Double Pendulum Dynamics & Chaos) ===";
+    $seed3 = __DIR__ . '/seed_module3_double_pendulum.php';
+    if (file_exists($seed3)) {
+        ob_start();
+        include $seed3;
+        $steps[] = strip_tags(ob_get_clean());
+    } else {
+        $steps[] = "seed_module3_double_pendulum.php not found. Please sync git first.";
+    }
+
     $output = implode("\n", $steps);
 } elseif ($action === 'unlock_only') {
     $steps = [];

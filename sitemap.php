@@ -110,6 +110,11 @@ function build_sitemap_urls($base_url, $conn = null) {
                     $mod = !empty($r['created_at']) ? date('Y-m-d', strtotime($r['created_at'])) : $today;
                     $path = $cfg['path'] . "?menu_id=" . urlencode($r['menu_id']) . "&submenu_id=" . urlencode($r['submenu_id']);
                     $add_url($path, $cfg['prio'], 'monthly', $mod);
+
+                    if ($lang === 'visualization') {
+                        $vis_path = "visualization.php?menu_id=" . urlencode($r['menu_id']) . "&submenu_id=" . urlencode($r['submenu_id']);
+                        $add_url($vis_path, 0.90, 'weekly', $mod);
+                    }
                 }
             }
         } catch (Exception $e) {}

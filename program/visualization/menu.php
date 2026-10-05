@@ -5,8 +5,9 @@
 $menu_titles = array (
   1 => 'Vector Analysis & Curvilinear Coordinates',
   2 => 'Tensor Analysis & Applications in Physics',
-  3 => 'Quantum Mechanics & Wave Equations',
-  4 => 'Optics',
+  3 => 'Classical Mechanics: Double Pendulum Dynamics & Chaos',
+  4 => 'Quantum Mechanics & Wave Equations',
+  5 => 'Optics',
 );
 
 $sub_menu_titles = array (
@@ -28,9 +29,15 @@ $sub_menu_titles = array (
   ),
   3 => 
   array (
-    1 => '1D Time-Independent Schroedinger Equation (TISE) - QHO Shooting Method',
+    1 => 'Coupled Nonlinear Oscillations & Parameter Tuning Studio',
+    2 => 'Deterministic Chaos & The Butterfly Effect: Sensitivity to Initial Conditions',
+    3 => 'Small-Angle Normal Modes, Resonance & Harmonic Beats',
   ),
   4 => 
+  array (
+    1 => '1D Time-Independent Schroedinger Equation (TISE) - QHO Shooting Method',
+  ),
+  5 => 
   array (
     1 => 'Fraunhofer Diffraction in Double Slit',
   ),
