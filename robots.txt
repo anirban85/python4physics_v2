@@ -3,6 +3,22 @@
 # Standard Robots Exclusion Protocol File
 # ==============================================================================
 
+# Google AdSense Crawler Explicit Access
+User-agent: Mediapartners-Google
+Allow: /
+
+# Googlebot Explicit Access
+User-agent: Googlebot
+Allow: /
+Allow: /assets/
+Allow: /program/python/
+Allow: /program/gnuplot/
+Allow: /program/latex/
+Disallow: /admin/
+Disallow: /include/
+Disallow: /tmp/
+
+# General Web Crawlers
 User-agent: *
 Allow: /
 Allow: /assets/
@@ -18,5 +34,5 @@ Disallow: /program/gnuplot/user_*
 Disallow: /program/latex/user_*
 
 # Sitemaps
-Sitemap: https://v2.python4physics.in/sitemap.xml
 Sitemap: https://python4physics.in/sitemap.xml
+Sitemap: https://v2.python4physics.in/sitemap.xml

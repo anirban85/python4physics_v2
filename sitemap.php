@@ -10,7 +10,7 @@ require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
 // Detect canonical production URL
-$base_url = "https://v2.python4physics.in";
+$base_url = "https://python4physics.in";
 if (!empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && !str_starts_with($_SERVER['HTTP_HOST'], '127.0.0.1')) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443) ? "https://" : "http://";
     $base_url = rtrim($protocol . $_SERVER['HTTP_HOST'], '/');
@@ -38,6 +38,7 @@ function build_sitemap_urls($base_url, $conn = null) {
     $core_pages = [
         ['path' => '', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
         ['path' => 'index.php', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
+        ['path' => 'about.php', 'priority' => 0.85, 'freq' => 'monthly', 'file' => 'about.php'],
         ['path' => 'assignments.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'assignments.php'],
         ['path' => 'visualization.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'visualization.php'],
         ['path' => 'program/visualization/index.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'program/visualization/index.php'],
@@ -49,6 +50,8 @@ function build_sitemap_urls($base_url, $conn = null) {
         ['path' => 'contact.php', 'priority' => 0.65, 'freq' => 'monthly', 'file' => 'contact.php'],
         ['path' => 'feedback.php', 'priority' => 0.60, 'freq' => 'monthly', 'file' => 'feedback.php'],
         ['path' => 'privacy.php', 'priority' => 0.50, 'freq' => 'monthly', 'file' => 'privacy.php'],
+        ['path' => 'terms.php', 'priority' => 0.50, 'freq' => 'monthly', 'file' => 'terms.php'],
+        ['path' => 'disclaimer.php', 'priority' => 0.50, 'freq' => 'monthly', 'file' => 'disclaimer.php'],
     ];
 
     foreach ($core_pages as $cp) {

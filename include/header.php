@@ -112,28 +112,28 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
       "@graph": [
         {
           "@type": "WebSite",
-          "@id": "https://v2.python4physics.in/#website",
-          "url": "https://v2.python4physics.in/",
+          "@id": "<?php echo rtrim($siteurl, '/'); ?>/#website",
+          "url": "<?php echo rtrim($siteurl, '/'); ?>/",
           "name": "Python4Physics",
           "description": "500+ Computational Physics Algorithms, Numerical Solvers & Scientific Telemetry",
           "publisher": {
-            "@id": "https://v2.python4physics.in/#organization"
+            "@id": "<?php echo rtrim($siteurl, '/'); ?>/#organization"
           },
           "potentialAction": {
             "@type": "SearchAction",
             "target": {
               "@type": "EntryPoint",
-              "urlTemplate": "https://v2.python4physics.in/index.php?q={search_term_string}"
+              "urlTemplate": "<?php echo rtrim($siteurl, '/'); ?>/index.php?q={search_term_string}"
             },
             "query-input": "required name=search_term_string"
           }
         },
         {
           "@type": "EducationalOrganization",
-          "@id": "https://v2.python4physics.in/#organization",
+          "@id": "<?php echo rtrim($siteurl, '/'); ?>/#organization",
           "name": "Python4Physics",
-          "url": "https://v2.python4physics.in/",
-          "logo": "https://v2.python4physics.in/assets/images/logo.png",
+          "url": "<?php echo rtrim($siteurl, '/'); ?>/",
+          "logo": "<?php echo rtrim($siteurl, '/'); ?>/assets/images/logo.png",
           "founder": [
             {
               "@type": "Person",

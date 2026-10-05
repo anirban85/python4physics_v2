@@ -22,6 +22,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
             <!-- Desktop Nav Links -->
             <ul class="nav-links">
                 <li><a href="<?php echo $siteurl; ?>" class="nav-link-item <?php echo ($current_script == 'index.php' && strpos($current_uri, 'program') === false) ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a></li>
+                <li><a href="<?php echo $siteurl; ?>about.php" class="nav-link-item <?php echo ($current_script == 'about.php') ? 'active' : ''; ?>"><i class="fa-solid fa-circle-info"></i> About</a></li>
                 <li><a href="<?php echo $siteurl; ?>program/python/index.php" class="nav-link-item <?php echo (strpos($current_uri, 'python') !== false) ? 'active' : ''; ?>"><i class="fa-brands fa-python"></i> Python</a></li>
                 <li><a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="nav-link-item <?php echo (strpos($current_uri, 'gnuplot') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-chart-line"></i> GNUplot</a></li>
                 <li><a href="<?php echo $siteurl; ?>program/latex/index.php" class="nav-link-item <?php echo (strpos($current_uri, 'latex') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-file-code"></i> LaTeX</a></li>
@@ -67,6 +68,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
 
         <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0;">
             <li><a href="<?php echo $siteurl; ?>" class="nav-link-item"><i class="fa-solid fa-house fa-fw"></i> Home</a></li>
+            <li><a href="<?php echo $siteurl; ?>about.php" class="nav-link-item"><i class="fa-solid fa-circle-info fa-fw"></i> About Us</a></li>
             <li><a href="<?php echo $siteurl; ?>program/python/index.php" class="nav-link-item"><i class="fa-brands fa-python fa-fw"></i> Python (345 Codes)</a></li>
             <li><a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="nav-link-item"><i class="fa-solid fa-chart-line fa-fw"></i> GNUplot Visualizer</a></li>
             <li><a href="<?php echo $siteurl; ?>program/latex/index.php" class="nav-link-item"><i class="fa-solid fa-file-code fa-fw"></i> LaTeX Formulations</a></li>

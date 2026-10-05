@@ -45,11 +45,14 @@ if (!isset($siteurl)) {
             <div class="footer-col">
                 <h4>Academic Portal</h4>
                 <ul class="footer-links">
+                    <li><a href="<?php echo $siteurl; ?>about.php">About Python4Physics</a></li>
                     <li><a href="<?php echo $siteurl; ?>assignments.php">Interactive Problem Sets</a></li>
                     <li><a href="<?php echo $siteurl; ?>arduino.php">Arduino Lab Interfacing</a></li>
                     <li><a href="<?php echo $siteurl; ?>feedback.php">Submit Feedback</a></li>
                     <li><a href="<?php echo $siteurl; ?>contact.php">Faculty & Contact</a></li>
-                    <li><a href="<?php echo $siteurl; ?>privacy.php">Privacy & Terms</a></li>
+                    <li><a href="<?php echo $siteurl; ?>privacy.php">Privacy Policy</a></li>
+                    <li><a href="<?php echo $siteurl; ?>terms.php">Terms of Service</a></li>
+                    <li><a href="<?php echo $siteurl; ?>disclaimer.php">Disclaimer</a></li>
                     <li><a href="<?php echo $siteurl; ?>admin/index.php"><i class="fa-solid fa-lock" style="font-size: 0.75rem;"></i> Admin Portal</a></li>
                 </ul>
             </div>
@@ -72,8 +75,11 @@ if (!isset($siteurl)) {
             <div>
                 &copy; <?php echo date("Y"); ?> <strong>Python4Physics</strong>. All Rights Reserved. Authored by Dr. Alorika Chatterjee & Dr. Anirban Shaw.
             </div>
-            <div style="display: flex; gap: 1.5rem;">
+            <div style="display: flex; gap: 1.25rem; flex-wrap: wrap;">
+                <a href="<?php echo $siteurl; ?>about.php">About Us</a>
                 <a href="<?php echo $siteurl; ?>privacy.php">Privacy Policy</a>
+                <a href="<?php echo $siteurl; ?>terms.php">Terms</a>
+                <a href="<?php echo $siteurl; ?>disclaimer.php">Disclaimer</a>
                 <a href="<?php echo $siteurl; ?>contact.php">Contact</a>
                 <a href="<?php echo $siteurl; ?>api/docs.php">REST API</a>
             </div>
