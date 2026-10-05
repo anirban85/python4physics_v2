@@ -60,10 +60,26 @@ if ($action === 'fix_and_pull' || $action === 'force_reset') {
     $steps[] = "=== Step 5: Clean untracked files if any ===";
     $steps[] = run_git("clean -fd");
 
-    $steps[] = "=== Step 6: Verify Final Git Status ===";
+    $steps[] = "=== Step 6: Lock volatile / dated files as assume-unchanged ===";
+    $steps[] = run_git("update-index --assume-unchanged program/python/program_21.11.25.php program/python/program_pyodide_22.11.25.php counter.txt");
+
+    $steps[] = "=== Step 7: Verify Final Git Status ===";
     $steps[] = run_git("status");
 
     $output = implode("\n", array_filter($steps, fn($s) => $s !== ''));
+} elseif ($action === 'deploy_to_public_html') {
+    $steps = [];
+    $steps[] = "=== Deploying Repository Files to /home/python4p/public_html ===";
+    $target = '/home/python4p/public_html';
+    if (is_dir($target)) {
+        $src = rtrim(__DIR__, '/\\');
+        $cmd = "cp -R {$src}/* {$target}/ 2>&1";
+        $res = @shell_exec($cmd);
+        $steps[] = "Deployment to {$target} completed.\n" . ($res ? $res : "[SUCCESS] All files synchronized to public_html.");
+    } else {
+        $steps[] = "Target directory {$target} not found on this server.";
+    }
+    $output = implode("\n", $steps);
 } elseif ($action === 'seed_modules') {
     $steps = [];
     $steps[] = "=== Seeding Module 1 (Vectors) ===";
@@ -151,6 +167,9 @@ $recent_log = run_git("log -n 3 --oneline");
         <div class="actions-bar">
             <a href="?action=force_reset" class="btn btn-green">
                 &#9654; Force Reset &amp; Sync to GitHub Master
+            </a>
+            <a href="?action=deploy_to_public_html" class="btn" style="background: #6366f1;">
+                &#128640; Sync to Main Domain (public_html)
             </a>
             <a href="?action=seed_modules" class="btn btn-amber">
                 &#127793; Run Database Seeding (Module 1 &amp; 2)
