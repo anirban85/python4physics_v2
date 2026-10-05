@@ -480,6 +480,201 @@
   border-bottom: 1px solid var(--card-border, #1e293b);
 }
 
+.slider-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.slider-sweep-target-group,
+.slider-speed-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.slider-target-lbl {
+  font-size: 0.73rem;
+  color: var(--text-dim, #94a3b8);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.slider-select-input {
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 5px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 175px;
+}
+
+.slider-select-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.slider-quick-select-btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.btn-slider-toolbar {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.btn-slider-toolbar:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.slider-sweep-cb-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.15s ease;
+}
+
+.slider-sweep-cb-label:hover {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.slider-sweep-cb {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slider-sweep-cb-custom {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  border: 1.5px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: transparent;
+  transition: all 0.15s ease;
+}
+
+.slider-sweep-cb:checked + .slider-sweep-cb-custom {
+  background: linear-gradient(135deg, #6366f1 0%, #38bdf8 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
+.slider-sweep-cb-text {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  letter-spacing: 0.02em;
+}
+
+.btn-slider-single-sweep {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-slider-single-sweep:hover {
+  background: rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.55);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.btn-slider-single-sweep.active-sweeping {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.6);
+  color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+}
+
+.interactive-slider-row.is-sweeping {
+  background: rgba(99, 102, 241, 0.07);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+}
+
+.slider-direction-badge {
+  font-size: 0.72rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.range-edit-icon {
+  margin-left: 4px;
+  opacity: 0.6;
+  font-size: 0.65rem;
+  transition: opacity 0.15s;
+}
+
+.slider-range-badge {
+  cursor: pointer;
+}
+
+.slider-range-badge:hover .range-edit-icon {
+  opacity: 1;
+}
+
+.slider-bound {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.slider-bound:hover {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+
 .slider-status-pill {
   font-size: 0.72rem;
   font-weight: 600;

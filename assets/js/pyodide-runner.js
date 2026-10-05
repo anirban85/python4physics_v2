@@ -239,19 +239,27 @@ class PhysicsAnimationPlayer {
 
 /**
  * PhysicsSliderController - Bridge between Matplotlib Slider widgets and Web UI
- * Supports live parameter manipulation, debounced async updates, step buttons, auto-sweep, and snapshot exports.
+ * Supports live parameter manipulation, multi-parameter selective auto-sweep,
+ * individual parameter sweep toggles, dynamic code range adaptation, and snapshot exports.
  */
 class PhysicsSliderController {
   constructor(pid, initialImageB64, sliders, containerEl, pyodideRunner) {
     this.pid = pid;
     this.currentImageB64 = initialImageB64;
-    this.sliders = sliders; // array of { id, label, min, max, val, step, valinit }
+    this.sliders = (sliders || []).map((s, idx) => ({
+      ...s,
+      id: s.id !== undefined ? s.id : idx,
+      direction: 1,
+      selectedForSweep: idx === 0, // default first slider selected
+      isSweeping: false
+    }));
     this.containerEl = containerEl;
     this.runner = pyodideRunner;
     this.isUpdating = false;
-    this.pendingUpdate = null;
+    this.pendingMultiUpdate = null;
     this.autoSweepTimer = null;
-    this.autoSweepDirection = 1;
+    this.sweepIntervalMs = 70;
+    this.sweepTargetMode = "selected"; // "selected", "all", or specific slider id string
     this.render();
   }
 
@@ -262,6 +270,8 @@ class PhysicsSliderController {
     card.className = "interactive-slider-card";
     card.id = `slider_card_${this.pid}`;
 
+    const hasMultipleSliders = this.sliders.length > 1;
+
     const slidersHtml = this.sliders.map(s => {
       const stepStr = (s.step || 0.01).toString();
       const decimals = stepStr.includes('.') ? Math.min(stepStr.split('.')[1].length, 6) : (s.step >= 1 ? 1 : 2);
@@ -269,13 +279,24 @@ class PhysicsSliderController {
         <div class="interactive-slider-row" id="slider_row_${this.pid}_${s.id}">
           <div class="interactive-slider-header">
             <div class="slider-label-group">
-              <i class="fa-solid fa-sliders"></i>
+              <label class="slider-sweep-cb-label" title="Check to include ${s.label} in auto sweep">
+                <input type="checkbox" class="slider-sweep-cb" id="slider_cb_${this.pid}_${s.id}" ${s.selectedForSweep ? 'checked' : ''}>
+                <span class="slider-sweep-cb-custom"><i class="fa-solid fa-check"></i></span>
+                <span class="slider-sweep-cb-text">Sweep</span>
+              </label>
+              <button type="button" class="btn-slider-single-sweep" id="slider_row_sweep_${this.pid}_${s.id}" title="Auto sweep only ${s.label}">
+                <i class="fa-solid fa-play"></i>
+              </button>
+              <i class="fa-solid fa-sliders slider-icon-indicator" style="color: #818cf8; font-size: 0.85rem;"></i>
               <label for="slider_input_${this.pid}_${s.id}" class="slider-title">${s.label || 'Parameter ' + (s.id + 1)}</label>
-              <span class="slider-range-badge" title="Slider Range strictly from user's Python code">
-                Range: [${s.min} &rarr; ${s.max}], &Delta;: ${s.step}
+              <span class="slider-range-badge" id="slider_range_badge_${this.pid}_${s.id}" title="Click to adjust range bounds (strictly reflects Python code)">
+                Range: [${s.min} &rarr; ${s.max}], &Delta;: ${s.step} <i class="fa-solid fa-pen-to-square range-edit-icon"></i>
               </span>
             </div>
             <div class="slider-val-container">
+              <span class="slider-direction-badge" id="slider_dir_${this.pid}_${s.id}" title="Sweep direction">
+                <i class="fa-solid fa-arrow-right"></i>
+              </span>
               <label for="slider_num_${this.pid}_${s.id}" class="slider-val-label">Value:</label>
               <input type="number" 
                      class="slider-num-input" 
@@ -284,7 +305,7 @@ class PhysicsSliderController {
                      max="${s.max}" 
                      step="${s.step}" 
                      value="${Number(s.val).toFixed(decimals)}" 
-                     title="Direct numeric input (strictly between ${s.min} and ${s.max})">
+                     title="Direct numeric input (between ${s.min} and ${s.max})">
               <span class="slider-val-badge" id="slider_val_badge_${this.pid}_${s.id}">
                 ${s.label}: <strong>${Number(s.val).toFixed(decimals)}</strong>
               </span>
@@ -294,12 +315,12 @@ class PhysicsSliderController {
             <button type="button" class="btn-slider-step" id="slider_dec_${this.pid}_${s.id}" title="Step Down (-${s.step})">
               <i class="fa-solid fa-minus"></i>
             </button>
-            <span class="slider-bound slider-min" title="Minimum bound from code: ${s.min}">Min: ${s.min}</span>
+            <span class="slider-bound slider-min" id="slider_bound_min_${this.pid}_${s.id}" title="Click to modify minimum bound (default from code: ${s.min})">Min: ${s.min}</span>
             <input type="range" class="interactive-range-input" 
                    id="slider_input_${this.pid}_${s.id}" 
                    min="${s.min}" max="${s.max}" step="${s.step}" value="${s.val}"
                    title="${s.label} Slider: [${s.min} to ${s.max}]">
-            <span class="slider-bound slider-max" title="Maximum bound from code: ${s.max}">Max: ${s.max}</span>
+            <span class="slider-bound slider-max" id="slider_bound_max_${this.pid}_${s.id}" title="Click to modify maximum bound (default from code: ${s.max})">Max: ${s.max}</span>
             <button type="button" class="btn-slider-step" id="slider_inc_${this.pid}_${s.id}" title="Step Up (+${s.step})">
               <i class="fa-solid fa-plus"></i>
             </button>
@@ -308,16 +329,48 @@ class PhysicsSliderController {
       `;
     }).join("");
 
+    const targetOptions = [
+      `<option value="selected" ${this.sweepTargetMode === 'selected' ? 'selected' : ''}>Selected Parameters</option>`,
+      `<option value="all" ${this.sweepTargetMode === 'all' ? 'selected' : ''}>All Parameters (${this.sliders.length})</option>`,
+      ...this.sliders.map(s => `<option value="${s.id}" ${this.sweepTargetMode === String(s.id) ? 'selected' : ''}>Only: ${s.label}</option>`)
+    ].join("");
+
+    const multiSweepToolbar = hasMultipleSliders ? `
+      <div class="slider-sweep-target-group">
+        <label for="slider_target_${this.pid}" class="slider-target-lbl">
+          <i class="fa-solid fa-crosshairs"></i> Sweep Target:
+        </label>
+        <select id="slider_target_${this.pid}" class="slider-select-input" title="Choose which parameter or parameters to auto sweep">
+          ${targetOptions}
+        </select>
+        <div class="slider-quick-select-btns">
+          <button type="button" class="btn-slider-toolbar" id="slider_sel_all_${this.pid}" title="Select all parameters for auto sweep">All</button>
+          <button type="button" class="btn-slider-toolbar" id="slider_sel_none_${this.pid}" title="Deselect all parameters">None</button>
+        </div>
+      </div>
+    ` : '';
+
     card.innerHTML = `
       <div class="interactive-card-header">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <span class="badge badge-primary" style="display: flex; align-items: center; gap: 5px; font-size: 0.78rem;">
             <i class="fa-solid fa-sliders"></i> Interactive Parameter Controls
           </span>
           <span class="slider-status-pill" id="slider_status_${this.pid}">Active</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-          <button type="button" class="btn-modern btn-secondary btn-sm" id="slider_sweep_${this.pid}" title="Auto-sweep parameter dynamically within user's range">
+        <div class="slider-header-actions">
+          ${multiSweepToolbar}
+          <div class="slider-speed-group">
+            <label for="slider_speed_${this.pid}" class="slider-target-lbl">
+              <i class="fa-solid fa-gauge-high"></i> Speed:
+            </label>
+            <select id="slider_speed_${this.pid}" class="slider-select-input" title="Auto sweep speed">
+              <option value="130">0.5x Slow</option>
+              <option value="70" selected>1.0x Normal</option>
+              <option value="35">2.0x Fast</option>
+            </select>
+          </div>
+          <button type="button" class="btn-modern btn-secondary btn-sm" id="slider_sweep_${this.pid}" title="Auto sweep selected parameter(s)">
             <i class="fa-solid fa-play"></i> <span id="slider_sweep_txt_${this.pid}">Auto Sweep</span>
           </button>
           <button type="button" class="btn-modern btn-secondary btn-sm" id="slider_reset_${this.pid}" title="Reset parameters to initial code values">
@@ -348,6 +401,12 @@ class PhysicsSliderController {
       const numInput = document.getElementById(`slider_num_${this.pid}_${s.id}`);
       const decBtn = document.getElementById(`slider_dec_${this.pid}_${s.id}`);
       const incBtn = document.getElementById(`slider_inc_${this.pid}_${s.id}`);
+      const cb = document.getElementById(`slider_cb_${this.pid}_${s.id}`);
+      const rowSweepBtn = document.getElementById(`slider_row_sweep_${this.pid}_${s.id}`);
+      const minBoundEl = document.getElementById(`slider_bound_min_${this.pid}_${s.id}`);
+      const maxBoundEl = document.getElementById(`slider_bound_max_${this.pid}_${s.id}`);
+      const rangeBadge = document.getElementById(`slider_range_badge_${this.pid}_${s.id}`);
+
       const stepStr = (s.step || 0.01).toString();
       const decimals = stepStr.includes('.') ? Math.min(stepStr.split('.')[1].length, 6) : (s.step >= 1 ? 1 : 2);
 
@@ -419,26 +478,101 @@ class PhysicsSliderController {
           applyValue(val);
         });
       }
+
+      // Checkbox for selective sweep
+      if (cb) {
+        cb.addEventListener("change", (e) => {
+          s.selectedForSweep = e.target.checked;
+          const targetSelect = document.getElementById(`slider_target_${this.pid}`);
+          if (targetSelect) targetSelect.value = "selected";
+          this.sweepTargetMode = "selected";
+          if (this.autoSweepTimer) {
+            this.startAutoSweep();
+          }
+        });
+      }
+
+      // Single row sweep button
+      if (rowSweepBtn) {
+        rowSweepBtn.addEventListener("click", () => {
+          this.toggleSingleSliderSweep(s.id);
+        });
+      }
+
+      // Interactive range adjustment helpers
+      const adjustMinBound = () => {
+        const promptVal = prompt(`Enter new MIN bound for parameter '${s.label}' (currently ${s.min}):`, s.min);
+        if (promptVal !== null) {
+          const newMin = parseFloat(promptVal);
+          if (!isNaN(newMin) && newMin < s.max) {
+            s.min = newMin;
+            if (s.val < s.min) s.val = s.min;
+            this.syncSliderBounds(s);
+          } else if (newMin >= s.max) {
+            alert(`Minimum bound must be less than maximum bound (${s.max}).`);
+          }
+        }
+      };
+
+      const adjustMaxBound = () => {
+        const promptVal = prompt(`Enter new MAX bound for parameter '${s.label}' (currently ${s.max}):`, s.max);
+        if (promptVal !== null) {
+          const newMax = parseFloat(promptVal);
+          if (!isNaN(newMax) && newMax > s.min) {
+            s.max = newMax;
+            if (s.val > s.max) s.val = s.max;
+            this.syncSliderBounds(s);
+          } else if (newMax <= s.min) {
+            alert(`Maximum bound must be greater than minimum bound (${s.min}).`);
+          }
+        }
+      };
+
+      if (minBoundEl) minBoundEl.addEventListener("click", adjustMinBound);
+      if (maxBoundEl) maxBoundEl.addEventListener("click", adjustMaxBound);
+      if (rangeBadge) rangeBadge.addEventListener("click", () => {
+        const choice = prompt(`Adjust bounds for '${s.label}'. Format: min, max, step\nCurrent: ${s.min}, ${s.max}, ${s.step}`, `${s.min}, ${s.max}, ${s.step}`);
+        if (choice) {
+          const parts = choice.split(',').map(p => parseFloat(p.trim()));
+          if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1]) && parts[0] < parts[1]) {
+            s.min = parts[0];
+            s.max = parts[1];
+            if (parts.length >= 3 && !isNaN(parts[2]) && parts[2] > 0) {
+              s.step = parts[2];
+            }
+            if (s.val < s.min) s.val = s.min;
+            if (s.val > s.max) s.val = s.max;
+            this.syncSliderBounds(s);
+          }
+        }
+      });
     });
 
+    // Reset button
     const resetBtn = document.getElementById(`slider_reset_${this.pid}`);
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
         this.stopAutoSweep();
+        const updates = [];
         this.sliders.forEach(s => {
           const input = document.getElementById(`slider_input_${this.pid}_${s.id}`);
           const numInput = document.getElementById(`slider_num_${this.pid}_${s.id}`);
           const stepStr = (s.step || 0.01).toString();
           const decimals = stepStr.includes('.') ? Math.min(stepStr.split('.')[1].length, 6) : (s.step >= 1 ? 1 : 2);
           s.val = s.valinit;
+          s.direction = 1;
           if (input) input.value = s.valinit;
           if (numInput) numInput.value = Number(s.valinit).toFixed(decimals);
           this.updateBadge(s, decimals);
-          this.queueUpdate(s.id, s.valinit);
+          updates.push([s.id, s.valinit]);
         });
+        if (updates.length > 0) {
+          this.queueMultiUpdate(updates);
+        }
       });
     }
 
+    // Global Sweep button
     const sweepBtn = document.getElementById(`slider_sweep_${this.pid}`);
     if (sweepBtn) {
       sweepBtn.addEventListener("click", () => {
@@ -449,6 +583,92 @@ class PhysicsSliderController {
         }
       });
     }
+
+    // Target selector dropdown
+    const targetSelect = document.getElementById(`slider_target_${this.pid}`);
+    if (targetSelect) {
+      targetSelect.addEventListener("change", (e) => {
+        this.sweepTargetMode = e.target.value;
+        if (this.autoSweepTimer) {
+          this.startAutoSweep();
+        }
+      });
+    }
+
+    // Speed selector dropdown
+    const speedSelect = document.getElementById(`slider_speed_${this.pid}`);
+    if (speedSelect) {
+      speedSelect.addEventListener("change", (e) => {
+        this.sweepIntervalMs = parseInt(e.target.value, 10) || 70;
+        if (this.autoSweepTimer) {
+          this.startAutoSweep();
+        }
+      });
+    }
+
+    // Select All button
+    const selAllBtn = document.getElementById(`slider_sel_all_${this.pid}`);
+    if (selAllBtn) {
+      selAllBtn.addEventListener("click", () => {
+        this.sliders.forEach(s => {
+          s.selectedForSweep = true;
+          const cb = document.getElementById(`slider_cb_${this.pid}_${s.id}`);
+          if (cb) cb.checked = true;
+        });
+        if (targetSelect) targetSelect.value = "selected";
+        this.sweepTargetMode = "selected";
+        if (this.autoSweepTimer) {
+          this.startAutoSweep();
+        }
+      });
+    }
+
+    // Select None button
+    const selNoneBtn = document.getElementById(`slider_sel_none_${this.pid}`);
+    if (selNoneBtn) {
+      selNoneBtn.addEventListener("click", () => {
+        this.sliders.forEach(s => {
+          s.selectedForSweep = false;
+          const cb = document.getElementById(`slider_cb_${this.pid}_${s.id}`);
+          if (cb) cb.checked = false;
+        });
+        if (this.autoSweepTimer) {
+          this.stopAutoSweep();
+        }
+      });
+    }
+  }
+
+  syncSliderBounds(s) {
+    const input = document.getElementById(`slider_input_${this.pid}_${s.id}`);
+    const numInput = document.getElementById(`slider_num_${this.pid}_${s.id}`);
+    const minBoundEl = document.getElementById(`slider_bound_min_${this.pid}_${s.id}`);
+    const maxBoundEl = document.getElementById(`slider_bound_max_${this.pid}_${s.id}`);
+    const rangeBadge = document.getElementById(`slider_range_badge_${this.pid}_${s.id}`);
+
+    const stepStr = (s.step || 0.01).toString();
+    const decimals = stepStr.includes('.') ? Math.min(stepStr.split('.')[1].length, 6) : (s.step >= 1 ? 1 : 2);
+
+    if (input) {
+      input.min = s.min;
+      input.max = s.max;
+      input.step = s.step;
+      input.value = s.val;
+      input.title = `${s.label} Slider: [${s.min} to ${s.max}]`;
+    }
+    if (numInput) {
+      numInput.min = s.min;
+      numInput.max = s.max;
+      numInput.step = s.step;
+      numInput.value = Number(s.val).toFixed(decimals);
+    }
+    if (minBoundEl) minBoundEl.innerText = `Min: ${s.min}`;
+    if (maxBoundEl) maxBoundEl.innerText = `Max: ${s.max}`;
+    if (rangeBadge) {
+      rangeBadge.innerHTML = `Range: [${s.min} &rarr; ${s.max}], &Delta;: ${s.step} <i class="fa-solid fa-pen-to-square range-edit-icon"></i>`;
+    }
+    this.updateBadge(s, decimals);
+    this.queueUpdate(s.id, s.val);
   }
 
   updateBadge(s, decimals) {
@@ -461,9 +681,74 @@ class PhysicsSliderController {
     badge.innerHTML = `${s.label}: <strong>${Number(s.val).toFixed(decimals)}</strong>`;
   }
 
-  startAutoSweep() {
+  updateDirectionBadge(s) {
+    const dirBadge = document.getElementById(`slider_dir_${this.pid}_${s.id}`);
+    if (dirBadge) {
+      dirBadge.innerHTML = s.direction > 0 
+        ? `<i class="fa-solid fa-arrow-right" style="color: #10b981;"></i>` 
+        : `<i class="fa-solid fa-arrow-left" style="color: #f59e0b;"></i>`;
+      dirBadge.style.display = s.isSweeping ? "inline-flex" : "none";
+    }
+  }
+
+  updateRowSweepingState(s) {
+    const row = document.getElementById(`slider_row_${this.pid}_${s.id}`);
+    const rowBtn = document.getElementById(`slider_row_sweep_${this.pid}_${s.id}`);
+    if (row) {
+      if (s.isSweeping) {
+        row.classList.add("is-sweeping");
+      } else {
+        row.classList.remove("is-sweeping");
+      }
+    }
+    if (rowBtn) {
+      if (s.isSweeping) {
+        rowBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+        rowBtn.classList.add("active-sweeping");
+        rowBtn.title = `Pause auto sweep for ${s.label}`;
+      } else {
+        rowBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
+        rowBtn.classList.remove("active-sweeping");
+        rowBtn.title = `Auto sweep only ${s.label}`;
+      }
+    }
+  }
+
+  getActiveSweepSliders() {
+    if (this.sweepTargetMode === "all") {
+      return this.sliders;
+    } else if (this.sweepTargetMode === "selected") {
+      const selected = this.sliders.filter(s => s.selectedForSweep);
+      if (selected.length === 0 && this.sliders.length > 0) {
+        this.sliders[0].selectedForSweep = true;
+        const cb = document.getElementById(`slider_cb_${this.pid}_${this.sliders[0].id}`);
+        if (cb) cb.checked = true;
+        return [this.sliders[0]];
+      }
+      return selected;
+    } else {
+      const targetId = parseInt(this.sweepTargetMode, 10);
+      const target = this.sliders.find(s => s.id === targetId);
+      return target ? [target] : (this.sliders.length > 0 ? [this.sliders[0]] : []);
+    }
+  }
+
+  startAutoSweep(targetSliders = null) {
     if (this.sliders.length === 0) return;
-    const primarySlider = this.sliders[0];
+    const activeSliders = targetSliders || this.getActiveSweepSliders();
+    if (!activeSliders || activeSliders.length === 0) return;
+
+    if (this.autoSweepTimer) {
+      clearInterval(this.autoSweepTimer);
+      this.autoSweepTimer = null;
+    }
+
+    this.sliders.forEach(s => {
+      s.isSweeping = activeSliders.some(as => as.id === s.id);
+      this.updateRowSweepingState(s);
+      this.updateDirectionBadge(s);
+    });
+
     const sweepBtn = document.getElementById(`slider_sweep_${this.pid}`);
     const sweepTxt = document.getElementById(`slider_sweep_txt_${this.pid}`);
     const statusPill = document.getElementById(`slider_status_${this.pid}`);
@@ -474,34 +759,44 @@ class PhysicsSliderController {
     }
     if (sweepTxt) sweepTxt.innerText = "Pause Sweep";
     if (statusPill) {
-      statusPill.innerText = "Sweeping";
+      const names = activeSliders.map(s => s.label.split(' ')[0]).join(', ');
+      statusPill.innerText = `Sweeping (${activeSliders.length} param${activeSliders.length > 1 ? 's' : ''}: ${names})`;
       statusPill.className = "slider-status-pill sweeping";
     }
 
-    const input = document.getElementById(`slider_input_${this.pid}_${primarySlider.id}`);
-    const numInput = document.getElementById(`slider_num_${this.pid}_${primarySlider.id}`);
-    const stepStr = (primarySlider.step || 0.01).toString();
-    const decimals = stepStr.includes('.') ? Math.min(stepStr.split('.')[1].length, 6) : (primarySlider.step >= 1 ? 1 : 2);
-
     this.autoSweepTimer = setInterval(() => {
-      let cur = parseFloat(input.value);
-      let next = cur + (this.autoSweepDirection * primarySlider.step);
-      next = Math.round((next - primarySlider.min) / primarySlider.step) * primarySlider.step + primarySlider.min;
-      next = parseFloat(next.toFixed(decimals));
+      const updates = [];
+      activeSliders.forEach(s => {
+        const input = document.getElementById(`slider_input_${this.pid}_${s.id}`);
+        const numInput = document.getElementById(`slider_num_${this.pid}_${s.id}`);
+        const stepStr = (s.step || 0.01).toString();
+        const decimals = stepStr.includes('.') ? Math.min(stepStr.split('.')[1].length, 6) : (s.step >= 1 ? 1 : 2);
 
-      if (next >= primarySlider.max) {
-        next = primarySlider.max;
-        this.autoSweepDirection = -1;
-      } else if (next <= primarySlider.min) {
-        next = primarySlider.min;
-        this.autoSweepDirection = 1;
+        let cur = parseFloat(s.val !== undefined ? s.val : (input ? input.value : s.min));
+        let next = cur + (s.direction * s.step);
+        next = Math.round((next - s.min) / s.step) * s.step + s.min;
+        next = parseFloat(next.toFixed(decimals));
+
+        if (next >= s.max) {
+          next = s.max;
+          s.direction = -1;
+        } else if (next <= s.min) {
+          next = s.min;
+          s.direction = 1;
+        }
+
+        s.val = next;
+        if (input) input.value = next;
+        if (numInput) numInput.value = Number(next).toFixed(decimals);
+        this.updateBadge(s, decimals);
+        this.updateDirectionBadge(s);
+        updates.push([s.id, next]);
+      });
+
+      if (updates.length > 0) {
+        this.queueMultiUpdate(updates);
       }
-      input.value = next;
-      if (numInput) numInput.value = Number(next).toFixed(decimals);
-      primarySlider.val = next;
-      this.updateBadge(primarySlider, decimals);
-      this.queueUpdate(primarySlider.id, next);
-    }, 70);
+    }, this.sweepIntervalMs);
   }
 
   stopAutoSweep() {
@@ -509,6 +804,12 @@ class PhysicsSliderController {
       clearInterval(this.autoSweepTimer);
       this.autoSweepTimer = null;
     }
+    this.sliders.forEach(s => {
+      s.isSweeping = false;
+      this.updateRowSweepingState(s);
+      this.updateDirectionBadge(s);
+    });
+
     const sweepBtn = document.getElementById(`slider_sweep_${this.pid}`);
     const sweepTxt = document.getElementById(`slider_sweep_txt_${this.pid}`);
     const statusPill = document.getElementById(`slider_status_${this.pid}`);
@@ -518,22 +819,54 @@ class PhysicsSliderController {
       sweepBtn.classList.add("btn-secondary");
     }
     if (sweepTxt) sweepTxt.innerText = "Auto Sweep";
-    if (statusPill && statusPill.innerText === "Sweeping") {
+    if (statusPill && statusPill.innerText.startsWith("Sweeping")) {
       statusPill.innerText = "Active";
       statusPill.className = "slider-status-pill";
     }
   }
 
+  toggleSingleSliderSweep(sliderId) {
+    const s = this.sliders.find(item => item.id === sliderId);
+    if (!s) return;
+
+    if (s.isSweeping && this.autoSweepTimer) {
+      s.isSweeping = false;
+      this.updateRowSweepingState(s);
+      this.updateDirectionBadge(s);
+      const remaining = this.sliders.filter(item => item.isSweeping);
+      if (remaining.length === 0) {
+        this.stopAutoSweep();
+      } else {
+        this.startAutoSweep(remaining);
+      }
+    } else {
+      s.selectedForSweep = true;
+      const cb = document.getElementById(`slider_cb_${this.pid}_${s.id}`);
+      if (cb) cb.checked = true;
+
+      const targetSelect = document.getElementById(`slider_target_${this.pid}`);
+      if (targetSelect) targetSelect.value = String(s.id);
+      this.sweepTargetMode = String(s.id);
+
+      this.startAutoSweep([s]);
+    }
+  }
+
+  queueMultiUpdate(updates) {
+    this.pendingMultiUpdate = updates;
+    this.processQueue();
+  }
+
   queueUpdate(sliderId, val) {
-    this.pendingUpdate = { id: sliderId, val: val };
+    this.pendingMultiUpdate = [[sliderId, val]];
     this.processQueue();
   }
 
   async processQueue() {
-    if (this.isUpdating || !this.pendingUpdate) return;
+    if (this.isUpdating || !this.pendingMultiUpdate) return;
     this.isUpdating = true;
-    const target = this.pendingUpdate;
-    this.pendingUpdate = null;
+    const targetUpdates = this.pendingMultiUpdate;
+    this.pendingMultiUpdate = null;
 
     const statusPill = document.getElementById(`slider_status_${this.pid}`);
     if (statusPill && !this.autoSweepTimer) {
@@ -542,7 +875,13 @@ class PhysicsSliderController {
     }
 
     try {
-      const b64 = await this.runner.updateSlider(target.id, target.val);
+      let b64 = null;
+      if (targetUpdates.length === 1) {
+        b64 = await this.runner.updateSlider(targetUpdates[0][0], targetUpdates[0][1]);
+      } else {
+        b64 = await this.runner.updateMultipleSliders(targetUpdates);
+      }
+
       if (b64) {
         this.currentImageB64 = b64;
         const img = document.getElementById(`slider_plot_img_${this.pid}`);
@@ -562,7 +901,7 @@ class PhysicsSliderController {
       }
     } finally {
       this.isUpdating = false;
-      if (this.pendingUpdate) {
+      if (this.pendingMultiUpdate) {
         this.processQueue();
       }
     }
@@ -608,6 +947,18 @@ class PhysicsPyodideRunner {
       return res || null;
     } catch (err) {
       console.error("Pyodide updateSlider error:", err);
+      return null;
+    }
+  }
+
+  async updateMultipleSliders(updates) {
+    if (!this.pyodide || !this.isReady || !updates || !updates.length) return null;
+    try {
+      const jsonStr = JSON.stringify(updates);
+      const res = await this.pyodide.runPythonAsync(`_update_multiple_sliders(${JSON.stringify(jsonStr)})`);
+      return res || null;
+    } catch (err) {
+      console.error("Pyodide updateMultipleSliders error:", err);
       return null;
     }
   }
@@ -744,9 +1095,17 @@ def _get_slider_metadata():
                 s_max = s.slidermax.val if hasattr(s.slidermax, 'val') else s.slidermax
                 if s_max is not None:
                     valmax = min(valmax, float(s_max))
+            
+            # Ensure valid bounds
+            if valmin > valmax:
+                valmin, valmax = valmax, valmin
+            elif valmin == valmax:
+                valmax = valmin + 1.0
                     
             val = float(s.val) if hasattr(s, 'val') and s.val is not None else valmin
             valinit = float(s.valinit) if hasattr(s, 'valinit') and s.valinit is not None else val
+            val = max(valmin, min(valmax, val))
+            valinit = max(valmin, min(valmax, valinit))
             
             # Handle valstep accurately: float or array-like
             valstep = None
@@ -759,7 +1118,7 @@ def _get_slider_metadata():
                     except Exception:
                         valstep = None
                         
-            step = valstep if valstep is not None else (abs(valmax - valmin) / 100.0 or 0.01)
+            step = valstep if (valstep is not None and valstep > 0) else (abs(valmax - valmin) / 100.0 or 0.01)
             
             meta.append({
                 "id": idx,
@@ -794,6 +1153,37 @@ def _update_slider_val(idx, val):
         fig = plt.gcf()
     buf = BytesIO()
     fig.savefig(buf, format="png", bbox_inches='tight', dpi=130)
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode("ascii")
+
+def _update_multiple_sliders(updates_json):
+    import json, base64
+    from io import BytesIO
+    import matplotlib.pyplot as plt
+    try:
+        updates = json.loads(updates_json)
+    except Exception:
+        return ""
+    if not updates:
+        return ""
+    target_fig = None
+    for item in updates:
+        try:
+            idx = int(item[0])
+            val = float(item[1])
+            if 0 <= idx < len(_registered_sliders):
+                slider = _registered_sliders[idx]
+                slider.set_val(val)
+                if target_fig is None and hasattr(slider, 'ax') and hasattr(slider.ax, 'figure'):
+                    target_fig = slider.ax.figure
+        except Exception as e:
+            import sys
+            print(f"[Multi Slider Callback Error]: {e}", file=sys.stderr)
+            
+    if target_fig is None:
+        target_fig = plt.gcf()
+    buf = BytesIO()
+    target_fig.savefig(buf, format="png", bbox_inches='tight', dpi=130)
     buf.seek(0)
     return base64.b64encode(buf.read()).decode("ascii")
 
