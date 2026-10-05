@@ -515,6 +515,76 @@ code, pre, kbd, samp {
   flex-shrink: 0;
 }
 
+/* Stylish Modern Classic v1 Archive Badge Link */
+.btn-classic-archive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.72rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.btn-classic-archive:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+}
+
+.btn-classic-archive i.fa-clock-rotate-left {
+  color: #f59e0b;
+  font-size: 0.84rem;
+  transition: transform 0.4s ease;
+}
+
+.btn-classic-archive:hover i.fa-clock-rotate-left {
+  transform: rotate(-360deg);
+}
+
+.btn-classic-archive .classic-external-icon {
+  font-size: 0.62rem;
+  opacity: 0.65;
+  margin-left: 1px;
+}
+
+[data-theme="light"] .btn-classic-archive {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .btn-classic-archive:hover {
+  background: rgba(217, 119, 6, 0.08);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: #b45309;
+}
+
+@media (max-width: 992px) {
+  .btn-classic-archive .classic-text,
+  .btn-classic-archive .classic-external-icon {
+    display: none;
+  }
+  .btn-classic-archive {
+    padding: 0.4rem 0.55rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .btn-classic-archive {
+    display: none;
+  }
+}
+
 /* Quick Search Trigger in Navbar */
 .nav-search-btn {
   display: flex;

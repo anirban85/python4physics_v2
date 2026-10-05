@@ -35,6 +35,12 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
 
             <!-- Nav Actions: Search & Theme Toggle -->
             <div class="nav-actions">
+                <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" class="btn-classic-archive" title="Visit Python4Physics Classic (v1.0) Archive">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span class="classic-text">Classic v1</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square classic-external-icon"></i>
+                </a>
+
                 <button type="button" class="nav-search-btn trigger-global-search" aria-label="Search Programs">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <span>Search Physics Index</span>
@@ -77,6 +83,13 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
             <li><a href="<?php echo $siteurl; ?>arduino.php" class="nav-link-item"><i class="fa-solid fa-microchip fa-fw"></i> Arduino Physics Lab</a></li>
             <li><a href="<?php echo $siteurl; ?>feedback.php" class="nav-link-item"><i class="fa-regular fa-comment-dots fa-fw"></i> Submit Feedback</a></li>
             <li><a href="<?php echo $siteurl; ?>contact.php" class="nav-link-item"><i class="fa-solid fa-user-graduate fa-fw"></i> Faculty & Contact</a></li>
+            <li>
+                <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" class="nav-link-item" style="border: 1px dashed rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08); margin-top: 0.25rem;">
+                    <i class="fa-solid fa-clock-rotate-left fa-fw" style="color: #f59e0b;"></i>
+                    <span>Classic Portal (v1.0 Archive)</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left: auto; font-size: 0.75rem; color: #f59e0b;"></i>
+                </a>
+            </li>
         </ul>
     </div>
 </header>

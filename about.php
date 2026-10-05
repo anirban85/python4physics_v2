@@ -39,6 +39,9 @@ require_once __DIR__ . '/include/navbar.php';
         <p>
             Founded in West Bengal, India, <strong>Python4Physics</strong> (accessible at <a href="<?php echo $siteurl; ?>">python4physics.in</a>) provides free, ad-supported, and open-access educational material. The portal hosts <strong>over 500+ verified computational physics programs, numerical solvers, GNUplot visual scripts, and LaTeX research templates</strong>. Our curriculum is tailored specifically for Bachelor of Science (B.Sc.) Honours, Master of Science (M.Sc.), and integrated research scholars in Physics and Applied Mathematics.
         </p>
+        <p>
+            The original collegiate release of the platform remains permanently preserved for reference at our <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Python4Physics Classic v1 Archive <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i></a>, while this modernized architecture delivers instantaneous in-browser WebAssembly execution, parameter exploration, and responsive scientific typography.
+        </p>
     </div>
 
     <!-- Faculty & Editorial Leadership -->

@@ -18,12 +18,15 @@ if (!isset($siteurl)) {
                 <p style="font-size: 0.92rem; max-width: 380px; line-height: 1.6;">
                     An open, globally accessible computational physics portal for undergraduate and postgraduate students, researchers, and educators worldwide.
                 </p>
-                <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
                     <a href="https://github.com/anirbanshaw/python4physics" target="_blank" rel="noopener" class="btn-modern btn-secondary btn-sm" aria-label="GitHub Repository">
                         <i class="fa-brands fa-github"></i> GitHub
                     </a>
+                    <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" class="btn-modern btn-secondary btn-sm" title="Explore Python4Physics Classic (v1.0) Archive">
+                        <i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i> Classic v1
+                    </a>
                     <a href="<?php echo $siteurl; ?>api/docs.php" class="btn-modern btn-secondary btn-sm">
-                        <i class="fa-solid fa-code"></i> Developer API
+                        <i class="fa-solid fa-code"></i> API Docs
                     </a>
                 </div>
             </div>
@@ -53,6 +56,7 @@ if (!isset($siteurl)) {
                     <li><a href="<?php echo $siteurl; ?>privacy.php">Privacy Policy</a></li>
                     <li><a href="<?php echo $siteurl; ?>terms.php">Terms of Service</a></li>
                     <li><a href="<?php echo $siteurl; ?>disclaimer.php">Disclaimer</a></li>
+                    <li><a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b;"><i class="fa-solid fa-clock-rotate-left" style="font-size: 0.78rem; margin-right: 4px;"></i> Classic v1 Archive <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i></a></li>
                     <li><a href="<?php echo $siteurl; ?>admin/index.php"><i class="fa-solid fa-lock" style="font-size: 0.75rem;"></i> Admin Portal</a></li>
                 </ul>
             </div>
@@ -80,6 +84,7 @@ if (!isset($siteurl)) {
                 <a href="<?php echo $siteurl; ?>privacy.php">Privacy Policy</a>
                 <a href="<?php echo $siteurl; ?>terms.php">Terms</a>
                 <a href="<?php echo $siteurl; ?>disclaimer.php">Disclaimer</a>
+                <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b;"><i class="fa-solid fa-clock-rotate-left" style="font-size: 0.8rem; margin-right: 3px;"></i> Classic v1</a>
                 <a href="<?php echo $siteurl; ?>contact.php">Contact</a>
                 <a href="<?php echo $siteurl; ?>api/docs.php">REST API</a>
             </div>
