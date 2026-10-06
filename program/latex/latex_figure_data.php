@@ -153,7 +153,7 @@ For a simple pendulum of length $l$ undergoing arbitrary angular excursions $\th
     \ddot{\theta} + \frac{g}{l}\sin\theta = 0
 \end{equation}
 
-When documenting figures alongside marginal notes or side annotations, left-aligned placement is achieved using <code>\raggedright</code>:
+When documenting figures alongside marginal notes or side annotations, left-aligned placement is achieved using \texttt{\textbackslash raggedright}:
 
 \begin{figure}[htbp]
     \raggedright
@@ -534,7 +534,7 @@ Taking rotational torques about the center of mass: $\tau = f_s R = I_{\text{cm}
 
 \section{Tensor Transformations: Rotated Figure Orientation}
 
-In Minkowski spacetime with metric $\eta_{\mu\nu} = \text{diag}(1, -1, -1, -1)$, an orthogonal rotation or coordinate boost transforms tensor field components. When embedding wide schematic diagrams, the <code>angle</code> option in <code>\includegraphics</code> performs exact rotation:
+In Minkowski spacetime with metric $\eta_{\mu\nu} = \text{diag}(1, -1, -1, -1)$, an orthogonal rotation or coordinate boost transforms tensor field components. When embedding wide schematic diagrams, the \texttt{angle} option in \texttt{\textbackslash includegraphics} performs exact rotation:
 
 \begin{figure}[htbp]
     \centering
@@ -569,17 +569,17 @@ preserving the gauge invariants $I_1 = -\frac{1}{2}F_{\mu\nu}F^{\mu\nu} = \mathb
 
 \section{Optical Interferometry: Bounding Box Cropping}
 
-When working with laboratory images, unwanted margins can be trimmed directly in LaTeX using the <code>trim</code> and <code>clip</code> options without modifying the source file:
+When working with laboratory images, unwanted margins can be trimmed directly in LaTeX using the \texttt{trim} and \texttt{clip} options without modifying the source file:
 
 \begin{figure}[htbp]
     \centering
-    % Syntax: trim = <left> <bottom> <right> <top>
+    % Syntax: trim = left bottom right top
     \includegraphics[trim=20 30 20 30, clip, width=0.6\textwidth, keepaspectratio]{optics_rings.png}
     \caption{Cropped view isolating central optical path interference geometry.}
     \label{fig:cropped_rings}
 \end{figure}
 
-The <code>trim = <left> <bottom> <right> <top></code> option removes the specified dimensions from each edge, while <code>clip</code> enforces strict clipping to the designated bounding box.
+The \texttt{trim} option removes the specified dimensions from each edge, while \texttt{clip} enforces strict clipping to the designated bounding box.
 
 \end{document}',
             'algo' => '<ul>
@@ -608,7 +608,7 @@ The <code>trim = <left> <bottom> <right> <top></code> option removes the specifi
 \maketitle
 
 \section{Introduction}
-Two-column layouts are the standard formatting standard for physics journal articles (e.g., Physical Review, Applied Physics Letters). Normal figures are restricted to a single column width ($0.48\textwidth$). However, complex experimental diagrams often require spanning both columns across the full page width.
+Two-column layouts are the standard formatting standard for physics journal articles (e.g., Physical Review, Applied Physics Letters). Normal figures are restricted to a single column width. However, complex experimental diagrams often require spanning both columns across the full page width.
 
 \begin{figure*}[t]
     \centering
@@ -618,7 +618,7 @@ Two-column layouts are the standard formatting standard for physics journal arti
 \end{figure*}
 
 \section{Interference Theory}
-By replacing <code>\begin{figure}</code> with the starred float <code>\begin{figure*}</code>, the figure container expands across the full text width ($\textwidth$) rather than the single column width ($\columnwidth$).
+By replacing the standard figure environment with the starred float \texttt{figure*}, the figure container expands across the full text width rather than the single column width.
 
 The central dark spot formed under reflection confirms a relative phase change of $\pi$ radians at the glass-air boundary:
 \begin{equation}
