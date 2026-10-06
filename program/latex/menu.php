@@ -51,7 +51,12 @@ $sub_menu_titles = [
     '8' => [
         1 => 'Inserting Figures',
         2 => 'Figure Alignment',
-        3 => 'Figure Captions'
+        3 => 'Figure Captions',
+        4 => 'Side-by-Side Subfigures',
+        5 => 'Minipage Layouts',
+        6 => 'Wrapping Text Around Figures',
+        7 => 'Scaling, Rotating & Trimming',
+        8 => 'Two-Column Wide Figures'
     ],
     '9' => [
         1 => 'Basic Bibliography',
@@ -103,7 +108,12 @@ $menu = [
     '8' => [
         'inserting_figures' => 1,
         'figure_alignment' => 2,
-        'figure_captions' => 3
+        'figure_captions' => 3,
+        'side_by_side_subfigures' => 4,
+        'minipage_layouts' => 5,
+        'wrapping_text_around_figures' => 6,
+        'scaling_rotating_trimming' => 7,
+        'two_column_wide_figures' => 8
     ],
     '9' => [
         'basic_bibliography' => 1,

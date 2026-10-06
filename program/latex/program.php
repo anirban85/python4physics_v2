@@ -29,6 +29,24 @@ if (isset($conn) && $conn !== null) {
     }
 }
 
+// Resilient Fallback for Figure Module (menu_id = 8) if database query returned empty
+if (empty($programs) && $menu_id == 8) {
+    require_once __DIR__ . '/latex_figure_data.php';
+    $allFigData = get_latex_figure_data();
+    $mockId = 1000 + ($menu_id * 100) + ($submenu_id * 10);
+    foreach ($allFigData as $fitem) {
+        if ($fitem['menu_id'] == $menu_id && $fitem['submenu_id'] == $submenu_id) {
+            $programs[] = [
+                'id' => $mockId++,
+                'program_id' => $fitem['program_id'],
+                'content' => $fitem['content'],
+                'algo' => $fitem['algo'],
+                'explanation' => $fitem['explanation']
+            ];
+        }
+    }
+}
+
 require_once __DIR__ . '/../../include/header.php';
 require_once __DIR__ . '/../../include/navbar.php';
 ?>
@@ -256,6 +274,30 @@ function toggleLatexSidebar() {
     }, 300);
 }
 
+function replaceBalancedLatex(text, cmdPattern, openHtml, closeHtml) {
+    var regex = new RegExp('\\\\' + cmdPattern + '(?:\\s*\\[[^\\]]*\\])?\\s*\\{', 'g');
+    var res = '';
+    var lastIdx = 0;
+    var m;
+    while ((m = regex.exec(text)) !== null) {
+        res += text.substring(lastIdx, m.index);
+        var start = m.index + m[0].length;
+        var depth = 1;
+        var i = start;
+        while (i < text.length && depth > 0) {
+            if (text[i] === '{') depth++;
+            else if (text[i] === '}') depth--;
+            i++;
+        }
+        var inner = text.substring(start, i - 1);
+        res += openHtml + inner + closeHtml;
+        lastIdx = i;
+        regex.lastIndex = i;
+    }
+    res += text.substring(lastIdx);
+    return res;
+}
+
 function renderLatexPreview(pid) {
     var editor = latexEditors[pid];
     var code = editor ? editor.getValue() : document.getElementById('latex_code_' + pid).value;
@@ -265,40 +307,67 @@ function renderLatexPreview(pid) {
     var bodyMatch = code.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
     var content = bodyMatch ? bodyMatch[1] : code;
 
-    // 1. Process Figures & Graphics
-    // Replace \begin{subfigure}{...} ... \end{subfigure} with responsive flex item
-    content = content.replace(/\\begin\{subfigure\}\{[^}]*\}([\s\S]*?)\\end\{subfigure\}/g, function(match, inner) {
-        return '<div class="latex-subfigure" style="flex: 1 1 45%; min-width: 200px; text-align: center; margin: 0.5rem;">' + inner + '</div>';
+    // 1. Structural Cleanups
+    content = content
+        .replace(/\\title\{[^}]*\}/g, '')
+        .replace(/\\author\{[^}]*\}/g, '')
+        .replace(/\\date\{[^}]*\}/g, '')
+        .replace(/\\maketitle/g, '')
+        .replace(/\\noindent/g, '')
+        .replace(/\\centering/g, '')
+        .replace(/\\raggedright/g, '')
+        .replace(/\\raggedleft/g, '')
+        .replace(/\\hfill/g, '')
+        .replace(/\\label\{[^}]+\}/g, '');
+
+    // 2. Process Subfigures (\begin{subfigure}[pos]{width} ... \end{subfigure})
+    content = content.replace(/\\begin\{subfigure\}(?:\[[^\]]*\])?\{[^}]*\}([\s\S]*?)\\end\{subfigure\}/g, function(match, inner) {
+        return '<div class="latex-subfigure" style="flex: 1 1 45%; min-width: 220px; text-align: center; margin: 0.5rem; padding: 0.5rem; border: 1px dashed var(--card-border); border-radius: 6px; background: rgba(255,255,255,0.02);">' + inner + '</div>';
     });
 
-    // Replace \includegraphics[...]{filename} with responsive HTML <img>
+    // 3. Process Wrapped Figures (\begin{wrapfigure}{placement}{width} ... \end{wrapfigure})
+    content = content.replace(/\\begin\{wrapfigure\}(?:\[[^\]]*\])?\{([a-zA-Z])\}\{[^}]*\}/g, function(match, place) {
+        var floatSide = (place.toLowerCase() === 'l') ? 'left' : 'right';
+        var marginStyle = (floatSide === 'left') ? 'margin: 0.5rem 1.25rem 1rem 0;' : 'margin: 0.5rem 0 1rem 1.25rem;';
+        return '<div class="latex-wrapfigure" style="float: ' + floatSide + '; ' + marginStyle + ' max-width: 46%; border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 8px; background: rgba(0,0,0,0.25); text-align: center;">';
+    });
+    content = content.replace(/\\end\{wrapfigure\}/g, '</div>');
+
+    // 4. Process Minipages (\begin{minipage}[pos]{width} ... \end{minipage})
+    content = content.replace(/\\begin\{minipage\}(?:\[[^\]]*\])?\{[^}]*\}/g, '<div class="latex-minipage" style="display: inline-block; vertical-align: top; width: 48%; margin: 0.5%; box-sizing: border-box; text-align: left;">');
+    content = content.replace(/\\end\{minipage\}/g, '</div>');
+
+    // 5. Replace \includegraphics[...]{filename} with responsive HTML <img>
     content = content.replace(/\\includegraphics(?:\s*\[[^\]]*\])?\s*\{([^}]+)\}/g, function(match, imgPath) {
         var src = imgPath.trim();
         if (!src.startsWith('http://') && !src.startsWith('https://')) {
             var baseUrl = (typeof window.p4p_siteurl !== 'undefined' ? window.p4p_siteurl : '../../');
             src = baseUrl + 'program/latex/' + src;
         }
-        return '<div style="text-align: center; margin: 0.75rem auto;"><img src="' + src + '" alt="LaTeX Diagram" style="max-width: 80%; height: auto; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: inline-block;"></div>';
+        return '<div style="text-align: center; margin: 0.75rem auto;"><img src="' + src + '" alt="LaTeX Diagram" style="max-width: 85%; height: auto; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: inline-block;"></div>';
     });
 
-    // Replace \begin{figure}[...] with container, and \caption with <figcaption>
-    content = content
-        .replace(/\\begin\{figure\}(?:\[[^\]]*\])?/g, '<figure class="latex-figure-container" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 1.5rem auto; padding: 1rem; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--card-border); border-radius: 8px;">')
-        .replace(/\\end\{figure\}/g, '</figure>')
-        .replace(/\\centering/g, '')
-        .replace(/\\hfill/g, '')
-        .replace(/\\label\{[^}]+\}/g, '')
-        .replace(/\\caption\{([^}]+)\}/g, '<figcaption style="width: 100%; text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 0.65rem; font-style: italic;"><strong>Figure:</strong> $1</figcaption>');
+    // 6. Balanced Replacements for Captions (handles nested braces in math equations)
+    content = replaceBalancedLatex(content, 'captionof\\{figure\\}', '<figcaption style="width: 100%; text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic;"><strong>Figure:</strong> ', '</figcaption>');
+    content = replaceBalancedLatex(content, 'caption', '<figcaption style="width: 100%; text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 0.65rem; font-style: italic;"><strong>Figure:</strong> ', '</figcaption>');
 
-    // 2. Headings, Sections & Text Formatting
+    // 7. Replace \begin{figure} and \begin{figure*}
     content = content
-        .replace(/\\maketitle/g, '')
-        .replace(/\\section\*?\{([^}]+)\}/g, '<h3 style="color: var(--accent); margin: 1.25rem 0 0.5rem 0; font-size: 1.3rem;">$1</h3>')
-        .replace(/\\subsection\*?\{([^}]+)\}/g, '<h4 style="color: var(--text); margin: 1rem 0 0.35rem 0; font-size: 1.1rem;">$1</h4>')
-        .replace(/\\subsubsection\*?\{([^}]+)\}/g, '<h5 style="color: var(--primary); margin: 0.75rem 0 0.25rem 0;">$1</h5>')
-        .replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>')
-        .replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>')
-        .replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>')
+        .replace(/\\begin\{figure\*?\}(?:\[[^\]]*\])?/g, '<figure class="latex-figure-container" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 1.5rem auto; padding: 1rem; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--card-border); border-radius: 8px;">')
+        .replace(/\\end\{figure\*?\}/g, '</figure>');
+
+    // 8. Headings, Sections & Text Formatting with Balanced Braces
+    content = replaceBalancedLatex(content, 'section\\*?', '<h3 style="color: var(--accent); margin: 1.25rem 0 0.5rem 0; font-size: 1.3rem;">', '</h3>');
+    content = replaceBalancedLatex(content, 'subsection\\*?', '<h4 style="color: var(--text); margin: 1rem 0 0.35rem 0; font-size: 1.1rem;">', '</h4>');
+    content = replaceBalancedLatex(content, 'subsubsection\\*?', '<h5 style="color: var(--primary); margin: 0.75rem 0 0.25rem 0;">', '</h5>');
+    content = replaceBalancedLatex(content, 'textbf', '<strong>', '</strong>');
+    content = replaceBalancedLatex(content, 'textit', '<em>', '</em>');
+    content = replaceBalancedLatex(content, 'underline', '<u>', '</u>');
+
+    // 9. Equations, Cross-References & Environments
+    content = content
+        .replace(/~/g, '&nbsp;')
+        .replace(/\\ref\{([^}]+)\}/g, '<span class="badge badge-blue" style="font-size: 0.75rem; padding: 0.15rem 0.45rem; font-family: var(--font-mono); font-weight: 500;">$1</span>')
         .replace(/\\newpage/g, '<hr style="border: 0; border-top: 1px dashed var(--card-border); margin: 1.5rem 0;">')
         .replace(/\\begin\{equation\*?\}/g, '$$')
         .replace(/\\end\{equation\*?\}/g, '$$')

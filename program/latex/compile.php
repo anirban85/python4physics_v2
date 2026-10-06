@@ -68,10 +68,18 @@ if (preg_match_all('/\\\\includegraphics(?:\s*\[[^\]]*\])?\s*\{([^}]+)\}/i', $co
         ];
 
         $foundPath = null;
+        $resolvedName = $cleanName;
         foreach ($candidatePaths as $p) {
-            if (file_exists($p)) {
+            if (file_exists($p) && is_file($p)) {
                 $foundPath = realpath($p);
                 break;
+            }
+            foreach (['.png', '.jpg', '.jpeg', '.pdf'] as $ext) {
+                if (file_exists($p . $ext) && is_file($p . $ext)) {
+                    $foundPath = realpath($p . $ext);
+                    $resolvedName = $cleanName . $ext;
+                    break 2;
+                }
             }
         }
 
@@ -87,6 +95,9 @@ if (preg_match_all('/\\\\includegraphics(?:\s*\[[^\]]*\])?\s*\{([^}]+)\}/i', $co
 
         if ($foundPath && file_exists($foundPath)) {
             $imagesToInclude[$cleanName] = $foundPath;
+            if ($resolvedName !== $cleanName) {
+                $imagesToInclude[$resolvedName] = $foundPath;
+            }
         }
     }
 }
