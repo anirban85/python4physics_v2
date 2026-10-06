@@ -210,6 +210,20 @@ code, pre, kbd, samp {
   z-index: 1;
 }
 
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-fluid {
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+}
+
 /* Scientific Laboratory Module Cards (High Legibility, Precision Borders) */
 .glass-card {
   background: var(--card-bg);
@@ -220,6 +234,18 @@ code, pre, kbd, samp {
   transition: var(--transition);
   position: relative;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .glass-card {
+    padding: 0.85rem 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 0.65rem 0.45rem;
+  }
 }
 
 .glass-card:hover {

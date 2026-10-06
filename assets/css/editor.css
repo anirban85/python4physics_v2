@@ -1015,3 +1015,162 @@
   }
 }
 
+/* ==========================================================================
+   Mobile-Only Optimization: Maximize Code Editor & Output Width
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Eliminate outer wasted padding on mobile */
+  .container-fluid {
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
+  }
+
+  .workbench-layout {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .workbench-layout main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Compact glass card borders & padding to expand code editor area */
+  .glass-card {
+    padding: 0.65rem 0.45rem !important;
+    border-radius: var(--radius-sm) !important;
+    margin-bottom: 1.25rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Expand workspace panes to edge-to-edge available width */
+  .workspace-container {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 1.25rem !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .workspace-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Editor Header & Title */
+  .editor-header {
+    padding: 0.45rem 0.5rem !important;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+    width: 100% !important;
+  }
+
+  .editor-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+  }
+
+  /* CodeMirror mobile typography and line length optimization */
+  .CodeMirror {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .CodeMirror-lines {
+    padding: 4px 0 !important;
+  }
+
+  .CodeMirror pre.CodeMirror-line {
+    padding: 0 4px !important;
+  }
+
+  .CodeMirror-gutters {
+    width: auto !important;
+    left: 0 !important;
+    padding-right: 3px !important;
+  }
+
+  /* Output Panels, Console, Plots & LaTeX Preview */
+  .tabs-header {
+    padding-bottom: 0.35rem !important;
+    margin-bottom: 0.5rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .tab-btn {
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .tab-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .console-output,
+  .terminal-output {
+    font-size: 12.5px !important;
+    padding: 0.65rem 0.5rem !important;
+    line-height: 1.45 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .plots-container {
+    width: 100% !important;
+    padding: 0.5rem 0.25rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .plots-container img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .theory-card {
+    padding: 0.65rem 0.5rem !important;
+    font-size: 0.9rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Action Buttons bar */
+  .btn-modern {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-fluid {
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+
+  .glass-card {
+    padding: 0.5rem 0.3rem !important;
+  }
+
+  .CodeMirror {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+  }
+
+  .editor-header {
+    padding: 0.35rem 0.4rem !important;
+  }
+}
+
+
