@@ -160,37 +160,81 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     <!-- Favicon -->
     <link rel="icon" href="<?php echo $siteurl; ?>program/python/python.ico" type="image/x-icon">
 
-    <!-- Google Fonts -->
+    <!-- Early DNS Prefetch & Preconnect for High-Speed Connection Setup -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com">
 
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Font Preload to Eliminate Font Display Delay -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
 
-    <!-- KaTeX for Superfast Mathematical Equations -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <!-- Google Fonts (Non-Render-Blocking Asynchronous Load) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap">
+    </noscript>
+
+    <!-- Font Awesome 6 (Non-Render-Blocking Asynchronous Load) -->
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    </noscript>
+
+    <!-- KaTeX for Superfast Mathematical Equations (Non-Render-Blocking) -->
+    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    </noscript>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-    <!-- CodeMirror 5 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/stex/stex.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+    <!-- CodeMirror 5 (Non-Render-Blocking Styles & Deferred Modular Execution) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    </noscript>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <?php if (strpos($_SERVER['REQUEST_URI'] ?? '', 'latex') !== false || isset($page_needs_stex)): ?>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/stex/stex.min.js"></script>
+    <?php endif; ?>
+    <?php if (strpos($_SERVER['REQUEST_URI'] ?? '', 'gnuplot') !== false || isset($page_needs_shell)): ?>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+    <?php endif; ?>
 
     <!-- Global Application Styles -->
     <link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/main.css?v=<?php echo file_exists(__DIR__ . '/../assets/css/main.css') ? filemtime(__DIR__ . '/../assets/css/main.css') : '1.0'; ?>">
-    <link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/editor.css?v=<?php echo file_exists(__DIR__ . '/../assets/css/editor.css') ? filemtime(__DIR__ . '/../assets/css/editor.css') : '1.0'; ?>">
+    <link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/editor.css?v=<?php echo file_exists(__DIR__ . '/../assets/css/editor.css') ? filemtime(__DIR__ . '/../assets/css/editor.css') : '1.0'; ?>" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/editor.css?v=<?php echo file_exists(__DIR__ . '/../assets/css/editor.css') ? filemtime(__DIR__ . '/../assets/css/editor.css') : '1.0'; ?>">
+    </noscript>
 
     <!-- Global Site Config JS Variable -->
     <script>
         window.p4p_siteurl = "<?php echo $siteurl; ?>";
     </script>
-    <!-- Early Theme Applier (prevents theme flicker) -->
-    <script src="<?php echo $siteurl; ?>assets/js/theme.js?v=<?php echo file_exists(__DIR__ . '/../assets/js/theme.js') ? filemtime(__DIR__ . '/../assets/js/theme.js') : '1.1'; ?>"></script>
+    <!-- Early Instant Theme Applier (Zero Flicker, Non-Blocking) -->
+    <script>
+      (function(){
+        try {
+          var t = localStorage.getItem('p4p_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', t);
+        } catch(e) {}
+      })();
+    </script>
+    <script defer src="<?php echo $siteurl; ?>assets/js/theme.min.js?v=<?php echo file_exists(__DIR__ . '/../assets/js/theme.min.js') ? filemtime(__DIR__ . '/../assets/js/theme.min.js') : (file_exists(__DIR__ . '/../assets/js/theme.js') ? filemtime(__DIR__ . '/../assets/js/theme.js') : '1.1'); ?>"></script>
 
     <!-- Global Physics Telemetry & Analytics Event Tracker -->
     <script>

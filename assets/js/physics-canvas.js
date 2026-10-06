@@ -4,6 +4,7 @@
  * - Modes: Keplerian Gravity (1/r), Harmonic Oscillator (r²), and Electromagnetic Dipole
  * - Symplectic Velocity-Verlet Numerical Integration (Energy & Phase-Space Conserving)
  * - Interactive Field Mode Switching, Dynamic Perturbations & Real-Time Telemetry
+ * - High-Performance: IntersectionObserver auto-pause, cached theme, and zero-jank frame capping
  */
 (function () {
   const canvas = document.getElementById('physicsHeroCanvas');
@@ -13,6 +14,9 @@
   let width, height;
   let cx, cy;
   let animationId = null;
+  let isRunning = false;
+  let isVisible = true;
+  let lastFrameTime = 0;
 
   // Active Simulation Field Mode: 'kepler' | 'harmonic' | 'dipole'
   let currentMode = 'kepler';
@@ -34,12 +38,15 @@
     active: false
   };
 
-  function getTheme() {
-    return document.documentElement.getAttribute('data-theme') || 'dark';
-  }
+  // Cached Theme to Eliminate Repeated DOM Queries
+  let isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  window.addEventListener('p4p_theme_change', (e) => {
+    isDark = e.detail && e.detail.theme ? e.detail.theme !== 'light' : document.documentElement.getAttribute('data-theme') !== 'light';
+  });
 
   function resize() {
     const parent = canvas.parentElement;
+    if (!parent) return;
     width = canvas.width = parent.offsetWidth;
     height = canvas.height = parent.offsetHeight;
     cx = width / 2;
@@ -53,7 +60,7 @@
       this.e = eccentricity;
       this.color = color;
       this.history = [];
-      this.maxHistory = 65;
+      this.maxHistory = 45;
       this.reset(inclinationPhase);
     }
 
@@ -61,7 +68,6 @@
       const theta = initialAngle !== undefined ? initialAngle : Math.random() * Math.PI * 2;
 
       if (currentMode === 'kepler') {
-        // Vis-viva equation: v^2 = GM * (2/r - 1/a)
         const r = (this.a * (1 - this.e * this.e)) / (1 + this.e * Math.cos(theta));
         this.x = cx + r * Math.cos(theta);
         this.y = cy + r * Math.sin(theta);
@@ -69,7 +75,6 @@
         this.vx = -Math.sin(theta) * speed;
         this.vy = Math.cos(theta) * speed;
       } else if (currentMode === 'harmonic') {
-        // Elliptical Lissajous motion around center: x = A cos(wt), y = B sin(wt)
         const A = this.a * 0.85;
         const B = this.a * (0.45 + (this.e * 0.8));
         this.x = cx + A * Math.cos(theta);
@@ -78,7 +83,6 @@
         this.vx = -A * omega * Math.sin(theta);
         this.vy = B * omega * Math.cos(theta);
       } else if (currentMode === 'dipole') {
-        // Start near positive pole
         const dOffset = Math.min(width, height) * 0.12;
         const angle = (Math.random() - 0.5) * Math.PI * 1.6;
         const r0 = 40 + Math.random() * 60;
@@ -98,7 +102,6 @@
       let ay = 0;
 
       if (currentMode === 'kepler') {
-        // Inverse-Square Newtonian Gravitational Force: F = -GM/r^2 r̂
         const dx = cx - x;
         const dy = cy - y;
         const r2 = dx * dx + dy * dy + softening * softening;
@@ -107,18 +110,15 @@
         ax += dx * forceMag;
         ay += dy * forceMag;
       } else if (currentMode === 'harmonic') {
-        // Isotropic Harmonic Oscillator Potential: F = -k r
         const kHarmonic = 0.00055;
         ax += (cx - x) * kHarmonic;
         ay += (cy - y) * kHarmonic;
       } else if (currentMode === 'dipole') {
-        // Electric Dipole: +q and -q
         const dOffset = Math.min(width, height) * 0.12;
         const qPos = { x: cx - dOffset, y: cy };
         const qNeg = { x: cx + dOffset, y: cy };
         const kDipole = 9500;
 
-        // Repulsive force from +q
         const dx1 = x - qPos.x;
         const dy1 = y - qPos.y;
         const r1_sq = dx1 * dx1 + dy1 * dy1 + 450;
@@ -126,7 +126,6 @@
         ax += (dx1 / (r1_sq * r1)) * kDipole;
         ay += (dy1 / (r1_sq * r1)) * kDipole;
 
-        // Attractive force towards -q
         const dx2 = qNeg.x - x;
         const dy2 = qNeg.y - y;
         const r2_sq = dx2 * dx2 + dy2 * dy2 + 450;
@@ -134,12 +133,10 @@
         ax += (dx2 / (r2_sq * r2)) * kDipole;
         ay += (dy2 / (r2_sq * r2)) * kDipole;
 
-        // Weak centering confinement
         ax += (cx - x) * 0.00008;
         ay += (cy - y) * 0.00008;
       }
 
-      // Mouse perturbation
       if (mouse.active && mouse.x !== null && mouse.y !== null) {
         const mdx = mouse.x - x;
         const mdy = mouse.y - y;
@@ -156,7 +153,6 @@
     }
 
     update() {
-      // Symplectic Velocity-Verlet Integration
       const a1 = this.computeAcceleration(this.x, this.y);
 
       this.vx += 0.5 * a1.ax * dt;
@@ -170,131 +166,125 @@
       this.vx += 0.5 * a2.ax * dt;
       this.vy += 0.5 * a2.ay * dt;
 
-      // Trajectory trace history
       this.history.push({ x: this.x, y: this.y });
       if (this.history.length > this.maxHistory) {
-        this.history.shift();
+        this.history.splice(0, this.history.length - this.maxHistory);
       }
 
-      // Bounds checking
       const distFromCenter = Math.hypot(this.x - cx, this.y - cy);
-      if (distFromCenter > Math.max(width, height) * 0.95 || (currentMode === 'kepler' && distFromCenter < 12)) {
+      if (currentMode === 'kepler' && (distFromCenter > Math.max(width, height) * 0.75 || distFromCenter < 12)) {
+        this.reset();
+      } else if (currentMode === 'dipole' && (distFromCenter > Math.max(width, height) * 0.85 || distFromCenter < 8)) {
         this.reset();
       }
     }
 
-    draw(isDark) {
+    draw(isDarkTheme) {
       if (this.history.length > 2) {
         ctx.beginPath();
         ctx.moveTo(this.history[0].x, this.history[0].y);
         for (let i = 1; i < this.history.length; i++) {
           ctx.lineTo(this.history[i].x, this.history[i].y);
         }
-        ctx.strokeStyle = this.color;
+        ctx.strokeStyle = this.color.replace('ALPHA', isDarkTheme ? '0.35' : '0.22');
         ctx.lineWidth = 1.2;
-        ctx.globalAlpha = isDark ? 0.38 : 0.45;
         ctx.stroke();
       }
 
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.globalAlpha = 0.92;
+      ctx.arc(this.x, this.y, this.radius + 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = this.color.replace('ALPHA', isDarkTheme ? '0.25' : '0.15');
       ctx.fill();
 
-      // Vector velocity arrow
-      const vMag = Math.hypot(this.vx, this.vy);
-      if (vMag > 0.05) {
-        const vScale = 6;
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(this.x + (this.vx / vMag) * vScale, this.y + (this.vy / vMag) * vScale);
-        ctx.strokeStyle = this.color;
-        ctx.globalAlpha = 0.55;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      ctx.globalAlpha = 1.0;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = this.color.replace('ALPHA', isDarkTheme ? '0.95' : '0.85');
+      ctx.fill();
     }
   }
 
   function initSatellites() {
     satellites = [];
     const colors = [
-      '#38bdf8', '#3b82f6', '#60a5fa', '#10b981', '#f59e0b', '#a855f7', '#38bdf8', '#3b82f6'
+      'rgba(56, 189, 248, ALPHA)',
+      'rgba(59, 130, 246, ALPHA)',
+      'rgba(16, 185, 129, ALPHA)',
+      'rgba(245, 158, 11, ALPHA)',
+      'rgba(168, 85, 247, ALPHA)',
+      'rgba(244, 63, 94, ALPHA)'
     ];
 
-    const baseRadius = Math.min(width, height) * 0.12;
-    const stepRadius = Math.min(width, height) * 0.038;
+    const baseRadius = Math.min(width, height) * 0.38;
 
     for (let i = 0; i < satelliteCount; i++) {
-      const a = baseRadius + i * stepRadius;
-      const e = 0.08 + (i % 5) * 0.06;
-      const initialTheta = (i * (Math.PI * 2 / satelliteCount)) + (i * 0.2);
-      const color = colors[i % colors.length];
-      satellites.push(new Satellite(a, e, initialTheta, color));
+      const semiMajor = (baseRadius * 0.35) + (i / satelliteCount) * (baseRadius * 0.75);
+      const ecc = 0.08 + (Math.random() * 0.52);
+      const phase = (i / satelliteCount) * Math.PI * 2;
+      const col = colors[i % colors.length];
+      satellites.push(new Satellite(semiMajor, ecc, phase, col));
     }
   }
 
-  // Draw Scientific Coordinate Axes & Mode-Specific Equipotentials
-  function drawCoordinateGrid(isDark) {
-    const gridColor = isDark ? 'rgba(56, 189, 248, 0.07)' : 'rgba(15, 23, 42, 0.06)';
-    const textColor = isDark ? 'rgba(148, 163, 184, 0.45)' : 'rgba(71, 85, 105, 0.55)';
-    const axisColor = isDark ? 'rgba(56, 189, 248, 0.16)' : 'rgba(15, 23, 42, 0.14)';
+  function drawCoordinateGrid(isDarkTheme) {
+    const gridSpacing = 45;
+    ctx.strokeStyle = isDarkTheme ? 'rgba(56, 189, 248, 0.035)' : 'rgba(30, 58, 138, 0.035)';
+    ctx.lineWidth = 1;
 
-    // Center Coordinate Crosshair
+    ctx.beginPath();
+    for (let x = (cx % gridSpacing); x < width; x += gridSpacing) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+    }
+    for (let y = (cy % gridSpacing); y < height; y += gridSpacing) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = isDarkTheme ? 'rgba(56, 189, 248, 0.12)' : 'rgba(30, 58, 138, 0.12)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, cy);
     ctx.lineTo(width, cy);
     ctx.moveTo(cx, 0);
     ctx.lineTo(cx, height);
-    ctx.strokeStyle = axisColor;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
     ctx.stroke();
-    ctx.setLineDash([]);
 
-    ctx.fillStyle = textColor;
     ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = isDarkTheme ? 'rgba(148, 163, 184, 0.5)' : 'rgba(71, 85, 105, 0.5)';
+    ctx.fillText('x', width - 16, cy - 8);
+    ctx.fillText('y', cx + 8, 16);
 
     if (currentMode === 'kepler') {
-      // Concentric Keplerian Equipotential Rings
-      const rings = [80, 160, 240, 320, 420];
-      ctx.strokeStyle = gridColor;
-      ctx.lineWidth = 0.8;
-      rings.forEach((r) => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.setLineDash([2, 5]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        if (cx + r < width - 40) {
-          ctx.fillText(`r=${r} AU`, cx + r + 4, cy - 4);
-        }
-      });
+      const grad = ctx.createRadialGradient(cx, cy, 3, cx, cy, 35);
+      grad.addColorStop(0, '#f59e0b');
+      grad.addColorStop(0.3, 'rgba(245, 158, 11, 0.45)');
+      grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
 
-      // Central Mass M☉
       ctx.beginPath();
-      ctx.arc(cx, cy, 6.5, 0, Math.PI * 2);
-      ctx.fillStyle = isDark ? '#f59e0b' : '#d97706';
+      ctx.arc(cx, cy, 35, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
       ctx.fill();
 
       ctx.beginPath();
-      ctx.arc(cx, cy, 14, 0, Math.PI * 2);
-      ctx.strokeStyle = isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(217, 119, 6, 0.25)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fill();
 
-      ctx.fillStyle = isDark ? '#f59e0b' : '#d97706';
-      ctx.fillText('M☉ (0,0)', cx + 10, cy + 18);
+      ctx.strokeStyle = isDarkTheme ? 'rgba(56, 189, 248, 0.08)' : 'rgba(30, 58, 138, 0.08)';
+      ctx.lineWidth = 1;
+      const radii = [60, 110, 170, 240];
+      radii.forEach(r => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
 
     } else if (currentMode === 'harmonic') {
-      // Concentric Harmonic Well Energy Contours V = 1/2 k r^2
-      const harmonicRings = [70, 130, 190, 260, 340];
-      ctx.strokeStyle = isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(5, 150, 105, 0.12)';
-      ctx.lineWidth = 0.8;
-      harmonicRings.forEach((r, idx) => {
+      const harmonicRadii = [40, 85, 140, 205];
+      harmonicRadii.forEach((r, idx) => {
+        ctx.strokeStyle = isDarkTheme ? `rgba(16, 185, 129, ${0.25 - idx * 0.05})` : `rgba(5, 150, 105, ${0.25 - idx * 0.05})`;
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.setLineDash([3, 4]);
@@ -305,7 +295,6 @@
         }
       });
 
-      // Origin equilibrium point
       ctx.beginPath();
       ctx.arc(cx, cy, 5, 0, Math.PI * 2);
       ctx.fillStyle = '#10b981';
@@ -317,24 +306,19 @@
       const qPos = { x: cx - dOffset, y: cy };
       const qNeg = { x: cx + dOffset, y: cy };
 
-      // Positive pole node (+q)
       ctx.beginPath();
       ctx.arc(qPos.x, qPos.y, 6.5, 0, Math.PI * 2);
       ctx.fillStyle = '#f43f5e';
       ctx.fill();
-      ctx.fillStyle = '#f43f5e';
       ctx.fillText('+q', qPos.x - 8, qPos.y - 12);
 
-      // Negative pole node (-q)
       ctx.beginPath();
       ctx.arc(qNeg.x, qNeg.y, 6.5, 0, Math.PI * 2);
       ctx.fillStyle = '#38bdf8';
       ctx.fill();
-      ctx.fillStyle = '#38bdf8';
       ctx.fillText('-q', qNeg.x - 6, qNeg.y - 12);
 
-      // Dipole field flux lines
-      ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(30, 58, 138, 0.1)';
+      ctx.strokeStyle = isDarkTheme ? 'rgba(56, 189, 248, 0.1)' : 'rgba(30, 58, 138, 0.1)';
       ctx.lineWidth = 1;
       const arcSpans = [40, 80, 130, 190];
       arcSpans.forEach(h => {
@@ -350,11 +334,10 @@
       });
     }
 
-    // Mouse Perturbation Horizon
     if (mouse.active && mouse.x !== null && mouse.y !== null) {
       ctx.beginPath();
       ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(2, 132, 199, 0.2)';
+      ctx.strokeStyle = isDarkTheme ? 'rgba(56, 189, 248, 0.2)' : 'rgba(2, 132, 199, 0.2)';
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 4]);
       ctx.stroke();
@@ -362,16 +345,13 @@
 
       ctx.beginPath();
       ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = isDark ? '#38bdf8' : '#0284c7';
+      ctx.fillStyle = isDarkTheme ? '#38bdf8' : '#0284c7';
       ctx.fill();
-
-      ctx.fillStyle = isDark ? '#38bdf8' : '#0284c7';
       ctx.fillText('m_pert (Perturber)', mouse.x + 8, mouse.y - 8);
     }
   }
 
-  // Draw Gravitational Shockwaves
-  function drawGravitationalWaves(isDark) {
+  function drawGravitationalWaves(isDarkTheme) {
     for (let i = gravitationalWaves.length - 1; i >= 0; i--) {
       const wave = gravitationalWaves[i];
       wave.radius += 5;
@@ -379,7 +359,7 @@
 
       ctx.beginPath();
       ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = isDark ? `rgba(56, 189, 248, ${wave.alpha})` : `rgba(37, 99, 235, ${wave.alpha})`;
+      ctx.strokeStyle = isDarkTheme ? `rgba(56, 189, 248, ${wave.alpha})` : `rgba(37, 99, 235, ${wave.alpha})`;
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
@@ -389,19 +369,45 @@
     }
   }
 
-  function animate() {
+  function animate(now) {
+    if (!isRunning) return;
+
+    // Smooth frame throttling (~60fps cap)
+    if (now && now - lastFrameTime < 15) {
+      animationId = requestAnimationFrame(animate);
+      return;
+    }
+    lastFrameTime = now || performance.now();
+
     ctx.clearRect(0, 0, width, height);
-    const isDark = getTheme() === 'dark';
 
     drawCoordinateGrid(isDark);
     drawGravitationalWaves(isDark);
 
-    satellites.forEach(s => {
-      s.update();
-      s.draw(isDark);
-    });
+    for (let i = 0; i < satellites.length; i++) {
+      satellites[i].update();
+      satellites[i].draw(isDark);
+    }
 
     animationId = requestAnimationFrame(animate);
+  }
+
+  function startAnimation() {
+    if (!isRunning && isVisible && !document.hidden) {
+      isRunning = true;
+      lastFrameTime = performance.now();
+      animationId = requestAnimationFrame(animate);
+    }
+  }
+
+  function stopAnimation() {
+    if (isRunning) {
+      isRunning = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
   }
 
   // Global Function for User to Switch Physical Simulation Mode
@@ -410,7 +416,6 @@
       currentMode = mode;
       initSatellites();
 
-      // Update button visual states if present
       document.querySelectorAll('.potential-mode-btn').forEach(btn => {
         if (btn.getAttribute('data-mode') === mode) {
           btn.classList.add('active');
@@ -419,7 +424,6 @@
         }
       });
 
-      // Update HUD telemetry model label
       const hudModel = document.getElementById('hudFieldModel');
       const hudEnergy = document.getElementById('hudFieldEnergy');
       if (hudModel) {
@@ -433,7 +437,9 @@
           hudModel.innerText = 'ELECTRIC DIPOLE FIELD';
           if (hudEnergy) hudEnergy.innerHTML = '$V \\propto \\cos\\theta/r^2$';
         }
-        if (window.renderMathInElement && hudEnergy) {
+        if (window.renderPhysicsEquations && hudEnergy) {
+          window.renderPhysicsEquations(hudEnergy);
+        } else if (window.renderMathInElement && hudEnergy) {
           renderMathInElement(hudEnergy, { delimiters: [{ left: '$', right: '$', display: false }] });
         }
       }
@@ -444,14 +450,14 @@
   window.addEventListener('resize', () => {
     resize();
     initSatellites();
-  });
+  }, { passive: true });
 
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     mouse.x = e.clientX - rect.left;
     mouse.y = e.clientY - rect.top;
     mouse.active = true;
-  });
+  }, { passive: true });
 
   canvas.addEventListener('mouseleave', () => {
     mouse.active = false;
@@ -475,12 +481,40 @@
     });
   });
 
-  window.addEventListener('p4p_theme_change', () => {
-    // Redraws smoothly on next frame
+  // Pause when offscreen (IntersectionObserver)
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      isVisible = entries[0].isIntersecting;
+      if (isVisible) {
+        startAnimation();
+      } else {
+        stopAnimation();
+      }
+    }, { threshold: 0.05 });
+    observer.observe(canvas);
+  }
+
+  // Pause when tab is hidden (Visibility API)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopAnimation();
+    } else if (isVisible) {
+      startAnimation();
+    }
   });
 
-  // Initialize
-  resize();
-  initSatellites();
-  animate();
+  // Non-blocking initialization
+  function init() {
+    resize();
+    initSatellites();
+    startAnimation();
+  }
+
+  if (document.readyState !== 'loading') {
+    requestAnimationFrame(init);
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      requestAnimationFrame(init);
+    });
+  }
 })();
