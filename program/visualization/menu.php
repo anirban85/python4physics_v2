@@ -39,6 +39,7 @@ $sub_menu_titles = array (
   ),
   5 => 
   array (
-    1 => 'Fraunhofer Diffraction in Double Slit',
+    1 => 'Newton’s Rings Interference (Reflected & Transmitted Systems)',
+    2 => 'Fraunhofer Diffraction in Double Slit',
   ),
 );
