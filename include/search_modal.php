@@ -31,4 +31,4 @@
     </div>
 </div>
 
-<script defer src="<?php echo $siteurl; ?>assets/js/search.min.js?v=<?php echo file_exists(__DIR__ . '/../assets/js/search.min.js') ? filemtime(__DIR__ . '/../assets/js/search.min.js') : (file_exists(__DIR__ . '/../assets/js/search.js') ? filemtime(__DIR__ . '/../assets/js/search.js') : '1.0'); ?>"></script>
+<script src="<?php echo $siteurl; ?>assets/js/search.js"></script>

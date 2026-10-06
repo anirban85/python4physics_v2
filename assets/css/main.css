@@ -4,22 +4,7 @@
    Aesthetic: Scholarly, Precise, Laboratory Notebook & Scientific Terminal
    ========================================================================== */
 
-/* Font Awesome 6 font-display: swap overrides to eliminate FOIT / font display warning */
-@font-face {
-  font-family: 'Font Awesome 6 Free';
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: 'Font Awesome 6 Brands';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-brands-400.woff2") format("woff2");
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 
 :root {
   /* Dark Theme (Default) - Scientific Slate / Blackboard Terminal */
@@ -390,15 +375,13 @@ code, pre, kbd, samp {
   border: 1px solid rgba(244, 63, 94, 0.25);
 }
 
-/* Fundamental Physics Constants Strip (Fixed Height for Zero CLS) */
+/* Fundamental Physics Constants Strip */
 .physics-constants-strip {
   display: flex;
   align-items: center;
   overflow-x: auto;
   white-space: nowrap;
-  padding: 0 1.25rem;
-  height: 48px;
-  min-height: 48px;
+  padding: 0.65rem 1.25rem;
   background: var(--bg-secondary);
   border-top: 1px solid var(--card-border);
   border-bottom: 1px solid var(--card-border);
@@ -407,8 +390,6 @@ code, pre, kbd, samp {
   color: var(--text-muted);
   gap: 1.75rem;
   scrollbar-width: thin;
-  box-sizing: border-box;
-  contain: layout;
 }
 
 .physics-constant-item {
@@ -416,8 +397,6 @@ code, pre, kbd, samp {
   align-items: center;
   gap: 0.4rem;
   flex-shrink: 0;
-  height: 48px;
-  line-height: 48px;
 }
 
 .physics-constant-item .sym {
@@ -1091,7 +1070,7 @@ code, pre, kbd, samp {
   border-radius: var(--radius-sm);
 }
 
-/* Simulation Canvas Telemetry Overlay (Zero Shift) */
+/* Simulation Canvas Telemetry Overlay */
 .canvas-telemetry {
   position: absolute;
   bottom: 1rem;
@@ -1110,8 +1089,6 @@ code, pre, kbd, samp {
   gap: 1.25rem;
   align-items: center;
   flex-wrap: wrap;
-  min-height: 42px;
-  box-sizing: border-box;
 }
 
 [data-theme="light"] .canvas-telemetry {
@@ -1139,7 +1116,7 @@ code, pre, kbd, samp {
   background: var(--accent-gradient);
 }
 
-/* Ambient Physics Mathematical Watermarks (Containment to prevent shifts) */
+/* Ambient Physics Mathematical Watermarks */
 .physics-watermark {
   position: absolute;
   font-family: 'STIX Two Text', 'KaTeX_Math', serif;
@@ -1151,8 +1128,6 @@ code, pre, kbd, samp {
   white-space: nowrap;
   z-index: 0;
   transition: opacity 0.3s ease;
-  contain: layout;
-  min-height: 40px;
 }
 
 [data-theme="light"] .physics-watermark {
@@ -1160,7 +1135,7 @@ code, pre, kbd, samp {
   opacity: 0.10;
 }
 
-/* Simulation Field Potential Mode Switcher Buttons (Zero Shift) */
+/* Simulation Field Potential Mode Switcher Buttons */
 .potential-mode-btn {
   background: transparent;
   border: 1px solid rgba(148, 163, 184, 0.25);
@@ -1172,12 +1147,6 @@ code, pre, kbd, samp {
   cursor: pointer;
   pointer-events: auto;
   transition: var(--transition);
-  height: 28px;
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
 }
 
 .potential-mode-btn:hover, .potential-mode-btn.active {
@@ -1384,8 +1353,6 @@ code, pre, kbd, samp {
   overflow: hidden;
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  min-height: 345px;
-  box-sizing: border-box;
 }
 
 .p4p-pillar-card::before {
@@ -1496,7 +1463,7 @@ code, pre, kbd, samp {
   min-height: 2.8em;
 }
 
-/* Micro-Preview Visual Container (Fixed 72px for Zero CLS) */
+/* Micro-Preview Visual Container */
 .p4p-pillar-preview {
   background: rgba(6, 9, 17, 0.65);
   border: 1px solid rgba(148, 163, 184, 0.12);
@@ -1507,9 +1474,6 @@ code, pre, kbd, samp {
   font-size: 0.72rem;
   position: relative;
   overflow: hidden;
-  height: 72px;
-  min-height: 72px;
-  box-sizing: border-box;
 }
 
 [data-theme="light"] .p4p-pillar-preview {
@@ -1657,37 +1621,4 @@ code, pre, kbd, samp {
 .card-gnuplot .p4p-pillar-action { color: #f59e0b; }
 .card-latex .p4p-pillar-action { color: #c084fc; }
 .card-arduino .p4p-pillar-action { color: #10b981; }
-
-/* Fixed Dimensions & Zero-CLS Rules for Live Sandbox Code Area */
-.editor-wrapper {
-  min-height: 480px;
-  contain: layout;
-}
-
-#homeCodeEditor,
-.editor-wrapper textarea {
-  display: block;
-  width: 100%;
-  height: 480px;
-  min-height: 480px;
-  box-sizing: border-box;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  background: var(--code-bg, #0d1117);
-  color: var(--text, #e2e8f0);
-  border: none;
-  padding: 12px 14px;
-  resize: none;
-  outline: none;
-}
-
-.physics-metric-chip,
-.physics-formula-tag {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  box-sizing: border-box;
-}
-
 

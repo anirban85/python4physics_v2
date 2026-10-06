@@ -155,7 +155,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="p4p-pillar-title">Mathematical Derivations</div>
                     <div class="p4p-pillar-desc">Analytical proofs, Hamiltonian dynamics, and vector diagrams with LaTeX source code.</div>
 
-                    <div class="p4p-pillar-preview" style="display: flex; flex-direction: column; justify-content: center; height: 72px; min-height: 72px; box-sizing: border-box; padding: 0.35rem 0.5rem;">
+                    <div class="p4p-pillar-preview" style="display: flex; flex-direction: column; justify-content: center; min-height: 52px; padding: 0.35rem 0.5rem;">
                         <div class="p4p-preview-header" style="margin-bottom: 2px;">
                             <div><i class="fa-solid fa-scroll" style="color: #c084fc; margin-right: 4px;"></i> Canonical Equation</div>
                             <span style="color: #c084fc;">TikZ · AMS</span>
@@ -275,7 +275,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <span id="homeExecStatus" class="badge badge-cyan">Ready</span>
                 </div>
                 <div class="editor-wrapper">
-                    <textarea id="homeCodeEditor" style="height: 480px; min-height: 480px; width: 100%; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6; background: var(--code-bg); color: var(--text); padding: 12px; border: none; resize: none; display: block;"># Damped Harmonic Oscillator Simulation
+                    <textarea id="homeCodeEditor"># Damped Harmonic Oscillator Simulation
 # Equation of Motion: m*x'' + b*x' + k*x = 0
 import numpy as np
 import matplotlib.pyplot as plt
@@ -543,14 +543,25 @@ plt.show()
 
 </main>
 
-<!-- Load Physics Simulation Canvas Script & Pyodide Runner Script (Deferred & Non-Blocking) -->
-<script defer src="<?php echo $siteurl; ?>assets/js/physics-canvas.min.js?v=<?php echo file_exists(__DIR__ . '/assets/js/physics-canvas.min.js') ? filemtime(__DIR__ . '/assets/js/physics-canvas.min.js') : (file_exists(__DIR__ . '/assets/js/physics-canvas.js') ? filemtime(__DIR__ . '/assets/js/physics-canvas.js') : '1.0'); ?>"></script>
-<script defer src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js?v=<?php echo file_exists(__DIR__ . '/assets/js/pyodide-runner.js') ? filemtime(__DIR__ . '/assets/js/pyodide-runner.js') : time(); ?>"></script>
+<!-- Load Physics Simulation Canvas Script & Pyodide Runner Script -->
+<script src="<?php echo $siteurl; ?>assets/js/physics-canvas.js"></script>
+<script src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js?v=<?php echo file_exists(__DIR__ . '/assets/js/pyodide-runner.js') ? filemtime(__DIR__ . '/assets/js/pyodide-runner.js') : time(); ?>"></script>
 
 <!-- Live Sandbox Interactive Logic -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CodeMirror for homepage sandbox
     var editorEl = document.getElementById('homeCodeEditor');
+    var homeEditor = CodeMirror.fromTextArea(editorEl, {
+        mode: 'python',
+        theme: 'material-darker',
+        lineNumbers: true,
+        matchBrackets: true,
+        styleActiveLine: true,
+        indentUnit: 4,
+        viewportMargin: Infinity
+    });
+
     var runBtn = document.getElementById('homeRunBtn');
     var exportBtn = document.getElementById('homeExportJupyterBtn');
     var statusBadge = document.getElementById('homeExecStatus');
@@ -577,56 +588,9 @@ document.addEventListener('DOMContentLoaded', function() {
         consolePanel.style.display = 'none';
     });
 
-    // Lazy / Smooth Initialization of CodeMirror Editor
-    var homeEditor = null;
-    function initSandboxEditor() {
-        if (homeEditor || typeof CodeMirror === 'undefined' || !editorEl) return;
-        homeEditor = CodeMirror.fromTextArea(editorEl, {
-            mode: 'python',
-            theme: 'material-darker',
-            lineNumbers: true,
-            matchBrackets: true,
-            styleActiveLine: true,
-            indentUnit: 4,
-            viewportMargin: Infinity
-        });
-
-        // Ctrl+Enter / Cmd+Enter shortcut in editor to run
-        homeEditor.setOption("extraKeys", {
-            "Ctrl-Enter": function() { runBtn.click(); },
-            "Cmd-Enter": function() { runBtn.click(); }
-        });
-    }
-
-    // Initialize when near viewport (rootMargin: 350px) or on idle
-    var sandboxSection = document.getElementById('liveSandboxSection');
-    if ('IntersectionObserver' in window && sandboxSection) {
-        var observer = new IntersectionObserver(function(entries) {
-            if (entries[0].isIntersecting) {
-                initSandboxEditor();
-                observer.disconnect();
-            }
-        }, { rootMargin: '350px' });
-        observer.observe(sandboxSection);
-    }
-
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(initSandboxEditor, { timeout: 2500 });
-    } else {
-        setTimeout(initSandboxEditor, 1200);
-    }
-
-    // Ensure immediate initialization on user interaction with sandbox
-    if (sandboxSection) {
-        sandboxSection.addEventListener('mouseenter', initSandboxEditor, { once: true });
-        sandboxSection.addEventListener('focusin', initSandboxEditor, { once: true });
-        sandboxSection.addEventListener('touchstart', initSandboxEditor, { passive: true, once: true });
-    }
-
     // Run Code
     runBtn.addEventListener('click', async function() {
-        initSandboxEditor();
-        var code = homeEditor ? homeEditor.getValue() : editorEl.value;
+        var code = homeEditor.getValue();
         runBtn.disabled = true;
         runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running...';
         statusBadge.className = 'badge badge-amber';
@@ -654,13 +618,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Export to Jupyter
     exportBtn.addEventListener('click', function() {
-        initSandboxEditor();
-        var code = homeEditor ? homeEditor.getValue() : editorEl.value;
+        var code = homeEditor.getValue();
         window.physicsRunner.exportToJupyter(
             "Damped Harmonic Oscillator Simulation",
             code,
             "Simulation of underdamped harmonic oscillator using NumPy and Matplotlib."
         );
+    });
+
+    // Ctrl+Enter shortcut in editor to run
+    homeEditor.setOption("extraKeys", {
+        "Ctrl-Enter": function() { runBtn.click(); },
+        "Cmd-Enter": function() { runBtn.click(); }
     });
 });
 </script>

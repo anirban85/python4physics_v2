@@ -95,58 +95,21 @@ if (!isset($siteurl)) {
 <!-- Include Global Search Modal on Every Page -->
 <?php include __DIR__ . '/search_modal.php'; ?>
 
-<!-- KaTeX High-Performance Non-Blocking Auto-Render Initializer -->
+<!-- KaTeX Auto-Render Initializer -->
 <script>
-(function() {
-    function runKaTeXRender() {
-        if (typeof renderMathInElement === 'function') {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false},
-                    {left: '\\[', right: '\\]', display: true}
-                ],
-                ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"],
-                ignoredClasses: ["CodeMirror", "editor-wrapper", "no-katex", "p4p-preview-header"],
-                throwOnError: false
-            });
-        }
-    }
-
-    if (document.readyState === 'complete') {
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(runKaTeXRender, { timeout: 1200 });
-        } else {
-            setTimeout(runKaTeXRender, 50);
-        }
-    } else {
-        window.addEventListener('load', function() {
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(runKaTeXRender, { timeout: 1200 });
-            } else {
-                setTimeout(runKaTeXRender, 50);
-            }
+document.addEventListener("DOMContentLoaded", function() {
+    if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
         });
     }
-
-    // Export helper for dynamic AJAX or client updates
-    window.renderPhysicsEquations = function(targetEl) {
-        if (typeof renderMathInElement === 'function') {
-            renderMathInElement(targetEl || document.body, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false},
-                    {left: '\\[', right: '\\]', display: true}
-                ],
-                ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"],
-                ignoredClasses: ["CodeMirror", "editor-wrapper", "no-katex"],
-                throwOnError: false
-            });
-        }
-    };
-})();
+});
 </script>
 
 </body>
