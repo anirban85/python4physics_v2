@@ -265,10 +265,41 @@ function renderLatexPreview(pid) {
     var bodyMatch = code.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
     var content = bodyMatch ? bodyMatch[1] : code;
 
+    // 1. Process Figures & Graphics
+    // Replace \begin{subfigure}{...} ... \end{subfigure} with responsive flex item
+    content = content.replace(/\\begin\{subfigure\}\{[^}]*\}([\s\S]*?)\\end\{subfigure\}/g, function(match, inner) {
+        return '<div class="latex-subfigure" style="flex: 1 1 45%; min-width: 200px; text-align: center; margin: 0.5rem;">' + inner + '</div>';
+    });
+
+    // Replace \includegraphics[...]{filename} with responsive HTML <img>
+    content = content.replace(/\\includegraphics(?:\s*\[[^\]]*\])?\s*\{([^}]+)\}/g, function(match, imgPath) {
+        var src = imgPath.trim();
+        if (!src.startsWith('http://') && !src.startsWith('https://')) {
+            var baseUrl = (typeof window.p4p_siteurl !== 'undefined' ? window.p4p_siteurl : '../../');
+            src = baseUrl + 'program/latex/' + src;
+        }
+        return '<div style="text-align: center; margin: 0.75rem auto;"><img src="' + src + '" alt="LaTeX Diagram" style="max-width: 80%; height: auto; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: inline-block;"></div>';
+    });
+
+    // Replace \begin{figure}[...] with container, and \caption with <figcaption>
+    content = content
+        .replace(/\\begin\{figure\}(?:\[[^\]]*\])?/g, '<figure class="latex-figure-container" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 1.5rem auto; padding: 1rem; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--card-border); border-radius: 8px;">')
+        .replace(/\\end\{figure\}/g, '</figure>')
+        .replace(/\\centering/g, '')
+        .replace(/\\hfill/g, '')
+        .replace(/\\label\{[^}]+\}/g, '')
+        .replace(/\\caption\{([^}]+)\}/g, '<figcaption style="width: 100%; text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 0.65rem; font-style: italic;"><strong>Figure:</strong> $1</figcaption>');
+
+    // 2. Headings, Sections & Text Formatting
     content = content
         .replace(/\\maketitle/g, '')
-        .replace(/\\section\*?\{([^}]+)\}/g, '<h3 style="color: var(--accent); margin: 1rem 0 0.5rem 0;">$1</h3>')
-        .replace(/\\subsection\*?\{([^}]+)\}/g, '<h4 style="color: var(--text); margin: 0.75rem 0 0.25rem 0;">$1</h4>')
+        .replace(/\\section\*?\{([^}]+)\}/g, '<h3 style="color: var(--accent); margin: 1.25rem 0 0.5rem 0; font-size: 1.3rem;">$1</h3>')
+        .replace(/\\subsection\*?\{([^}]+)\}/g, '<h4 style="color: var(--text); margin: 1rem 0 0.35rem 0; font-size: 1.1rem;">$1</h4>')
+        .replace(/\\subsubsection\*?\{([^}]+)\}/g, '<h5 style="color: var(--primary); margin: 0.75rem 0 0.25rem 0;">$1</h5>')
+        .replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>')
+        .replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>')
+        .replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>')
+        .replace(/\\newpage/g, '<hr style="border: 0; border-top: 1px dashed var(--card-border); margin: 1.5rem 0;">')
         .replace(/\\begin\{equation\*?\}/g, '$$')
         .replace(/\\end\{equation\*?\}/g, '$$')
         .replace(/\\begin\{align\*?\}/g, '$$\\begin{aligned}')
@@ -295,17 +326,62 @@ function compileLatexPDF(pid) {
     var pdfBox = document.getElementById('latex_pdf_box_' + pid);
 
     switchLatexTab(pid, 'pdf');
-    pdfBox.innerHTML = '<div style="padding-top: 5rem; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--primary); margin-bottom: 1rem; display: block;"></i> Compiling LaTeX document with LaTeX Online...</div>';
-
-    var encoded = encodeURIComponent(code);
-    var compileUrl = 'https://latexonline.cc/compile?text=' + encoded + '&format=pdf';
-
     pdfBox.innerHTML = `
-        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 0.75rem;">
-            <a href="${compileUrl}" target="_blank" class="btn-modern btn-primary btn-sm"><i class="fa-solid fa-external-link"></i> Open PDF in New Tab</a>
+        <div style="padding-top: 5rem; text-align: center; color: var(--text-muted);">
+            <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--primary); margin-bottom: 1rem; display: block;"></i>
+            <strong>Compiling LaTeX document & figures...</strong>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem;">Bundling figures and building high-resolution PDF</p>
         </div>
-        <iframe src="${compileUrl}" style="width: 100%; height: 500px; border-radius: 8px; border: 1px solid var(--card-border);"></iframe>
     `;
+
+    var formData = new FormData();
+    formData.append('code', code);
+    formData.append('doc_id', pid);
+
+    fetch('compile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(errText) {
+                throw new Error(errText || ('Compilation failed with HTTP ' + response.status));
+            });
+        }
+        return response.blob();
+    })
+    .then(function(blob) {
+        var blobUrl = URL.createObjectURL(blob);
+        pdfBox.innerHTML = `
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                <a href="${blobUrl}" download="latex_document_${pid}.pdf" class="btn-modern btn-primary btn-sm">
+                    <i class="fa-solid fa-download"></i> Download PDF
+                </a>
+                <a href="${blobUrl}" target="_blank" class="btn-modern btn-secondary btn-sm">
+                    <i class="fa-solid fa-external-link"></i> Open PDF in New Tab
+                </a>
+            </div>
+            <iframe src="${blobUrl}" style="width: 100%; height: 520px; border-radius: 8px; border: 1px solid var(--card-border); background: #ffffff;"></iframe>
+        `;
+    })
+    .catch(function(err) {
+        pdfBox.innerHTML = `
+            <div class="glass-card" style="padding: 1.5rem; text-align: left; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px;">
+                <div style="color: #ef4444; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> LaTeX Compilation Diagnostic
+                </div>
+                <p style="font-size: 0.88rem; color: var(--text-color); margin-bottom: 0.75rem;">
+                    The LaTeX compiler returned the following error log:
+                </p>
+                <pre style="background: rgba(0, 0, 0, 0.45); padding: 1rem; border-radius: 6px; font-size: 0.82rem; line-height: 1.5; color: #fca5a5; max-height: 380px; overflow-y: auto; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;">${err.message}</pre>
+                <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn-modern btn-secondary btn-sm" onclick="compileLatexPDF('${pid}')">
+                        <i class="fa-solid fa-rotate-right"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        `;
+    });
 }
 
 function switchLatexTab(pid, tab) {
