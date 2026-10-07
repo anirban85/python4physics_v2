@@ -421,9 +421,13 @@ function exportProgramJupyter(pid, title) {
 }
 
 function toggleFullscreen(wrapperId) {
-    var el = document.getElementById(wrapperId);
-    if (!el) return;
-    el.classList.toggle('fullscreen-mode');
+    if (typeof window.toggleFullscreen === 'function') {
+        window.toggleFullscreen(wrapperId);
+    } else {
+        var el = document.getElementById(wrapperId);
+        if (!el) return;
+        el.classList.toggle('fullscreen-mode');
+    }
 }
 
 function showToast(msg, type = 'success') {

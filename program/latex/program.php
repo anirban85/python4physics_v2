@@ -481,8 +481,12 @@ function copyLatexCode(id) {
 }
 
 function toggleFullscreen(wrapperId) {
-    var el = document.getElementById(wrapperId);
-    if (el) el.classList.toggle('fullscreen-mode');
+    if (typeof window.toggleFullscreen === 'function') {
+        window.toggleFullscreen(wrapperId);
+    } else {
+        var el = document.getElementById(wrapperId);
+        if (el) el.classList.toggle('fullscreen-mode');
+    }
 }
 </script>
 

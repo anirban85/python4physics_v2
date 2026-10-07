@@ -286,19 +286,241 @@
   overflow-y: hidden;
 }
 
-/* Fullscreen Mode for Editor */
+/* ==========================================================================
+   Fullscreen Mode for Code Editor (Flicker-Free, High-Contrast Text)
+   ========================================================================== */
+body.p4p-fullscreen-active {
+  overflow: hidden !important;
+}
+
 .fullscreen-mode {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 2500 !important;
-  background: var(--bg) !important;
-  padding: 1.5rem !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  z-index: 99999 !important;
+  background: #0d1117 !important; /* Solid high-contrast dark coding canvas */
+  color: #e6edf3 !important;
+  padding: 1rem 1.25rem !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   display: flex !important;
   flex-direction: column !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  contain: layout paint !important;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  transition: none !important;
+  animation: none !important;
 }
 
+/* Exit Header Bar inside Fullscreen */
+.fullscreen-exit-bar {
+  display: none;
+}
+
+.fullscreen-mode .fullscreen-exit-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0.5rem 0.85rem !important;
+  margin-bottom: 0.65rem !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px !important;
+  color: #e6edf3 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.85rem !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.fullscreen-bar-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-weight: 600 !important;
+  color: #58a6ff !important;
+}
+
+.fullscreen-esc-hint {
+  font-size: 0.78rem !important;
+  font-weight: 400 !important;
+  color: #8b949e !important;
+  margin-left: 0.35rem !important;
+}
+
+.fullscreen-esc-hint kbd {
+  background: #21262d !important;
+  border: 1px solid #30363d !important;
+  border-radius: 4px !important;
+  padding: 0.1rem 0.4rem !important;
+  font-size: 0.72rem !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  color: #f0f6fc !important;
+}
+
+.fullscreen-exit-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  background: #238636 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 6px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  transition: background 0.15s ease !important;
+}
+
+.fullscreen-exit-btn:hover {
+  background: #2ea043 !important;
+}
+
+/* CodeMirror Fullscreen Layout & Scroll Isolation */
 .fullscreen-mode .CodeMirror {
-  height: calc(100vh - 120px) !important;
+  flex: 1 1 auto !important;
+  height: calc(100vh - 75px) !important;
+  max-height: calc(100vh - 75px) !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  background: #0d1117 !important;
+  color: #e6edf3 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 14.5px !important;
+  line-height: 1.65 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  transition: none !important;
+}
+
+.fullscreen-mode .CodeMirror-scroll {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Fullscreen High-Contrast Syntax Highlighting (fixes washed out / invisible text) */
+.fullscreen-mode .CodeMirror-gutters {
+  background: #161b22 !important;
+  border-right: 1px solid #30363d !important;
+}
+
+.fullscreen-mode .CodeMirror-linenumber {
+  color: #8b949e !important;
+  font-size: 13px !important;
+  padding: 0 8px 0 5px !important;
+}
+
+.fullscreen-mode .CodeMirror-cursor {
+  border-left: 2px solid #58a6ff !important;
+}
+
+.fullscreen-mode .CodeMirror-activeline-background {
+  background: rgba(110, 118, 129, 0.12) !important;
+}
+
+.fullscreen-mode .CodeMirror-selected {
+  background: rgba(56, 139, 253, 0.35) !important;
+}
+
+.fullscreen-mode .CodeMirror-focused .CodeMirror-selected {
+  background: rgba(56, 139, 253, 0.45) !important;
+}
+
+.fullscreen-mode .CodeMirror-matchingbracket {
+  color: #58a6ff !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid #58a6ff !important;
+}
+
+/* Explicit high-contrast token colors for Python, LaTeX, GNUplot in fullscreen */
+.fullscreen-mode .cm-keyword {
+  color: #ff7b72 !important;
+  font-weight: 600 !important;
+}
+
+.fullscreen-mode .cm-operator {
+  color: #ff7b72 !important;
+}
+
+.fullscreen-mode .cm-def {
+  color: #d2a8ff !important;
+  font-weight: 600 !important;
+}
+
+.fullscreen-mode .cm-variable {
+  color: #e6edf3 !important;
+}
+
+.fullscreen-mode .cm-variable-2 {
+  color: #79c0ff !important;
+}
+
+.fullscreen-mode .cm-variable-3 {
+  color: #ffa657 !important;
+}
+
+.fullscreen-mode .cm-number {
+  color: #79c0ff !important;
+  font-weight: 500 !important;
+}
+
+.fullscreen-mode .cm-string,
+.fullscreen-mode .cm-string-2 {
+  color: #a5d6ff !important;
+}
+
+.fullscreen-mode .cm-comment {
+  color: #8b949e !important;
+  font-style: italic !important;
+}
+
+.fullscreen-mode .cm-builtin {
+  color: #ffa657 !important;
+  font-weight: 500 !important;
+}
+
+.fullscreen-mode .cm-atom {
+  color: #ff7b72 !important;
+}
+
+.fullscreen-mode .cm-property {
+  color: #79c0ff !important;
+}
+
+.fullscreen-mode .cm-meta,
+.fullscreen-mode .cm-qualifier {
+  color: #d2a8ff !important;
+}
+
+.fullscreen-mode .cm-tag {
+  color: #7ee787 !important;
+}
+
+.fullscreen-mode .cm-attribute {
+  color: #79c0ff !important;
+}
+
+.fullscreen-mode .cm-header {
+  color: #58a6ff !important;
+  font-weight: 700 !important;
 }
 
 /* ==========================================================================

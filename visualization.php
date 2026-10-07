@@ -522,14 +522,12 @@ function exportProgramJupyter(pid, title) {
 }
 
 function toggleFullscreen(wrapperId) {
-    var wrapper = document.getElementById(wrapperId);
-    if (!wrapper) return;
-    if (!document.fullscreenElement) {
-        wrapper.requestFullscreen().catch(function(err) {
-            alert("Error attempting to enable fullscreen: " + err.message);
-        });
+    if (typeof window.toggleFullscreen === 'function') {
+        window.toggleFullscreen(wrapperId);
     } else {
-        document.exitFullscreen();
+        var wrapper = document.getElementById(wrapperId);
+        if (!wrapper) return;
+        wrapper.classList.toggle('fullscreen-mode');
     }
 }
 </script>
