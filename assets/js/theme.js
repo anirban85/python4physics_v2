@@ -86,7 +86,7 @@
   }
 
   // Global Unified Fullscreen Mode Handler for Code Editors
-  window.toggleFullscreen = function(wrapperId) {
+  window.p4pToggleFullscreen = function(wrapperId) {
     var el = document.getElementById(wrapperId);
     if (!el) return;
 
@@ -104,7 +104,7 @@
         if (exitBtn) {
           exitBtn.onclick = function(e) {
             e.stopPropagation();
-            window.toggleFullscreen(wrapperId);
+            window.p4pToggleFullscreen(wrapperId);
           };
         }
         el.insertBefore(bar, el.firstChild);
@@ -140,12 +140,15 @@
     }
   };
 
+  // Alias toggleFullscreen to p4pToggleFullscreen for backward compatibility
+  window.toggleFullscreen = window.p4pToggleFullscreen;
+
   // Global Esc key listener to cleanly exit fullscreen
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' || e.keyCode === 27) {
       var fs = document.querySelector('.fullscreen-mode');
-      if (fs && window.toggleFullscreen) {
-        window.toggleFullscreen(fs.id);
+      if (fs && window.p4pToggleFullscreen) {
+        window.p4pToggleFullscreen(fs.id);
       }
     }
   });

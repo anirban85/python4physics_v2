@@ -522,8 +522,8 @@ function exportProgramJupyter(pid, title) {
 }
 
 function toggleFullscreen(wrapperId) {
-    if (typeof window.toggleFullscreen === 'function') {
-        window.toggleFullscreen(wrapperId);
+    if (typeof window.p4pToggleFullscreen === 'function') {
+        window.p4pToggleFullscreen(wrapperId);
     } else {
         var wrapper = document.getElementById(wrapperId);
         if (!wrapper) return;

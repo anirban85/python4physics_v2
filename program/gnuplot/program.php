@@ -402,8 +402,8 @@ function copyGnuplotCode(id) {
 }
 
 function toggleFullscreen(wrapperId) {
-    if (typeof window.toggleFullscreen === 'function') {
-        window.toggleFullscreen(wrapperId);
+    if (typeof window.p4pToggleFullscreen === 'function') {
+        window.p4pToggleFullscreen(wrapperId);
     } else {
         var el = document.getElementById(wrapperId);
         if (el) el.classList.toggle('fullscreen-mode');

@@ -293,6 +293,10 @@ body.p4p-fullscreen-active {
   overflow: hidden !important;
 }
 
+body.p4p-fullscreen-active .glass-card {
+  transform: none !important;
+}
+
 .fullscreen-mode {
   position: fixed !important;
   inset: 0 !important;
@@ -315,10 +319,6 @@ body.p4p-fullscreen-active {
   box-sizing: border-box !important;
   overflow: hidden !important;
   isolation: isolate !important;
-  contain: layout paint !important;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0);
   transition: none !important;
   animation: none !important;
 }
