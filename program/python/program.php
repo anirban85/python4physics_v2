@@ -155,6 +155,9 @@ require_once __DIR__ . '/../../include/navbar.php';
                                 <span id="status_<?php echo $pid; ?>" class="badge badge-cyan">Ready</span>
                             </div>
                             <div class="editor-wrapper" id="wrapper_<?php echo $pid; ?>">
+                                <button type="button" class="fullscreen-exit-floating-btn" onclick="toggleFullscreen('wrapper_<?php echo $pid; ?>')" title="Exit Fullscreen (Esc)">
+                                    <i class="fa-solid fa-compress"></i> <span>Exit Fullscreen</span> <kbd>Esc</kbd>
+                                </button>
                                 <textarea id="code_<?php echo $pid; ?>"><?php echo htmlspecialchars($code); ?></textarea>
                             </div>
                             <!-- Editor Actions -->

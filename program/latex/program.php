@@ -167,6 +167,9 @@ require_once __DIR__ . '/../../include/navbar.php';
                                 <span class="badge badge-blue">Ready</span>
                             </div>
                             <div class="editor-wrapper" id="latex_wrapper_<?php echo $pid; ?>">
+                                <button type="button" class="fullscreen-exit-floating-btn" onclick="toggleFullscreen('latex_wrapper_<?php echo $pid; ?>')" title="Exit Fullscreen (Esc)">
+                                    <i class="fa-solid fa-compress"></i> <span>Exit Fullscreen</span> <kbd>Esc</kbd>
+                                </button>
                                 <textarea id="latex_code_<?php echo $pid; ?>"><?php echo htmlspecialchars($code); ?></textarea>
                             </div>
                             <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">

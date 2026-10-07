@@ -93,21 +93,20 @@
     var isNowFs = el.classList.toggle('fullscreen-mode');
     document.body.classList.toggle('p4p-fullscreen-active', isNowFs);
 
-    // If entering fullscreen, ensure an exit button bar exists at the top
+    // If entering fullscreen, ensure high-visibility floating exit button exists
     if (isNowFs) {
-      var existingBar = el.querySelector('.fullscreen-exit-bar');
-      if (!existingBar) {
-        var bar = document.createElement('div');
-        bar.className = 'fullscreen-exit-bar';
-        bar.innerHTML = '<div class="fullscreen-bar-title"><i class="fa-solid fa-code"></i> <span>Editor Fullscreen</span> <span class="fullscreen-esc-hint">(Press <kbd>Esc</kbd> to exit)</span></div><button type="button" class="fullscreen-exit-btn" title="Exit Fullscreen (Esc)"><i class="fa-solid fa-compress"></i> Exit Fullscreen</button>';
-        var exitBtn = bar.querySelector('.fullscreen-exit-btn');
-        if (exitBtn) {
-          exitBtn.onclick = function(e) {
-            e.stopPropagation();
-            window.p4pToggleFullscreen(wrapperId);
-          };
-        }
-        el.insertBefore(bar, el.firstChild);
+      var existingBtn = el.querySelector('.fullscreen-exit-floating-btn');
+      if (!existingBtn) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fullscreen-exit-floating-btn';
+        btn.title = 'Exit Fullscreen (Esc)';
+        btn.innerHTML = '<i class="fa-solid fa-compress"></i> <span>Exit Fullscreen</span> <kbd>Esc</kbd>';
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          window.p4pToggleFullscreen(wrapperId);
+        };
+        el.appendChild(btn);
       }
     }
 

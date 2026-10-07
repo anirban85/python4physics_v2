@@ -182,6 +182,9 @@ require_once __DIR__ . '/../../include/navbar.php';
                                 <span id="gp_status_<?php echo $pid; ?>" class="badge badge-amber">Ready</span>
                             </div>
                             <div class="editor-wrapper" id="gp_wrapper_<?php echo $pid; ?>">
+                                <button type="button" class="fullscreen-exit-floating-btn" onclick="toggleFullscreen('gp_wrapper_<?php echo $pid; ?>')" title="Exit Fullscreen (Esc)">
+                                    <i class="fa-solid fa-compress"></i> <span>Exit Fullscreen</span> <kbd>Esc</kbd>
+                                </button>
                                 <textarea id="gp_code_<?php echo $pid; ?>"><?php echo htmlspecialchars($code); ?></textarea>
                             </div>
                             <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
