@@ -88,7 +88,8 @@
         },
 
         // Circuit analysis
-        circuitStatus: { valid: false, reason: 'no_wires', details: '', netVoltages: {} }
+        circuitStatus: { valid: false, reason: 'no_wires', details: '', netVoltages: {} },
+        capacitorStates: {}
     };
 
     let codeEditor = null;
@@ -4641,6 +4642,9 @@ void loop() {
             }
         });
 
+        // 4b. Resolve Capacitors (RC Transient Dynamics)
+        updateCapacitors(netVoltages, find, gndRoots, v5Roots);
+
         // 5. Arduino Builtin LED (L) on Pin 13
         const pin13State = state.hardwareValues.digitalPins[13] === 1 || state.hardwareValues.pinPWM[13] > 0;
         setPinBuiltin(pin13State && state.isSimulating);
@@ -4833,10 +4837,134 @@ void loop() {
             shortCircuit: isShortCircuit,
             anyLedLit,
             find,
-            netVoltages
+            netVoltages,
+            gndRoots,
+            v5Roots
         };
 
         updateCircuitWarning(warningText, validStatus);
+    }
+
+    function updateCapacitors(voltagesMap, findFn, gndRootsSet, v5RootsSet) {
+        const find = findFn || (state.circuitStatus && state.circuitStatus.find);
+        const voltages = voltagesMap || (state.circuitStatus && state.circuitStatus.netVoltages);
+        if (!find || !voltages) return;
+
+        const caps = state.components.filter(c => c.type === 'capacitor');
+        if (caps.length === 0) return;
+
+        const gndRoots = gndRootsSet || (state.circuitStatus && state.circuitStatus.gndRoots) || new Set([find('ard-pin-gnd0'), find('ard-pin-gnd1'), find('ard-pin-gnd2')]);
+        const v5Roots = v5RootsSet || (state.circuitStatus && state.circuitStatus.v5Roots) || new Set([find('ard-pin-5v'), find('ard-pin-ioref'), find('ard-pin-vin')]);
+        const resistors = state.components.filter(c => c.type === 'resistor');
+        const now = Date.now();
+
+        if (!state.capacitorStates) state.capacitorStates = {};
+
+        caps.forEach(cap => {
+            if (!state.capacitorStates[cap.id]) {
+                state.capacitorStates[cap.id] = { v: 0.0, lastTime: now };
+            }
+            const capState = state.capacitorStates[cap.id];
+
+            const r1 = find(`${cap.id}_t1`); // positive lead
+            const r2 = find(`${cap.id}_t2`); // negative lead
+            if (!r1 || !r2) return;
+
+            let activeRoot = r1;
+            let refRoot = r2;
+            let polarityReversed = false;
+
+            if (gndRoots.has(r1) && !gndRoots.has(r2)) {
+                activeRoot = r2;
+                refRoot = r1;
+                polarityReversed = true;
+            } else {
+                activeRoot = r1;
+                refRoot = r2;
+            }
+
+            const vRef = voltages[refRoot] !== undefined ? voltages[refRoot] : (gndRoots.has(refRoot) ? 0.0 : 0.0);
+
+            // Find resistor connected to activeRoot
+            let connectedResistor = null;
+            let driveRoot = null;
+
+            for (const res of resistors) {
+                const rt1 = find(`${res.id}_t1`);
+                const rt2 = find(`${res.id}_t2`);
+                if (rt1 === activeRoot && rt2 !== activeRoot && rt2 !== refRoot) {
+                    connectedResistor = res;
+                    driveRoot = rt2;
+                    break;
+                } else if (rt2 === activeRoot && rt1 !== activeRoot && rt1 !== refRoot) {
+                    connectedResistor = res;
+                    driveRoot = rt1;
+                    break;
+                }
+            }
+
+            // Determine drive voltage
+            let vDrive = null;
+            if (driveRoot && voltages[driveRoot] !== undefined) {
+                vDrive = voltages[driveRoot];
+            } else if (!connectedResistor) {
+                for (let pin = 0; pin < 14; pin++) {
+                    const termId = pinToTerminalId(pin);
+                    if (termId && find(termId) === activeRoot && state.hardwareValues.pinModes[pin] === 1) {
+                        vDrive = voltages[activeRoot];
+                        break;
+                    }
+                }
+                if (vDrive === null) {
+                    if (v5Roots.has(activeRoot)) vDrive = 5.0;
+                    else if (gndRoots.has(activeRoot)) vDrive = 0.0;
+                }
+            }
+
+            // Resistance in Ohms
+            let rOhms = 10000;
+            if (connectedResistor) {
+                let rVal = Number(connectedResistor.props.resistance) || 10000;
+                const u = connectedResistor.props.unit || 'Ω';
+                if (u === 'kΩ') rVal *= 1000;
+                else if (u === 'MΩ') rVal *= 1000000;
+                rOhms = Math.max(0.1, rVal);
+            } else {
+                rOhms = 0.1; // Direct connection: near instant charge
+            }
+
+            // Capacitance in Farads
+            let cFarads = 100e-6;
+            const capVal = Number(cap.props.capacitance) || 100;
+            const capUnit = cap.props.unit || 'µF';
+            if (capUnit === 'µF' || capUnit === 'uF') cFarads = capVal * 1e-6;
+            else if (capUnit === 'nF') cFarads = capVal * 1e-9;
+            else if (capUnit === 'pF') cFarads = capVal * 1e-12;
+            else if (capUnit === 'mF') cFarads = capVal * 1e-3;
+            else if (capUnit === 'F') cFarads = capVal;
+            cFarads = Math.max(1e-12, cFarads);
+
+            const tau = Math.max(0.0001, rOhms * cFarads);
+
+            // Compute time delta
+            let dt = 0;
+            if (capState.lastTime && capState.lastTime <= now) {
+                dt = Math.min(2.0, (now - capState.lastTime) / 1000.0);
+            }
+            capState.lastTime = now;
+
+            if (vDrive !== null && state.isSimulating) {
+                const targetDelta = polarityReversed ? (vRef - vDrive) : (vDrive - vRef);
+                if (dt > 0) {
+                    const alpha = Math.exp(-dt / tau);
+                    capState.v = targetDelta + (capState.v - targetDelta) * alpha;
+                }
+            }
+
+            capState.v = Math.max(-5.0, Math.min(5.0, capState.v));
+            const nodeVoltage = polarityReversed ? (vRef - capState.v) : (vRef + capState.v);
+            voltages[activeRoot] = Math.max(0.0, Math.min(5.0, nodeVoltage));
+        });
     }
 
     function updateCircuitWarning(text, isValid) {
@@ -4859,6 +4987,7 @@ void loop() {
 
     function getDigitalRead(pin) {
         if (!state.circuitStatus.find) return 0;
+        updateCapacitors();
         const termId = pinToTerminalId(pin);
         if (!termId) return 0;
 
@@ -4880,6 +5009,7 @@ void loop() {
 
     function getAnalogRead(pin) {
         if (!state.circuitStatus.find) return 0;
+        updateCapacitors();
         const termId = pinToTerminalId(pin);
         if (!termId) return 0;
 
@@ -5131,6 +5261,11 @@ void loop() {
         state.firmwareCancelToken = { cancelled: false };
         state.simStartTime = Date.now();
         state.simTick = 0;
+        state.plotterData = [];
+        state.capacitorStates = {};
+        state.components.filter(c => c.type === 'capacitor').forEach(c => {
+            state.capacitorStates[c.id] = { v: 0.0, lastTime: Date.now() };
+        });
 
         if (typeof window.trackPhysicsEvent === 'function') {
             window.trackPhysicsEvent('arduino_simulation_start', {
@@ -5349,6 +5484,9 @@ void loop() {
         state.simInterval = setInterval(() => {
             state.simTick++;
             updateSimTimer();
+            if (state.circuitStatus && state.circuitStatus.netVoltages) {
+                updateCapacitors();
+            }
         }, 50);
 
         try {
@@ -5379,6 +5517,7 @@ void loop() {
         const durationSeconds = state.simStartTime > 0 ? Math.max(0, Math.round((Date.now() - state.simStartTime) / 1000)) : 0;
         state.isSimulating = false;
         state.firmwareCancelToken.cancelled = true;
+        state.capacitorStates = {};
 
         if (typeof window.trackPhysicsEvent === 'function') {
             window.trackPhysicsEvent('arduino_simulation_stop', {
@@ -5466,7 +5605,29 @@ void loop() {
     }
 
     function extractPlotterValue(text) {
-        const match = text.match(/(?:[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/g);
+        if (!text) return;
+        const trimmed = text.trim();
+        if (!trimmed) return;
+
+        // Ignore banner comments, header lines, status messages or informational text
+        if (trimmed.startsWith('---') || trimmed.startsWith('>>>') || trimmed.startsWith('===') || 
+            trimmed.startsWith('[') || trimmed.startsWith('//') || trimmed.startsWith('*') ||
+            trimmed.startsWith('<') || trimmed.startsWith('#')) {
+            return;
+        }
+
+        // Check if string is purely numeric (supports floats, negatives, scientific notation, commas/spaces)
+        // e.g. "0.244", "0.244\n", "1023", "2.5, 3.1", "100 200"
+        const isNumeric = /^[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?(?:\s*[, \t]\s*[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)*$/.test(trimmed);
+
+        // Or standard telemetry key:value like "vCap: 3.14" or "val = 2.5"
+        const isKeyValue = /^[a-zA-Z_][a-zA-Z0-9_]*\s*[:=]\s*[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$/.test(trimmed);
+
+        if (!isNumeric && !isKeyValue) {
+            return;
+        }
+
+        const match = trimmed.match(/(?:[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/g);
         if (match && match.length > 0) {
             const lastNum = parseFloat(match[match.length - 1]);
             if (!isNaN(lastNum)) {
@@ -5546,11 +5707,23 @@ void loop() {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
         }
 
-        if (state.plotterData.length < 2) return;
+        if (state.plotterData.length === 0) return;
 
         const minVal = Math.min(...state.plotterData, 0);
         const maxVal = Math.max(...state.plotterData, 5.0);
         const range = (maxVal - minVal) || 1;
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillText(`Max: ${maxVal.toFixed(2)}`, 10, 14);
+        ctx.fillText(`Min: ${minVal.toFixed(2)}`, 10, h - 4);
+
+        const latest = state.plotterData[state.plotterData.length - 1];
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillText(`${latest.toFixed(2)}`, w - 55, 14);
+
+        if (state.plotterData.length < 2) return;
 
         const gradient = ctx.createLinearGradient(0, 0, 0, h);
         gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
@@ -5581,16 +5754,6 @@ void loop() {
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2;
         ctx.stroke();
-
-        ctx.fillStyle = '#64748b';
-        ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.fillText(`Max: ${maxVal.toFixed(2)}`, 10, 14);
-        ctx.fillText(`Min: ${minVal.toFixed(2)}`, 10, h - 4);
-
-        const latest = state.plotterData[state.plotterData.length - 1];
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText(`${latest.toFixed(2)}`, w - 55, 14);
     }
 
     // ==========================================
@@ -6192,6 +6355,8 @@ void loop() {
         state.wires = [];
         state.undoStack = [];
         state.redoStack = [];
+        state.plotterData = [];
+        state.capacitorStates = {};
 
         const compContainer = document.getElementById('tcComponentsContainer');
         if (compContainer) compContainer.innerHTML = '';
@@ -6248,6 +6413,7 @@ void loop() {
     function clearAllWires() {
         const oldWires = [...state.wires];
         state.wires = [];
+        state.capacitorStates = {};
         deselectAll();
         renderWires();
         triggerCircuitSolve();
