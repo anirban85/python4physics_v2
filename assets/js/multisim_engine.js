@@ -609,6 +609,23 @@
                     }
                 });
             }
+
+            const toggleKeyBtn = document.getElementById('msToggleApiKeyVis');
+            const keyInput = document.getElementById('msGeminiApiKeyInput');
+            const keyIcon = document.getElementById('msToggleApiKeyIcon');
+            if (toggleKeyBtn && keyInput) {
+                toggleKeyBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const isMasked = keyInput.classList.contains('ms-api-key-masked');
+                    if (isMasked) {
+                        keyInput.classList.remove('ms-api-key-masked');
+                        if (keyIcon) { keyIcon.classList.remove('fa-eye'); keyIcon.classList.add('fa-eye-slash'); }
+                    } else {
+                        keyInput.classList.add('ms-api-key-masked');
+                        if (keyIcon) { keyIcon.classList.remove('fa-eye-slash'); keyIcon.classList.add('fa-eye'); }
+                    }
+                });
+            }
         }
 
         async analyzeUploadedDiagram(base64Data, sampleHint) {
@@ -1394,6 +1411,12 @@
 
             // Keyboard Shortcuts
             window.addEventListener('keydown', e => {
+                if (e.key === 'F5' || e.code === 'F5' || e.keyCode === 116) {
+                    e.preventDefault();
+                    self.toggleSimulation();
+                    return;
+                }
+
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
                 if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -2668,14 +2691,118 @@
             });
 
             const searchInput = document.getElementById('msCompSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', e => {
-                    const q = e.target.value.toLowerCase();
-                    cards.forEach(card => {
+            const clearBtn = document.getElementById('msCompSearchClear');
+            const categoryGroups = document.querySelectorAll('.ms-category-group');
+
+            const applyFilter = () => {
+                const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+                if (clearBtn) {
+                    clearBtn.style.display = q ? 'block' : 'none';
+                }
+
+                let totalMatches = 0;
+                categoryGroups.forEach(group => {
+                    const groupCards = group.querySelectorAll('.ms-comp-card');
+                    let groupMatchCount = 0;
+
+                    groupCards.forEach(card => {
                         const name = (card.querySelector('.ms-comp-name')?.innerText || '').toLowerCase();
-                        card.style.display = name.includes(q) ? 'flex' : 'none';
+                        const type = (card.getAttribute('data-type') || '').toLowerCase();
+                        const matches = !q || name.includes(q) || type.includes(q);
+                        card.style.display = matches ? 'flex' : 'none';
+                        if (matches) {
+                            groupMatchCount++;
+                            totalMatches++;
+                        }
                     });
+
+                    // Hide empty category groups when filtering, show all when search is empty
+                    group.style.display = (!q || groupMatchCount > 0) ? 'block' : 'none';
                 });
+
+                let noResultsEl = document.getElementById('msCompNoResults');
+                if (!noResultsEl && searchInput) {
+                    noResultsEl = document.createElement('div');
+                    noResultsEl.id = 'msCompNoResults';
+                    noResultsEl.className = 'ms-no-results-msg';
+                    noResultsEl.innerHTML = `
+                        <i class="fa-solid fa-filter-circle-xmark"></i>
+                        <span>No components found</span>
+                        <button type="button" class="ms-btn-clear-filter">Show All</button>
+                    `;
+                    const wrapper = searchInput.closest('.ms-search-wrapper') || searchInput;
+                    wrapper.insertAdjacentElement('afterend', noResultsEl);
+                    noResultsEl.querySelector('.ms-btn-clear-filter')?.addEventListener('click', () => {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            applyFilter();
+                        }
+                    });
+                }
+                if (noResultsEl) {
+                    noResultsEl.style.display = (q && totalMatches === 0) ? 'flex' : 'none';
+                }
+            };
+
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.addEventListener('input', applyFilter);
+                searchInput.addEventListener('search', applyFilter);
+                searchInput.addEventListener('change', applyFilter);
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (searchInput) {
+                        searchInput.value = '';
+                        applyFilter();
+                        searchInput.focus();
+                    }
+                });
+            }
+
+            applyFilter();
+        }
+
+        validatePaletteFilter() {
+            const searchInput = document.getElementById('msCompSearch');
+            if (!searchInput) return;
+
+            // If user is actively typing in the box, leave it alone
+            if (document.activeElement === searchInput) return;
+
+            const q = searchInput.value.toLowerCase().trim();
+            if (!q) {
+                const cards = document.querySelectorAll('.ms-comp-card');
+                cards.forEach(c => { c.style.display = 'flex'; });
+                const groups = document.querySelectorAll('.ms-category-group');
+                groups.forEach(g => { g.style.display = 'block'; });
+                const noResults = document.getElementById('msCompNoResults');
+                if (noResults) noResults.style.display = 'none';
+                return;
+            }
+
+            // Check if search query matches ANY component
+            const cards = document.querySelectorAll('.ms-comp-card');
+            let hasAnyMatch = false;
+            cards.forEach(card => {
+                const name = (card.querySelector('.ms-comp-name')?.innerText || '').toLowerCase();
+                const type = (card.getAttribute('data-type') || '').toLowerCase();
+                if (name.includes(q) || type.includes(q)) {
+                    hasAnyMatch = true;
+                }
+            });
+
+            // If query matches nothing (e.g. browser autofilled username "anirban"), clear it and restore!
+            if (!hasAnyMatch) {
+                searchInput.value = '';
+                const clearBtn = document.getElementById('msCompSearchClear');
+                if (clearBtn) clearBtn.style.display = 'none';
+                cards.forEach(c => { c.style.display = 'flex'; });
+                const groups = document.querySelectorAll('.ms-category-group');
+                groups.forEach(g => { g.style.display = 'block'; });
+                const noResults = document.getElementById('msCompNoResults');
+                if (noResults) noResults.style.display = 'none';
             }
         }
 
@@ -2763,6 +2890,7 @@
 
         startSimulation() {
             this.isRunning = true;
+            this.validatePaletteFilter();
             const runBtn = document.getElementById('msBtnSimRun');
             if (runBtn) {
                 runBtn.classList.remove('run');
@@ -2792,6 +2920,7 @@
             this.isRunning = false;
             clearInterval(this.simInterval);
             this.simInterval = null;
+            this.validatePaletteFilter();
 
             const runBtn = document.getElementById('msBtnSimRun');
             if (runBtn) {

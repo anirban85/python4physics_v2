@@ -287,7 +287,13 @@ require_once __DIR__ . '/include/navbar.php';
                     <span style="font-size: 0.68rem; color: #64748b;">Click to Add</span>
                 </div>
 
-                <input type="text" id="msCompSearch" class="ms-search-input" placeholder="Search components (e.g. diode, opamp)...">
+                <div class="ms-search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass ms-search-icon"></i>
+                    <input type="search" id="msCompSearch" class="ms-search-input" placeholder="Search components (e.g. diode, opamp)..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" readonly onfocus="this.removeAttribute('readonly');">
+                    <button type="button" class="ms-search-clear-btn" id="msCompSearchClear" title="Clear Search" style="display: none;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
 
                 <div class="ms-palette-categories">
                     
@@ -777,7 +783,12 @@ require_once __DIR__ . '/include/navbar.php';
                                 </label>
                                 <span style="font-size: 0.68rem; color: #38bdf8;">Built-in AI active</span>
                             </div>
-                            <input type="password" id="msGeminiApiKeyInput" class="ms-insp-input" placeholder="Enter Gemini API key for arbitrary schematics" style="width: 100%; border: 1px solid #334155; border-radius: 4px; padding: 5px 8px; font-size: 0.75rem; background: #030712; color: #f8fafc;">
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <input type="text" id="msGeminiApiKeyInput" class="ms-insp-input ms-api-key-masked" placeholder="Enter Gemini API key for arbitrary schematics" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" style="width: 100%; border: 1px solid #334155; border-radius: 4px; padding: 5px 32px 5px 8px; font-size: 0.75rem; background: #030712; color: #f8fafc;">
+                                <button type="button" id="msToggleApiKeyVis" title="Show/Hide Key" style="position: absolute; right: 6px; background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-eye" id="msToggleApiKeyIcon"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Recognition Status / Output Summary -->

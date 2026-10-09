@@ -379,21 +379,94 @@
     gap: 6px;
 }
 
-.ms-search-input {
-    width: calc(100% - 24px);
-    margin: 8px 12px;
-    background: #030712;
-    border: 1px solid #334155;
-    border-radius: 5px;
-    color: #f8fafc;
-    padding: 5px 8px;
-    font-size: 0.76rem;
-    outline: none;
+.ms-search-wrapper {
+    position: relative;
+    margin: 8px 10px;
+    display: flex;
+    align-items: center;
 }
 
-.ms-search-input:focus {
-    border-color: #0284c7;
-    box-shadow: 0 0 6px var(--ms-accent-glow);
+.ms-search-wrapper .ms-search-input {
+    width: 100%;
+    margin: 0;
+    padding: 6px 26px 6px 28px;
+    background: #030712;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #f8fafc;
+    font-size: 0.76rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.ms-search-wrapper .ms-search-input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+.ms-search-icon {
+    position: absolute;
+    left: 9px;
+    font-size: 0.72rem;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.ms-search-clear-btn {
+    position: absolute;
+    right: 7px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    line-height: 1;
+}
+
+.ms-search-clear-btn:hover {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ms-no-results-msg {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 12px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    gap: 8px;
+}
+
+.ms-no-results-msg i {
+    font-size: 1.5rem;
+    color: #475569;
+}
+
+.ms-btn-clear-filter {
+    background: #1e293b;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ms-btn-clear-filter:hover {
+    background: #38bdf8;
+    color: #0f172a;
+}
+
+.ms-api-key-masked {
+    -webkit-text-security: disc !important;
+    text-security: disc !important;
 }
 
 .ms-palette-categories {
