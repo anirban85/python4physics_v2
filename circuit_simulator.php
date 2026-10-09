@@ -136,6 +136,7 @@ require_once __DIR__ . '/include/navbar.php';
                     File
                     <div class="ms-dropdown-menu">
                         <div class="ms-dropdown-item" id="msMenuNew"><i class="fa-solid fa-file"></i> New Schematic <kbd>Ctrl+N</kbd></div>
+                        <div class="ms-dropdown-item" id="msMenuUploadDiagram"><i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i> Upload Diagram (AI to Sim)</div>
                         <div class="ms-dropdown-item" id="msMenuExport"><i class="fa-solid fa-image"></i> Export Schematic PNG</div>
                         <div class="ms-dropdown-divider"></div>
                         <div class="ms-dropdown-item" id="msMenuClear"><i class="fa-solid fa-trash-can"></i> Clear All</div>
@@ -207,6 +208,9 @@ require_once __DIR__ . '/include/navbar.php';
                 </button>
                 <button type="button" class="ms-tool-btn" id="msBtnExport" title="Export Circuit Schematic as PNG">
                     <i class="fa-solid fa-camera"></i> <span>Snapshot</span>
+                </button>
+                <button type="button" class="ms-tool-btn ms-ai-upload-btn" id="msBtnUploadDiagram" title="Upload Circuit Diagram (Image) & Auto-Simulate with AI" style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.22), rgba(168, 85, 247, 0.22)); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 700;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Diagram to Sim (AI)</span>
                 </button>
             </div>
 
@@ -483,13 +487,29 @@ require_once __DIR__ . '/include/navbar.php';
                     </button>
                 </div>
 
+                <!-- On-Canvas Floating Quick-Action Bar for Selected Wire -->
+                <div class="ms-wire-quick-actions" id="msWireQuickActions" style="display: none;">
+                    <button type="button" class="ms-quick-btn" id="msWireQuickAddBend" title="Add a Bend Point to this Wire">
+                        <i class="fa-solid fa-circle-plus" style="color: #10b981;"></i> <span>Add Bend</span>
+                    </button>
+                    <button type="button" class="ms-quick-btn" id="msWireQuickFlip" title="Flip Routing Axis (Horizontal-Vertical / Vertical-Horizontal)">
+                        <i class="fa-solid fa-arrows-split-up-and-left" style="color: #38bdf8;"></i> <span>Flip Route</span>
+                    </button>
+                    <button type="button" class="ms-quick-btn" id="msWireQuickAuto" title="Reset to Direct Auto Orthogonal">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color: #fbbf24;"></i> <span>Auto Route</span>
+                    </button>
+                    <button type="button" class="ms-quick-btn delete" id="msWireQuickDel" title="Delete Wire (Del)">
+                        <i class="fa-solid fa-trash-can"></i> <span>Delete</span>
+                    </button>
+                </div>
+
                 <!-- Floating Canvas Toast Notification -->
                 <div class="ms-canvas-toast" id="msCanvasToast" style="display: none;"></div>
 
                 <!-- On-Screen Guidance Floating Badge -->
                 <div class="ms-canvas-guidance">
                     <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 
-                    <strong>Quick Controls:</strong> Click red pins to wire &middot; Drag components &middot; Press <kbd>R</kbd> to rotate &middot; Press <kbd>Del</kbd> to remove &middot; Double-click or press <kbd>Enter</kbd> to edit value
+                    <strong>Quick Controls:</strong> Click red pins to wire &middot; Drag handles or double-click to bend/tweak wires &middot; Drag components &middot; Press <kbd>R</kbd> to rotate &middot; Press <kbd>Del</kbd> to remove &middot; Double-click or <kbd>Enter</kbd> to edit value
                 </div>
             </div>
 
@@ -699,6 +719,108 @@ require_once __DIR__ . '/include/navbar.php';
                 <div style="flex: 1;"></div>
                 <button type="button" class="ms-tool-btn" id="msInspCloseBtn" onclick="document.getElementById('msInspectorModal').classList.remove('active');">Cancel</button>
                 <button type="button" class="ms-tool-btn active" id="msInspSaveBtn"><i class="fa-solid fa-check"></i> <span>Apply Changes</span></button>
+            </div>
+        </div>
+
+        <!-- ====================================================================
+             AI CIRCUIT DIAGRAM RECOGNIZER & AUTO-SIMULATOR MODAL
+             ==================================================================== -->
+        <div class="ms-inspector-modal ms-diagram-modal" id="msDiagramModal">
+            <div class="ms-inspector-header">
+                <div class="ms-inspector-title">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color: #38bdf8;"></i>
+                    <span>AI Circuit Diagram Recognizer &amp; Auto-Simulator</span>
+                </div>
+                <button type="button" class="ms-window-close-btn" id="msDiagramCloseBtn">&times;</button>
+            </div>
+            
+            <div class="ms-inspector-body">
+                <p style="font-size: 0.8rem; color: #94a3b8; margin: 0 0 14px 0; line-height: 1.45;">
+                    Upload an image or photograph of any circuit diagram (from a textbook, lab manual, exam, or sketch). The AI engine automatically compiles components, wiring topology, values, and launches live physical simulation output immediately.
+                </p>
+
+                <div class="ms-diagram-grid">
+                    <!-- Left: Upload & Image Preview -->
+                    <div>
+                        <div class="ms-diagram-dropzone" id="msDiagramDropzone">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.2rem; color: #38bdf8; margin-bottom: 8px;"></i>
+                            <div style="font-size: 0.86rem; font-weight: 700; color: #f8fafc;">Drop schematic image here</div>
+                            <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 3px;">PNG, JPG, WEBP or Paste from Clipboard (<kbd>Ctrl+V</kbd>)</div>
+                            <input type="file" id="msDiagramFileInput" accept="image/*" style="display: none;">
+                            <button type="button" class="ms-module-btn btn-secondary" id="msDiagramBrowseBtn" style="margin-top: 10px; font-size: 0.76rem; padding: 5px 12px;">
+                                <i class="fa-solid fa-folder-open"></i> Browse Files
+                            </button>
+                        </div>
+
+                        <div class="ms-diagram-preview-box" id="msDiagramPreviewBox" style="display: none;">
+                            <img id="msDiagramPreviewImg" src="" alt="Circuit Diagram Preview">
+                        </div>
+
+                        <div class="ms-diagram-samples-title">Or Try Sample Diagram Archetypes:</div>
+                        <div class="ms-diagram-samples-row">
+                            <span class="ms-sample-chip" data-sample="bridge_rectifier"><i class="fa-solid fa-microchip"></i> Bridge Rectifier</span>
+                            <span class="ms-sample-chip" data-sample="bjt_amplifier"><i class="fa-solid fa-diagram-project"></i> BJT CE Amplifier</span>
+                            <span class="ms-sample-chip" data-sample="zener_regulator"><i class="fa-solid fa-plug-circle-bolt"></i> Zener Regulator</span>
+                            <span class="ms-sample-chip" data-sample="opamp_inverting"><i class="fa-solid fa-sliders"></i> Inverting Op-Amp</span>
+                            <span class="ms-sample-chip" data-sample="rc_lowpass"><i class="fa-solid fa-chart-area"></i> RC Low-Pass</span>
+                            <span class="ms-sample-chip" data-sample="rlc_resonant"><i class="fa-solid fa-wave-square"></i> RLC Resonant</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Analysis Engine & Results -->
+                    <div>
+                        <!-- Optional API Key Input for Advanced Multimodal Vision -->
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <label for="msGeminiApiKeyInput" style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">
+                                    <i class="fa-solid fa-key" style="color: #f59e0b;"></i> Gemini Vision Key <span style="font-weight: 400; text-transform: none; color: #64748b;">(Optional)</span>
+                                </label>
+                                <span style="font-size: 0.68rem; color: #38bdf8;">Built-in AI active</span>
+                            </div>
+                            <input type="password" id="msGeminiApiKeyInput" class="ms-insp-input" placeholder="Enter Gemini API key for arbitrary schematics" style="width: 100%; border: 1px solid #334155; border-radius: 4px; padding: 5px 8px; font-size: 0.75rem; background: #030712; color: #f8fafc;">
+                        </div>
+
+                        <!-- Recognition Status / Output Summary -->
+                        <div class="ms-diagram-status-box" id="msDiagramStatusBox">
+                            <div id="msDiagramInitialState" style="text-align: center; margin: auto; color: #64748b; font-size: 0.78rem;">
+                                <i class="fa-solid fa-circle-question" style="font-size: 1.8rem; margin-bottom: 8px; color: #334155;"></i>
+                                <div>Upload or select a diagram to see recognized netlist and physical simulation components.</div>
+                            </div>
+
+                            <div id="msDiagramLoadingState" style="display: none; text-align: center; margin: auto; color: #38bdf8;">
+                                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <div style="font-size: 0.84rem; font-weight: 700;">Synthesizing Schematic with AI...</div>
+                                <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;" id="msDiagramLoadingSubtext">Extracting topology &amp; assigning physical parameters</div>
+                            </div>
+
+                            <div id="msDiagramResultState" style="display: none;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <span class="badge badge-cyan" id="msResultEngineBadge" style="font-size: 0.68rem;">AI SYNTHESIZED</span>
+                                    <span style="font-size: 0.7rem; color: #4ade80; font-weight: 600;"><i class="fa-solid fa-check"></i> Ready to Run</span>
+                                </div>
+                                <div class="ms-diagram-summary-card">
+                                    <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;" id="msResultCircuitTitle">Circuit Title</div>
+                                    <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 4px; line-height: 1.4;" id="msResultCircuitDesc">Circuit description</div>
+                                    <div class="ms-detected-pills" id="msResultComponentPills"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 14px; display: flex; gap: 8px;">
+                            <button type="button" class="ms-module-btn" id="msBtnAnalyzeDiagram" style="flex: 1; justify-content: center; background: linear-gradient(135deg, #0284c7, #6366f1); padding: 8px;">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i> <span>Analyze Diagram</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ms-inspector-footer">
+                <button type="button" class="ms-tool-btn" id="msDiagramCancelBtn">Close</button>
+                <div style="flex: 1;"></div>
+                <button type="button" class="ms-module-btn" id="msBtnLaunchSimulated" style="background: linear-gradient(135deg, #059669, #0284c7); padding: 7px 16px; font-weight: 700; opacity: 0.5; pointer-events: none;">
+                    <i class="fa-solid fa-play"></i> <span>Build &amp; Run Simulation Now</span>
+                </button>
             </div>
         </div>
 

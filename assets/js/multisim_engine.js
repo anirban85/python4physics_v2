@@ -263,8 +263,11 @@
 
             // Setup Quick Actions & Toast Elements
             this.quickActionsEl = document.getElementById('msCompQuickActions');
+            this.wireQuickActionsEl = document.getElementById('msWireQuickActions');
             this.toastEl = document.getElementById('msCanvasToast');
             this.bindQuickActions();
+            this.bindWireQuickActions();
+            this.bindDiagramModalEvents();
 
             // Setup Instruments
             this.cro = new VirtualCRO(this);
@@ -332,6 +335,421 @@
         hideQuickActions() {
             if (this.quickActionsEl) {
                 this.quickActionsEl.style.display = 'none';
+            }
+        }
+
+        bindWireQuickActions() {
+            const addBendBtn = document.getElementById('msWireQuickAddBend');
+            const flipBtn = document.getElementById('msWireQuickFlip');
+            const autoBtn = document.getElementById('msWireQuickAuto');
+            const delBtn = document.getElementById('msWireQuickDel');
+
+            if (addBendBtn) {
+                addBendBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (this.selectedItem && this.selectedItem.type === 'wire') {
+                        const wire = this.wires[this.selectedItem.index];
+                        if (wire) {
+                            const pts = this.getWirePoints(wire);
+                            const p1 = pts[0];
+                            const p2 = pts[pts.length - 1];
+                            const mid = {
+                                x: Math.round(((p1.x + p2.x) / 2) / 10) * 10,
+                                y: Math.round(((p1.y + p2.y) / 2) / 10) * 10
+                            };
+                            if (!wire.waypoints) wire.waypoints = [];
+                            wire.waypoints.push(mid);
+                            this.render();
+                            this.showToast('Bend waypoint added. Drag the handle to adjust wire routing.');
+                        }
+                    }
+                });
+            }
+
+            if (flipBtn) {
+                flipBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (this.selectedItem && this.selectedItem.type === 'wire') {
+                        const wire = this.wires[this.selectedItem.index];
+                        if (wire) {
+                            delete wire.waypoints;
+                            wire.routeMode = (wire.routeMode === 'vhv' ? 'hvh' : 'vhv');
+                            delete wire.bendX;
+                            delete wire.bendY;
+                            this.render();
+                            this.showToast(`Wire route flipped to ${wire.routeMode.toUpperCase()}`);
+                        }
+                    }
+                });
+            }
+
+            if (autoBtn) {
+                autoBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (this.selectedItem && this.selectedItem.type === 'wire') {
+                        const wire = this.wires[this.selectedItem.index];
+                        if (wire) {
+                            delete wire.waypoints;
+                            delete wire.bendX;
+                            delete wire.bendY;
+                            wire.routeMode = 'hvh';
+                            this.render();
+                            this.showToast('Reset wire to standard orthogonal route.');
+                        }
+                    }
+                });
+            }
+
+            if (delBtn) {
+                delBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    this.deleteSelected();
+                });
+            }
+        }
+
+        showWireQuickActions(wire) {
+            if (!this.wireQuickActionsEl || !wire) return;
+            const pts = this.getWirePoints(wire);
+            if (!pts || pts.length === 0) return;
+
+            let sumX = 0, sumY = 0;
+            pts.forEach(p => { sumX += p.x; sumY += p.y; });
+            const avgX = Math.round(sumX / pts.length);
+            const avgY = Math.round(sumY / pts.length);
+
+            let top = avgY - 45;
+            if (top < 40) top = avgY + 30;
+
+            this.wireQuickActionsEl.style.left = avgX + 'px';
+            this.wireQuickActionsEl.style.top = top + 'px';
+            this.wireQuickActionsEl.style.display = 'flex';
+        }
+
+        hideWireQuickActions() {
+            if (this.wireQuickActionsEl) {
+                this.wireQuickActionsEl.style.display = 'none';
+            }
+        }
+
+        openDiagramUploadModal() {
+            const modal = document.getElementById('msDiagramModal');
+            if (!modal) return;
+            modal.classList.add('active');
+
+            if (!this._pendingSynthesizedCircuit) {
+                this.setDiagramModalState('initial');
+            }
+        }
+
+        closeDiagramUploadModal() {
+            const modal = document.getElementById('msDiagramModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        setDiagramModalState(state, info = {}) {
+            const initBox = document.getElementById('msDiagramInitialState');
+            const loadBox = document.getElementById('msDiagramLoadingState');
+            const resBox = document.getElementById('msDiagramResultState');
+            const launchBtn = document.getElementById('msBtnLaunchSimulated');
+            const loadSub = document.getElementById('msDiagramLoadingSubtext');
+
+            if (initBox) initBox.style.display = (state === 'initial') ? 'block' : 'none';
+            if (loadBox) loadBox.style.display = (state === 'loading') ? 'block' : 'none';
+            if (resBox) resBox.style.display = (state === 'result') ? 'block' : 'none';
+
+            if (state === 'loading') {
+                if (loadSub && info.subtext) loadSub.innerText = info.subtext;
+                if (launchBtn) {
+                    launchBtn.style.opacity = '0.5';
+                    launchBtn.style.pointerEvents = 'none';
+                    launchBtn.classList.remove('pulse');
+                }
+            } else if (state === 'result') {
+                if (launchBtn) {
+                    launchBtn.style.opacity = '1';
+                    launchBtn.style.pointerEvents = 'auto';
+                    launchBtn.classList.add('pulse');
+                }
+            } else {
+                if (launchBtn) {
+                    launchBtn.style.opacity = '0.5';
+                    launchBtn.style.pointerEvents = 'none';
+                    launchBtn.classList.remove('pulse');
+                }
+            }
+        }
+
+        bindDiagramModalEvents() {
+            const self = this;
+            const modal = document.getElementById('msDiagramModal');
+            const closeBtn = document.getElementById('msDiagramCloseBtn');
+            const cancelBtn = document.getElementById('msDiagramCancelBtn');
+            const dropzone = document.getElementById('msDiagramDropzone');
+            const fileInput = document.getElementById('msDiagramFileInput');
+            const browseBtn = document.getElementById('msDiagramBrowseBtn');
+            const previewBox = document.getElementById('msDiagramPreviewBox');
+            const previewImg = document.getElementById('msDiagramPreviewImg');
+            const analyzeBtn = document.getElementById('msBtnAnalyzeDiagram');
+            const launchBtn = document.getElementById('msBtnLaunchSimulated');
+
+            if (closeBtn) closeBtn.addEventListener('click', () => self.closeDiagramUploadModal());
+            if (cancelBtn) cancelBtn.addEventListener('click', () => self.closeDiagramUploadModal());
+
+            const btnUpload = document.getElementById('msBtnUploadDiagram');
+            if (btnUpload) btnUpload.addEventListener('click', () => self.openDiagramUploadModal());
+
+            const menuUpload = document.getElementById('msMenuUploadDiagram');
+            if (menuUpload) menuUpload.addEventListener('click', () => self.openDiagramUploadModal());
+
+            const handleFile = file => {
+                if (!file || !file.type.startsWith('image/')) {
+                    self.showToast('Please select a valid image file (PNG, JPG, WEBP).');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const dataUrl = e.target.result;
+                    self._currentDiagramBase64 = dataUrl;
+                    self._currentDiagramSample = null;
+                    if (previewImg && previewBox) {
+                        previewImg.src = dataUrl;
+                        previewBox.style.display = 'block';
+                    }
+                    self.analyzeUploadedDiagram(dataUrl, null);
+                };
+                reader.readAsDataURL(file);
+            };
+
+            if (browseBtn && fileInput) {
+                browseBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+            }
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', () => fileInput.click());
+            }
+            if (fileInput) {
+                fileInput.addEventListener('change', e => {
+                    if (e.target.files && e.target.files[0]) {
+                        handleFile(e.target.files[0]);
+                    }
+                });
+            }
+
+            if (dropzone) {
+                dropzone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                });
+                dropzone.addEventListener('dragleave', e => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                });
+                dropzone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        handleFile(e.dataTransfer.files[0]);
+                    }
+                });
+            }
+
+            window.addEventListener('paste', e => {
+                if (!modal || !modal.classList.contains('active')) return;
+                const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || {}).items || [];
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const blob = items[i].getAsFile();
+                        if (blob) {
+                            handleFile(blob);
+                            e.preventDefault();
+                            break;
+                        }
+                    }
+                }
+            });
+
+            const sampleChips = document.querySelectorAll('.ms-sample-chip');
+            sampleChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const sample = chip.getAttribute('data-sample');
+                    sampleChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    self._currentDiagramSample = sample;
+                    self._currentDiagramBase64 = null;
+
+                    if (previewBox && previewImg) {
+                        previewBox.style.display = 'block';
+                        previewImg.src = '';
+                        previewImg.alt = `Selected Archetype: ${chip.innerText.trim()}`;
+                    }
+                    self.analyzeUploadedDiagram(null, sample);
+                });
+            });
+
+            if (analyzeBtn) {
+                analyzeBtn.addEventListener('click', () => {
+                    if (self._currentDiagramBase64) {
+                        self.analyzeUploadedDiagram(self._currentDiagramBase64, null);
+                    } else if (self._currentDiagramSample) {
+                        self.analyzeUploadedDiagram(null, self._currentDiagramSample);
+                    } else {
+                        self.analyzeUploadedDiagram(null, 'bridge_rectifier');
+                    }
+                });
+            }
+
+            if (launchBtn) {
+                launchBtn.addEventListener('click', () => {
+                    if (self._pendingSynthesizedCircuit) {
+                        self.loadSynthesizedCircuit(self._pendingSynthesizedCircuit, true);
+                        self.closeDiagramUploadModal();
+                    }
+                });
+            }
+        }
+
+        async analyzeUploadedDiagram(base64Data, sampleHint) {
+            this.setDiagramModalState('loading', { subtext: 'Analyzing component symbols, nodes & physical models...' });
+
+            const apiKeyInput = document.getElementById('msGeminiApiKeyInput');
+            const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+            try {
+                const response = await fetch('api/circuit_vision.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: base64Data || '',
+                        sample: sampleHint || '',
+                        apiKey: apiKey
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success || !data.circuit) {
+                    throw new Error(data.error || 'Failed to parse circuit diagram');
+                }
+
+                this._pendingSynthesizedCircuit = data.circuit;
+
+                const engineBadge = document.getElementById('msResultEngineBadge');
+                const titleEl = document.getElementById('msResultCircuitTitle');
+                const descEl = document.getElementById('msResultCircuitDesc');
+                const pillsEl = document.getElementById('msResultComponentPills');
+
+                if (engineBadge) {
+                    engineBadge.innerText = (data.engine === 'gemini_multimodal' ? 'GEMINI 1.5 VISION AI' : 'NEURAL TOPOLOGY ENGINE');
+                }
+                const circuitTitle = data.circuit.title || data.circuit.circuitName || 'Synthesized Circuit';
+                if (titleEl) titleEl.innerText = circuitTitle;
+                if (descEl) descEl.innerText = data.circuit.description || '';
+
+                if (pillsEl && Array.isArray(data.circuit.components)) {
+                    pillsEl.innerHTML = data.circuit.components.map(c => {
+                        const name = c.label || c.type;
+                        return `<span class="ms-pill-badge"><i class="fa-solid fa-microchip"></i> ${name}</span>`;
+                    }).join('');
+                }
+
+                this.setDiagramModalState('result');
+                this.showToast(`Schematic recognized: ${circuitTitle}`);
+            } catch (err) {
+                console.error('Vision analysis error:', err);
+                this.setDiagramModalState('initial');
+                this.showToast(`Recognition notice: ${err.message}. Synthesizing canonical schematic.`);
+                if (!sampleHint) {
+                    this.analyzeUploadedDiagram(null, 'bridge_rectifier');
+                }
+            }
+        }
+
+        loadSynthesizedCircuit(circuitData, runImmediately = true) {
+            if (!circuitData) return;
+
+            this.stopSimulation();
+            this.components = [];
+            this.wires = [];
+            this.selectedItem = null;
+            this.activeWireDraft = null;
+            this.simTime = 0.0;
+            this.nodeVoltages = {};
+            this.compStates = {};
+            if (this.clockEl) this.clockEl.innerText = '0.0000 s';
+
+            const labelToComp = {};
+            const idToComp = {};
+
+            // 1. Instantiation of components
+            if (Array.isArray(circuitData.components)) {
+                circuitData.components.forEach(item => {
+                    const compProps = item.props || item.defaults || {};
+                    const comp = this.addComponent(item.type, item.x || 200, item.y || 200, compProps);
+                    if (comp) {
+                        if (item.label) comp.label = item.label;
+                        if (item.rotation) comp.rotation = item.rotation;
+                        if (item.label) labelToComp[item.label] = comp;
+                        if (item.id !== undefined) idToComp[item.id] = comp;
+                    }
+                });
+            }
+
+            // 2. Wiring synthesis
+            if (Array.isArray(circuitData.wires)) {
+                circuitData.wires.forEach(w => {
+                    let fromComp = null;
+                    let toComp = null;
+
+                    if (w.fromComp !== undefined) fromComp = idToComp[w.fromComp] || this.components.find(c => c.id === w.fromComp);
+                    if (!fromComp && w.from) fromComp = labelToComp[w.from];
+
+                    if (w.toComp !== undefined) toComp = idToComp[w.toComp] || this.components.find(c => c.id === w.toComp);
+                    if (!toComp && w.to) toComp = labelToComp[w.to];
+
+                    if (fromComp && toComp) {
+                        const wireObj = {
+                            fromComp: fromComp.id,
+                            fromPin: String(w.fromPin || '1'),
+                            toComp: toComp.id,
+                            toPin: String(w.toPin || '2')
+                        };
+                        if (w.routeMode) wireObj.routeMode = w.routeMode;
+                        if (w.bendX !== undefined) wireObj.bendX = w.bendX;
+                        if (w.bendY !== undefined) wireObj.bendY = w.bendY;
+                        if (w.waypoints) wireObj.waypoints = JSON.parse(JSON.stringify(w.waypoints));
+                        this.wires.push(wireObj);
+                    }
+                });
+            }
+
+            // 3. Recommended Instruments
+            const inst = circuitData.recommendedInstruments || circuitData.instruments;
+            if (inst) {
+                if (this.cro && ((inst.cro && (inst.cro.active || inst.cro === true)) || inst.cro)) {
+                    this.cro.show();
+                    if (typeof this.cro.calibratePreset === 'function') {
+                        this.cro.calibratePreset('mod2_bridge_rectifier');
+                    }
+                }
+                if (this.dmm && ((inst.dmm && (inst.dmm.active || inst.dmm === true)) || inst.dmm)) {
+                    this.dmm.show();
+                }
+                if (this.xfg && ((inst.xfg && (inst.xfg.active || inst.xfg === true)) || inst.xfg)) {
+                    this.xfg.show();
+                }
+            }
+
+            this.render();
+
+            if (runImmediately) {
+                this.startSimulation();
+                this.showToast(`Circuit live: ${circuitData.title || 'Physical simulation running!'}`);
             }
         }
 
@@ -677,11 +1095,36 @@
 
             let html = '';
 
-            // Draw Wires
+            // Draw Wires & Tweak Handles
             this.wires.forEach((wire, idx) => {
                 const pathStr = this.computeWirePath(wire);
                 const isSelected = this.selectedItem && this.selectedItem.type === 'wire' && this.selectedItem.index === idx;
                 html += `<path class="ms-wire ${isSelected ? 'selected' : ''}" d="${pathStr}" data-wire-index="${idx}"/>`;
+
+                // If this wire is selected, render interactive bend / tweak handles!
+                if (isSelected) {
+                    const pts = this.getWirePoints(wire);
+                    if (wire.waypoints && wire.waypoints.length > 0) {
+                        // Render handles for each custom waypoint
+                        wire.waypoints.forEach((wp, hIdx) => {
+                            html += `<circle class="ms-wire-handle waypoint" data-wire-index="${idx}" data-handle-type="waypoint" data-handle-index="${hIdx}" cx="${wp.x}" cy="${wp.y}" r="6.5" title="Drag to move bend (Double-click to remove)"/>`;
+                        });
+                    } else if (wire.routeMode === 'vhv') {
+                        // VHV trunk handle (horizontal drag)
+                        const midY = wire.bendY !== undefined ? wire.bendY : Math.round((pts[0].y + pts[3].y) / 2);
+                        const trunkX = Math.round((pts[0].x + pts[3].x) / 2);
+                        html += `<circle class="ms-wire-handle trunk" data-wire-index="${idx}" data-handle-type="trunk-y" cx="${trunkX}" cy="${midY}" r="6.5" title="Drag to adjust bend vertically"/>`;
+                        html += `<circle class="ms-wire-handle corner" data-wire-index="${idx}" data-handle-type="corner-1" cx="${pts[1].x}" cy="${pts[1].y}" r="5.5" title="Drag corner to bend"/>`;
+                        html += `<circle class="ms-wire-handle corner" data-wire-index="${idx}" data-handle-type="corner-2" cx="${pts[2].x}" cy="${pts[2].y}" r="5.5" title="Drag corner to bend"/>`;
+                    } else {
+                        // HVH trunk handle (vertical drag)
+                        const midX = wire.bendX !== undefined ? wire.bendX : Math.round((pts[0].x + pts[3].x) / 2);
+                        const trunkY = Math.round((pts[0].y + pts[3].y) / 2);
+                        html += `<circle class="ms-wire-handle trunk" data-wire-index="${idx}" data-handle-type="trunk-x" cx="${midX}" cy="${trunkY}" r="6.5" title="Drag to adjust bend horizontally"/>`;
+                        html += `<circle class="ms-wire-handle corner" data-wire-index="${idx}" data-handle-type="corner-1" cx="${pts[1].x}" cy="${pts[1].y}" r="5.5" title="Drag corner to bend"/>`;
+                        html += `<circle class="ms-wire-handle corner" data-wire-index="${idx}" data-handle-type="corner-2" cx="${pts[2].x}" cy="${pts[2].y}" r="5.5" title="Drag corner to bend"/>`;
+                    }
+                }
             });
 
             // Draw Draft Wire
@@ -703,11 +1146,17 @@
 
             this.svg.innerHTML = html;
 
-            // Update Quick Action Bar for selected component
+            // Update Quick Action Bars
             if (this.selectedItem && this.selectedItem.id && !this.isDragging) {
                 this.showQuickActions(this.selectedItem);
+                this.hideWireQuickActions();
+            } else if (this.selectedItem && this.selectedItem.type === 'wire' && !this.isDragging) {
+                this.hideQuickActions();
+                const wire = this.wires[this.selectedItem.index];
+                if (wire) this.showWireQuickActions(wire);
             } else {
                 this.hideQuickActions();
+                this.hideWireQuickActions();
             }
         }
 
@@ -731,11 +1180,45 @@
             };
         }
 
-        computeWirePath(wire) {
+        getWirePoints(wire) {
             const start = this.getPinPos(wire.fromComp, wire.fromPin);
             const end = this.getPinPos(wire.toComp, wire.toPin);
-            const midX = Math.round((start.x + end.x) / 2);
-            return `M ${start.x} ${start.y} H ${midX} V ${end.y} H ${end.x}`;
+
+            if (wire.waypoints && wire.waypoints.length > 0) {
+                const pts = [start];
+                wire.waypoints.forEach(wp => pts.push({ x: wp.x, y: wp.y }));
+                pts.push(end);
+                return pts;
+            }
+
+            if (wire.routeMode === 'vhv') {
+                const midY = wire.bendY !== undefined ? wire.bendY : Math.round((start.y + end.y) / 2);
+                return [
+                    start,
+                    { x: start.x, y: midY },
+                    { x: end.x, y: midY },
+                    end
+                ];
+            } else {
+                // Default: HVH (start.x -> midX -> end.y -> end.x)
+                const midX = wire.bendX !== undefined ? wire.bendX : Math.round((start.x + end.x) / 2);
+                return [
+                    start,
+                    { x: midX, y: start.y },
+                    { x: midX, y: end.y },
+                    end
+                ];
+            }
+        }
+
+        computeWirePath(wire) {
+            const pts = this.getWirePoints(wire);
+            if (!pts || pts.length < 2) return '';
+            let d = `M ${pts[0].x} ${pts[0].y}`;
+            for (let i = 1; i < pts.length; i++) {
+                d += ` L ${pts[i].x} ${pts[i].y}`;
+            }
+            return d;
         }
 
         computeDraftPath(draft) {
@@ -861,8 +1344,46 @@
                 self.onPointerUp(e);
             });
 
-            // Double Click to Edit Properties
+            // Double Click to Edit Properties or Add/Remove Wire Waypoints
             this.svg.addEventListener('dblclick', e => {
+                // 1. Double click on a waypoint handle removes it
+                const handleTarget = e.target.closest('.ms-wire-handle.waypoint');
+                if (handleTarget) {
+                    const wireIdx = parseInt(handleTarget.getAttribute('data-wire-index'), 10);
+                    const hIdx = parseInt(handleTarget.getAttribute('data-handle-index'), 10);
+                    const wire = self.wires[wireIdx];
+                    if (wire && wire.waypoints) {
+                        wire.waypoints.splice(hIdx, 1);
+                        self.render();
+                        self.showToast('Bend waypoint removed.');
+                        return;
+                    }
+                }
+
+                // 2. Double click on a wire adds a bend waypoint at this coordinate
+                const wireTarget = e.target.closest('.ms-wire');
+                if (wireTarget) {
+                    const wireIdx = parseInt(wireTarget.getAttribute('data-wire-index'), 10);
+                    const wire = self.wires[wireIdx];
+                    if (wire) {
+                        const coords = self.getCanvasCoords(e);
+                        const snapped = {
+                            x: Math.round(coords.x / 10) * 10,
+                            y: Math.round(coords.y / 10) * 10
+                        };
+                        if (!wire.waypoints || wire.waypoints.length === 0) {
+                            wire.waypoints = [snapped];
+                        } else {
+                            wire.waypoints.push(snapped);
+                        }
+                        self.selectedItem = { type: 'wire', index: wireIdx };
+                        self.render();
+                        self.showToast('Added bend waypoint. Drag the circle handle to tweak wire shape.');
+                        return;
+                    }
+                }
+
+                // 3. Double click on a component opens property modal
                 const compGroup = e.target.closest('.ms-comp-group');
                 if (compGroup) {
                     const id = parseInt(compGroup.getAttribute('data-id'), 10);
@@ -908,6 +1429,30 @@
         onPointerDown(e) {
             const coords = this.getCanvasCoords(e);
             const target = e.target;
+
+            // 0. Clicked on Wire Bend / Tweak Handle?
+            const handleTarget = target ? target.closest('.ms-wire-handle') : null;
+            if (handleTarget) {
+                const wireIdx = parseInt(handleTarget.getAttribute('data-wire-index'), 10);
+                const handleType = handleTarget.getAttribute('data-handle-type');
+                const handleIdxStr = handleTarget.getAttribute('data-handle-index');
+                const handleIdx = handleIdxStr !== null ? parseInt(handleIdxStr, 10) : null;
+                const wire = this.wires[wireIdx];
+                if (wire) {
+                    this.selectedItem = { type: 'wire', index: wireIdx };
+                    this.isDragging = true;
+                    this.dragItem = {
+                        isWireHandle: true,
+                        wireIndex: wireIdx,
+                        handleType: handleType,
+                        handleIndex: handleIdx,
+                        wire: wire
+                    };
+                    handleTarget.classList.add('active');
+                    this.render();
+                    return;
+                }
+            }
 
             // 1. Clicked on Terminal Pin / Hitbox?
             const pinTarget = target.closest('.ms-terminal-pin') || target.closest('.ms-pin-hitbox');
@@ -991,6 +1536,30 @@
             const coords = this.getCanvasCoords(e);
 
             if (this.isDragging && this.dragItem) {
+                if (this.dragItem.isWireHandle) {
+                    const wire = this.dragItem.wire;
+                    const snappedX = Math.round(coords.x / 10) * 10;
+                    const snappedY = Math.round(coords.y / 10) * 10;
+
+                    if (this.dragItem.handleType === 'trunk-x') {
+                        wire.bendX = snappedX;
+                    } else if (this.dragItem.handleType === 'trunk-y') {
+                        wire.bendY = snappedY;
+                    } else if (this.dragItem.handleType === 'corner-1' || this.dragItem.handleType === 'corner-2') {
+                        if (wire.routeMode === 'vhv') {
+                            wire.bendY = snappedY;
+                        } else {
+                            wire.bendX = snappedX;
+                        }
+                    } else if (this.dragItem.handleType === 'waypoint' && this.dragItem.handleIndex !== null) {
+                        if (wire.waypoints && wire.waypoints[this.dragItem.handleIndex]) {
+                            wire.waypoints[this.dragItem.handleIndex] = { x: snappedX, y: snappedY };
+                        }
+                    }
+                    this.render();
+                    return;
+                }
+
                 const rawX = coords.x - this.dragOffset.x;
                 const rawY = coords.y - this.dragOffset.y;
                 this.dragItem.x = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
@@ -1055,6 +1624,11 @@
             this.dragItem = null;
             if (this.selectedItem && this.selectedItem.id) {
                 this.showQuickActions(this.selectedItem);
+                this.hideWireQuickActions();
+            } else if (this.selectedItem && this.selectedItem.type === 'wire') {
+                this.hideQuickActions();
+                const wire = this.wires[this.selectedItem.index];
+                if (wire) this.showWireQuickActions(wire);
             }
         }
 
@@ -2077,6 +2651,8 @@
                     }
                 });
             }
+            const uploadBtn = document.getElementById('msBtnUploadDiagram');
+            if (uploadBtn) uploadBtn.addEventListener('click', () => self.openDiagramUploadModal());
         }
 
         bindPaletteButtons() {
@@ -2105,6 +2681,61 @@
 
         bindMenuActions() {
             const self = this;
+
+            // File dropdown items
+            const menuNew = document.getElementById('msMenuNew');
+            if (menuNew) menuNew.addEventListener('click', () => {
+                if (confirm('Create new empty schematic?')) {
+                    self.clearAll();
+                    self.showToast('New blank schematic canvas initialized.');
+                }
+            });
+
+            const menuUpload = document.getElementById('msMenuUploadDiagram');
+            if (menuUpload) menuUpload.addEventListener('click', () => self.openDiagramUploadModal());
+
+            const menuExport = document.getElementById('msMenuExport');
+            if (menuExport) menuExport.addEventListener('click', () => self.exportSchematicPNG());
+
+            const menuClear = document.getElementById('msMenuClear');
+            if (menuClear) menuClear.addEventListener('click', () => {
+                if (confirm('Clear schematic and start a new circuit?')) {
+                    self.clearAll();
+                }
+            });
+
+            // Edit dropdown items
+            const menuProps = document.getElementById('msMenuProps');
+            if (menuProps) menuProps.addEventListener('click', () => {
+                if (self.selectedItem && self.selectedItem.id) {
+                    self.openPropertyModal(self.selectedItem);
+                } else {
+                    self.showToast('Click any component on the schematic to select it.');
+                }
+            });
+
+            const menuRotate = document.getElementById('msMenuRotate');
+            if (menuRotate) menuRotate.addEventListener('click', () => self.rotateSelected());
+
+            const menuDelete = document.getElementById('msMenuDelete');
+            if (menuDelete) menuDelete.addEventListener('click', () => self.deleteSelected());
+
+            // Simulate dropdown items
+            const menuRun = document.getElementById('msMenuRun');
+            if (menuRun) menuRun.addEventListener('click', () => self.toggleSimulation());
+
+            const menuStep = document.getElementById('msMenuStep');
+            if (menuStep) menuStep.addEventListener('click', () => self.stepSimulation());
+
+            // Instruments dropdown items
+            const menuCRO = document.getElementById('msMenuCRO');
+            if (menuCRO) menuCRO.addEventListener('click', () => self.cro.toggle());
+
+            const menuDMM = document.getElementById('msMenuDMM');
+            if (menuDMM) menuDMM.addEventListener('click', () => self.dmm.toggle());
+
+            const menuXFG = document.getElementById('msMenuXFG');
+            if (menuXFG) menuXFG.addEventListener('click', () => self.xfg.toggle());
 
             const btnDMM = document.getElementById('msInstDMM');
             if (btnDMM) btnDMM.addEventListener('click', () => self.dmm.toggle());
