@@ -1,7 +1,7 @@
 <?php
 /**
  * Python4Physics - Interactive Circuit Simulator & Virtual Instrumentation Suite
- * Replicating National Instruments Multisim EDA Environment
+ * Interactive SPICE Circuit Simulator & Virtual Electronics Lab
  * 
  * Includes:
  *  - Schematic CAD Editor with Orthogonal Routing & Grid Snapping
@@ -20,15 +20,15 @@
 require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
-$page_title = "Circuit Simulator - National Instruments Multisim Virtual Electronics Lab";
-$page_description = "Interactive National Instruments Multisim style circuit simulator: build analog circuits, wire components, connect virtual CRO oscilloscope, multimeter, and analyze DC/AC transients across 7 electronics modules.";
-$page_keywords = "circuit simulator, multisim online, virtual electronics lab, oscilloscope CRO, multimeter DMM, opamp 741, bjt amplifier, bridge rectifier, zener regulator";
+$page_title = "Circuit Simulator - Virtual Electronics Laboratory & Schematic CAD";
+$page_description = "Interactive SPICE circuit simulator: build analog circuits, wire components, connect virtual CRO oscilloscope, digital multimeter, and analyze DC/AC transients across 7 electronics modules.";
+$page_keywords = "circuit simulator, schematic cad, virtual electronics lab, spice simulation, oscilloscope CRO, multimeter DMM, opamp 741, bjt amplifier, bridge rectifier, zener regulator";
 
 require_once __DIR__ . '/include/header.php';
 require_once __DIR__ . '/include/navbar.php';
 ?>
 
-<!-- Multisim Workbench Stylesheet -->
+<!-- Circuit Simulator Stylesheet -->
 <link rel="stylesheet" href="<?php echo $siteurl; ?>assets/css/multisim.css?v=<?php echo file_exists(__DIR__ . '/assets/css/multisim.css') ? filemtime(__DIR__ . '/assets/css/multisim.css') : time(); ?>">
 
 <!-- html2canvas for High-Resolution Schematic PNG Export -->
@@ -39,28 +39,28 @@ require_once __DIR__ . '/include/navbar.php';
     <!-- Hero Header -->
     <div style="text-align: center; max-width: 960px; margin: 0 auto 1.5rem auto;">
         <span class="badge badge-cyan" style="font-size: 0.85rem; padding: 4px 14px; margin-bottom: 0.5rem; display: inline-block;">
-            <i class="fa-solid fa-wave-square"></i> Virtual Electronics Laboratory &middot; National Instruments Multisim Suite
+            <i class="fa-solid fa-wave-square"></i> Virtual Electronics Laboratory &middot; Interactive Circuit Simulator
         </span>
         <h1 style="font-size: 2.3rem; margin-top: 0.35rem; margin-bottom: 0.5rem;">
             Virtual Circuit Simulator &amp; <span class="gradient-text">Instruments Suite</span>
         </h1>
         <p style="font-size: 1.02rem; line-height: 1.5; color: var(--text-muted); margin: 0;">
-            A browser-based electronics CAD environment modeled after <strong>National Instruments Multisim</strong>. 
+            A professional browser-based electronics CAD &amp; SPICE simulation environment. 
             Wire active and passive components on the engineering grid, probe nodes with a dual-trace CRO and digital multimeter, 
             and execute real-time SPICE transient simulations across all 7 curriculum modules.
         </p>
     </div>
 
     <!-- ====================================================================
-         NATIONAL INSTRUMENTS MULTISIM WORKBENCH CONTAINER
+         CIRCUIT SIMULATOR WORKBENCH CONTAINER
          ==================================================================== -->
     <div class="ms-workbench-wrapper" id="msWorkbenchWrapper">
         
-        <!-- Top Multisim Menu Bar -->
+        <!-- Top Menu Bar -->
         <div class="ms-menu-bar">
             <div class="ms-menu-left">
                 <span class="ms-logo">
-                    <i class="fa-solid fa-bolt"></i> NI MULTISIM
+                    <i class="fa-solid fa-bolt"></i> CIRCUIT SIMULATOR
                 </span>
 
                 <!-- File Menu -->
@@ -78,6 +78,7 @@ require_once __DIR__ . '/include/navbar.php';
                 <div class="ms-menu-item">
                     Edit
                     <div class="ms-dropdown-menu">
+                        <div class="ms-dropdown-item" id="msMenuProps"><i class="fa-solid fa-sliders"></i> Edit Component Value <kbd>Enter</kbd></div>
                         <div class="ms-dropdown-item" id="msMenuRotate"><i class="fa-solid fa-rotate-right"></i> Rotate 90&deg; <kbd>R</kbd></div>
                         <div class="ms-dropdown-item" id="msMenuDelete"><i class="fa-solid fa-xmark"></i> Delete Item <kbd>Del</kbd></div>
                     </div>
@@ -126,6 +127,9 @@ require_once __DIR__ . '/include/navbar.php';
             <div class="ms-toolbar-group">
                 <button type="button" class="ms-tool-btn" id="msBtnClear" title="New / Clear Schematic">
                     <i class="fa-solid fa-file-circle-plus"></i> <span>New</span>
+                </button>
+                <button type="button" class="ms-tool-btn" id="msBtnProps" title="Edit Component Value (Enter / Double-Click)" style="color: #38bdf8;">
+                    <i class="fa-solid fa-sliders"></i> <span>Edit Value</span>
                 </button>
                 <button type="button" class="ms-tool-btn" id="msBtnRotate" title="Rotate Selected Component (R)">
                     <i class="fa-solid fa-rotate-right"></i> <span>Rotate</span>
@@ -202,7 +206,7 @@ require_once __DIR__ . '/include/navbar.php';
         <!-- Main Workspace Body (Palette, Canvas, Instrument Rack) -->
         <div class="ms-body-layout">
             
-            <!-- Left Component Drawer (Multisim Component Bin) -->
+            <!-- Left Component Drawer (Component Bin) -->
             <div class="ms-component-drawer" id="msComponentDrawer">
                 <div class="ms-drawer-header">
                     <span class="ms-drawer-title">
@@ -398,20 +402,36 @@ require_once __DIR__ . '/include/navbar.php';
                 <!-- Dynamic Schematic SVG Layer -->
                 <svg class="ms-schematic-svg" id="msSchematicSvg"></svg>
 
+                <!-- On-Canvas Floating Quick-Action Bar for Selected Component -->
+                <div class="ms-comp-quick-actions" id="msCompQuickActions" style="display: none;">
+                    <button type="button" class="ms-quick-btn edit" id="msQuickBtnEdit" title="Edit Component Value (Enter)">
+                        <i class="fa-solid fa-sliders"></i> <span>Edit Value</span>
+                    </button>
+                    <button type="button" class="ms-quick-btn rotate" id="msQuickBtnRot" title="Rotate Component 90° (R)">
+                        <i class="fa-solid fa-rotate-right"></i> <span>Rotate</span>
+                    </button>
+                    <button type="button" class="ms-quick-btn delete" id="msQuickBtnDel" title="Delete Component (Del)">
+                        <i class="fa-solid fa-trash-can"></i> <span>Delete</span>
+                    </button>
+                </div>
+
+                <!-- Floating Canvas Toast Notification -->
+                <div class="ms-canvas-toast" id="msCanvasToast" style="display: none;"></div>
+
                 <!-- On-Screen Guidance Floating Badge -->
-                <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; border-radius: 6px; padding: 6px 12px; font-size: 0.74rem; color: #94a3b8; pointer-events: none; z-index: 5;">
+                <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(15, 23, 42, 0.88); border: 1px solid #334155; border-radius: 6px; padding: 6px 12px; font-size: 0.74rem; color: #94a3b8; pointer-events: none; z-index: 5;">
                     <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 
-                    <strong>Instructions:</strong> Click red pins to wire &middot; Drag components to reposition &middot; Press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#cbd5e1;">R</kbd> to rotate &middot; Press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#cbd5e1;">Del</kbd> to remove &middot; Double-click component to edit value
+                    <strong>Quick Controls:</strong> Click red pins to wire &middot; Drag components &middot; Press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#cbd5e1;">R</kbd> to rotate &middot; Press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#cbd5e1;">Del</kbd> to remove &middot; Double-click, tap or press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#38bdf8;">Enter</kbd> to edit value
                 </div>
             </div>
 
-            <!-- Right Instruments Toolbar (Iconic NI Multisim Vertical Bar) -->
+            <!-- Right Instruments Toolbar -->
             <div class="ms-instruments-bar" id="msInstrumentsBar">
-                <button type="button" class="ms-inst-btn" id="msInstCRO" title="Tektronix / NI Dual-Trace Oscilloscope (CRO)">
+                <button type="button" class="ms-inst-btn" id="msInstCRO" title="Dual-Trace Oscilloscope (CRO)">
                     <i class="fa-solid fa-chart-line"></i>
                     <span class="ms-inst-label">CRO</span>
                 </button>
-                <button type="button" class="ms-inst-btn" id="msInstDMM" title="Agilent / NI Digital Multimeter (DMM)">
+                <button type="button" class="ms-inst-btn" id="msInstDMM" title="Digital Multimeter (DMM)">
                     <i class="fa-solid fa-calculator"></i>
                     <span class="ms-inst-label">DMM</span>
                 </button>
@@ -542,7 +562,7 @@ require_once __DIR__ . '/include/navbar.php';
             </div>
         </div>
 
-        <!-- 2. Agilent / NI Digital Multimeter (DMM) -->
+        <!-- 2. Digital Multimeter (DMM) -->
         <div class="ms-floating-window ms-dmm-window" id="msDmmWindow">
             <div class="ms-window-header">
                 <span class="ms-window-title">
@@ -602,11 +622,15 @@ require_once __DIR__ . '/include/navbar.php';
                 <button type="button" class="ms-window-close-btn" id="msInspCancelBtn">&times;</button>
             </div>
             <div class="ms-inspector-body" id="msInspectorFields">
-                <!-- Dynamically filled on double-click -->
+                <!-- Dynamically filled by openPropertyModal -->
             </div>
             <div class="ms-inspector-footer">
+                <button type="button" class="ms-tool-btn" id="msInspResetBtn" title="Reset this component to default values">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> <span>Default</span>
+                </button>
+                <div style="flex: 1;"></div>
                 <button type="button" class="ms-tool-btn" id="msInspCloseBtn" onclick="document.getElementById('msInspectorModal').classList.remove('active');">Cancel</button>
-                <button type="button" class="ms-tool-btn active" id="msInspSaveBtn"><i class="fa-solid fa-check"></i> Apply Changes</button>
+                <button type="button" class="ms-tool-btn active" id="msInspSaveBtn"><i class="fa-solid fa-check"></i> <span>Apply Changes</span></button>
             </div>
         </div>
 
@@ -624,7 +648,7 @@ require_once __DIR__ . '/include/navbar.php';
                     Electronics Curriculum &amp; Experimental Physics Modules
                 </h2>
                 <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">
-                    Launch pre-built circuits into the Multisim simulator with one click to observe and test the theoretical principles.
+                    Launch pre-built circuits into the simulator with one click to observe and test the theoretical principles.
                 </p>
             </div>
             <span class="badge badge-cyan" style="font-size: 0.8rem;">7 Core Modules &middot; 21 Interactive Circuits</span>
@@ -789,7 +813,7 @@ require_once __DIR__ . '/include/navbar.php';
 
 </main>
 
-<!-- Multisim CAD & Numerical Simulation Engine -->
+<!-- Circuit CAD & Numerical Simulation Engine -->
 <script src="<?php echo $siteurl; ?>assets/js/multisim_engine.js?v=<?php echo file_exists(__DIR__ . '/assets/js/multisim_engine.js') ? filemtime(__DIR__ . '/assets/js/multisim_engine.js') : time(); ?>"></script>
 
 <script>
@@ -823,6 +847,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const menuRotate = document.getElementById('msMenuRotate');
     if (menuRotate) menuRotate.onclick = () => window.MultisimApp && window.MultisimApp.rotateSelected();
+
+    const menuProps = document.getElementById('msMenuProps');
+    if (menuProps) menuProps.onclick = () => {
+        if (window.MultisimApp) {
+            if (window.MultisimApp.selectedItem && window.MultisimApp.selectedItem.id) {
+                window.MultisimApp.openPropertyModal(window.MultisimApp.selectedItem);
+            } else {
+                window.MultisimApp.showToast('Please click or tap a component on the schematic to edit its value.');
+            }
+        }
+    };
 
     const menuDelete = document.getElementById('msMenuDelete');
     if (menuDelete) menuDelete.onclick = () => window.MultisimApp && window.MultisimApp.deleteSelected();

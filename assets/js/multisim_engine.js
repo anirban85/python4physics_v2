@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * National Instruments Multisim - Interactive Circuit Simulator Engine (v3.0)
+ * Interactive Circuit Simulator & SPICE CAD Engine (v3.0)
  * Python4Physics Engineering EDA & Virtual Instrumentation Suite
  * 
  * Features:
@@ -10,8 +10,8 @@
  *  - Real-Time Numerical Models: Resistors, Caps, Inductors, Switches, Diodes,
  *    Zeners, LEDs, BJTs (NPN/PNP), JFETs, MOSFETs, and Op-Amps (IC 741)
  *  - Virtual Test Instruments:
- *    * Tektronix/NI Dual-Trace CRO with rolling phosphor buffer & X-Y Lissajous
- *    * Agilent 34401A Digital Multimeter (DMM) with True-RMS & Auto-Ranging
+ *    * Dual-Trace Cathode Ray Oscilloscope (CRO) with phosphor buffer & Lissajous
+ *    * Digital Multimeter (DMM) with True-RMS & Auto-Ranging
  *    * Function Generator (XFG) with live frequency & amplitude modulation
  *    * In-line Voltmeter & Ammeter probes + Interactive Live Node HUD Probe
  *  - Draggable Instrument Floating Windows
@@ -261,6 +261,11 @@
             // Create HUD Probe Tooltip
             this.createHUDTooltip();
 
+            // Setup Quick Actions & Toast Elements
+            this.quickActionsEl = document.getElementById('msCompQuickActions');
+            this.toastEl = document.getElementById('msCanvasToast');
+            this.bindQuickActions();
+
             // Setup Instruments
             this.cro = new VirtualCRO(this);
             this.dmm = new VirtualDMM(this);
@@ -284,6 +289,60 @@
             this.hudTooltip.className = 'ms-probe-tooltip';
             this.hudTooltip.id = 'msProbeTooltip';
             this.container.appendChild(this.hudTooltip);
+        }
+
+        bindQuickActions() {
+            const editBtn = document.getElementById('msQuickBtnEdit');
+            const rotBtn = document.getElementById('msQuickBtnRot');
+            const delBtn = document.getElementById('msQuickBtnDel');
+
+            if (editBtn) {
+                editBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (this.selectedItem && this.selectedItem.id) {
+                        this.openPropertyModal(this.selectedItem);
+                    }
+                });
+            }
+            if (rotBtn) {
+                rotBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    this.rotateSelected();
+                });
+            }
+            if (delBtn) {
+                delBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    this.deleteSelected();
+                });
+            }
+        }
+
+        showQuickActions(comp) {
+            if (!this.quickActionsEl || !comp) return;
+            const pad = 36;
+            let x = comp.x;
+            let y = comp.y - pad;
+            if (y < 40) y = comp.y + pad + 30; // flip below if near top boundary
+            this.quickActionsEl.style.left = x + 'px';
+            this.quickActionsEl.style.top = y + 'px';
+            this.quickActionsEl.style.display = 'flex';
+        }
+
+        hideQuickActions() {
+            if (this.quickActionsEl) {
+                this.quickActionsEl.style.display = 'none';
+            }
+        }
+
+        showToast(msg) {
+            if (!this.toastEl) return;
+            this.toastEl.innerHTML = `<i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i> <span>${msg}</span>`;
+            this.toastEl.style.display = 'flex';
+            clearTimeout(this._toastTimer);
+            this._toastTimer = setTimeout(() => {
+                if (this.toastEl) this.toastEl.style.display = 'none';
+            }, 2800);
         }
 
         makeWindowsDraggable() {
@@ -591,6 +650,11 @@
             if (p.resistance !== undefined) {
                 return p.resistance >= 1e6 ? (p.resistance / 1e6).toFixed(1) + ' MΩ' : (p.resistance >= 1000 ? (p.resistance / 1000).toFixed(1) + ' kΩ' : p.resistance + ' Ω');
             }
+            if (p.total_resistance !== undefined) {
+                const rStr = p.total_resistance >= 1e6 ? (p.total_resistance / 1e6).toFixed(1) + ' MΩ' : (p.total_resistance >= 1000 ? (p.total_resistance / 1000).toFixed(1) + ' kΩ' : p.total_resistance + ' Ω');
+                const wPct = Math.round((p.wiper !== undefined ? p.wiper : 0.5) * 100);
+                return `${rStr} (${wPct}%)`;
+            }
             if (p.voltage !== undefined) return p.voltage + ' V';
             if (p.amplitude !== undefined) return p.amplitude + ' V, ' + (p.frequency || 50) + ' Hz';
             if (p.capacitance !== undefined) {
@@ -601,6 +665,10 @@
             }
             if (p.vz !== undefined) return 'Vz = ' + p.vz + ' V';
             if (p.current !== undefined) return (p.current * 1000).toFixed(1) + ' mA';
+            if (p.closed !== undefined) return p.closed ? 'ON (Closed)' : 'OFF (Open)';
+            if (comp.type === 'bjt_npn' || comp.type === 'bjt_pnp') return 'β = ' + (p.beta || 150);
+            if (comp.type === 'diode') return 'Vf = ' + (p.vf || 0.7) + ' V';
+            if (comp.type === 'led') return (p.vf || 2.0) + ' V';
             return '';
         }
 
@@ -634,6 +702,13 @@
             });
 
             this.svg.innerHTML = html;
+
+            // Update Quick Action Bar for selected component
+            if (this.selectedItem && this.selectedItem.id && !this.isDragging) {
+                this.showQuickActions(this.selectedItem);
+            } else {
+                this.hideQuickActions();
+            }
         }
 
         getPinPos(compId, pinId) {
@@ -804,6 +879,11 @@
                     self.deleteSelected();
                 } else if (e.key === 'r' || e.key === 'R') {
                     self.rotateSelected();
+                } else if (e.key === 'Enter') {
+                    if (self.selectedItem && self.selectedItem.id) {
+                        e.preventDefault();
+                        self.openPropertyModal(self.selectedItem);
+                    }
                 } else if (e.key === 'Escape') {
                     self.activeWireDraft = null;
                     self.selectedItem = null;
@@ -955,7 +1035,7 @@
                 if (nodeId !== null && nodeId !== undefined) {
                     const v = this.nodeVoltages[nodeId] || 0.0;
                     this.hudTooltip.innerHTML = `
-                        <div class="ms-probe-header">NI Multisim Live Probe</div>
+                        <div class="ms-probe-header"><i class="fa-solid fa-crosshairs"></i> Live Node Probe</div>
                         <div class="ms-probe-row"><span>Node ID:</span><span class="ms-probe-val">N${nodeId}</span></div>
                         <div class="ms-probe-row"><span>Voltage V(t):</span><span class="ms-probe-val">${(v >= 0 ? '+' : '') + v.toFixed(3)} V</span></div>
                         <div class="ms-probe-row"><span>V (RMS):</span><span class="ms-probe-val">${Math.abs(v / Math.SQRT2).toFixed(3)} V</span></div>
@@ -973,59 +1053,961 @@
         onPointerUp() {
             this.isDragging = false;
             this.dragItem = null;
+            if (this.selectedItem && this.selectedItem.id) {
+                this.showQuickActions(this.selectedItem);
+            }
         }
 
         // --------------------------------------------------------------------
-        // PROPERTY INSPECTOR MODAL
+        // PROFESSIONAL ENGINEERING COMPONENT PROPERTIES INSPECTOR MODAL
         // --------------------------------------------------------------------
         openPropertyModal(comp) {
             const modal = document.getElementById('msInspectorModal');
             const body = document.getElementById('msInspectorFields');
             const title = document.getElementById('msInspectorTitle');
-            if (!modal || !body) return;
-
-            title.innerText = `${comp.label} - Properties (${COMP_TYPES[comp.type].name})`;
-            let fieldsHtml = `
-                <div class="ms-inspector-field">
-                    <label>Reference Designator Label:</label>
-                    <input type="text" id="msInspLabel" class="ms-inspector-input" value="${comp.label}">
-                </div>
-            `;
-
-            for (const propKey in comp.props) {
-                const val = comp.props[propKey];
-                fieldsHtml += `
-                    <div class="ms-inspector-field">
-                        <label>${propKey.toUpperCase()}:</label>
-                        <input type="text" class="ms-inspector-input ms-prop-input" data-key="${propKey}" value="${val}">
-                    </div>
-                `;
-            }
-
-            body.innerHTML = fieldsHtml;
-            modal.classList.add('active');
-
+            const resetBtn = document.getElementById('msInspResetBtn');
             const saveBtn = document.getElementById('msInspSaveBtn');
             const cancelBtn = document.getElementById('msInspCancelBtn');
+            const closeBtn = document.getElementById('msInspCloseBtn');
+            if (!modal || !body) return;
 
-            const saveHandler = () => {
-                const newLabel = document.getElementById('msInspLabel').value.trim();
-                if (newLabel) comp.label = newLabel;
+            const def = COMP_TYPES[comp.type] || { name: 'Component', category: 'general', defaults: {} };
 
-                const inputs = body.querySelectorAll('.ms-prop-input');
-                inputs.forEach(inp => {
-                    const key = inp.getAttribute('data-key');
-                    const numVal = parseFloat(inp.value);
-                    comp.props[key] = isNaN(numVal) ? inp.value : numVal;
+            // Dynamic Header Icon
+            let iconClass = 'fa-sliders';
+            if (comp.type.includes('source')) iconClass = 'fa-bolt';
+            else if (comp.type === 'resistor' || comp.type === 'potentiometer') iconClass = 'fa-wave-square';
+            else if (comp.type === 'capacitor') iconClass = 'fa-battery-three-quarters';
+            else if (comp.type === 'inductor') iconClass = 'fa-ring';
+            else if (comp.type === 'switch_spst') iconClass = 'fa-toggle-on';
+            else if (comp.type.includes('diode') || comp.type === 'zener' || comp.type === 'led') iconClass = 'fa-lightbulb';
+            else if (comp.type.includes('bjt') || comp.type.includes('fet')) iconClass = 'fa-microchip';
+            else if (comp.type === 'opamp') iconClass = 'fa-network-wired';
+
+            title.innerHTML = `<i class="fa-solid ${iconClass}" style="color: #38bdf8;"></i> ${comp.label} &middot; ${def.name}`;
+
+            const renderFields = () => {
+                const p = comp.props;
+                let html = `
+                    <div class="ms-insp-header-tag">
+                        <span class="badge badge-cyan">${def.category.toUpperCase()}</span>
+                        <span style="font-size: 0.76rem; color: #cbd5e1; font-weight: 600;">Type: ${def.name}</span>
+                        <div style="flex:1;"></div>
+                        <span style="font-size: 0.72rem; color: #64748b; font-family: 'JetBrains Mono', monospace;">ID: #${comp.id}</span>
+                    </div>
+
+                    <div class="ms-insp-group">
+                        <label class="ms-insp-label">
+                            <span>Reference Designator Label</span>
+                            <span class="note">Schematic ID</span>
+                        </label>
+                        <div class="ms-insp-unit-group">
+                            <input type="text" id="msInspLabel" class="ms-insp-input" value="${comp.label}" placeholder="e.g. R1, C1">
+                        </div>
+                    </div>
+                `;
+
+                switch (comp.type) {
+                    case 'resistor': {
+                        const curR = p.resistance !== undefined ? p.resistance : 1000;
+                        let unitMul = 1;
+                        let displayVal = curR;
+                        if (curR >= 1e6) { unitMul = 1e6; displayVal = curR / 1e6; }
+                        else if (curR >= 1e3) { unitMul = 1e3; displayVal = curR / 1e3; }
+                        displayVal = parseFloat(displayVal.toFixed(4));
+
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Resistance Value</span>
+                                    <span class="note">Base unit: Ohms (Ω)</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValResistance" class="ms-insp-input" step="any" min="0.001" value="${displayVal}">
+                                    <select id="msUnitResistance" class="ms-insp-unit-select">
+                                        <option value="1" ${unitMul === 1 ? 'selected' : ''}>Ω</option>
+                                        <option value="1000" ${unitMul === 1000 ? 'selected' : ''}>kΩ</option>
+                                        <option value="1000000" ${unitMul === 1000000 ? 'selected' : ''}>MΩ</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 100, mul: 1, lbl: '100 Ω' },
+                                        { val: 220, mul: 1, lbl: '220 Ω' },
+                                        { val: 330, mul: 1, lbl: '330 Ω' },
+                                        { val: 470, mul: 1, lbl: '470 Ω' },
+                                        { val: 1, mul: 1000, lbl: '1 kΩ' },
+                                        { val: 2.2, mul: 1000, lbl: '2.2 kΩ' },
+                                        { val: 4.7, mul: 1000, lbl: '4.7 kΩ' },
+                                        { val: 10, mul: 1000, lbl: '10 kΩ' },
+                                        { val: 47, mul: 1000, lbl: '47 kΩ' },
+                                        { val: 100, mul: 1000, lbl: '100 kΩ' },
+                                        { val: 1, mul: 1000000, lbl: '1 MΩ' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curR - (pill.val * pill.mul)) < 1e-4 ? 'active' : ''}" 
+                                                data-target="Resistance" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                                <div class="ms-insp-help">Standard EIA decade resistor value. Adjust number or select a standard value pill.</div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'potentiometer': {
+                        const curR = p.total_resistance !== undefined ? p.total_resistance : 10000;
+                        let unitMul = 1;
+                        let displayVal = curR;
+                        if (curR >= 1e6) { unitMul = 1e6; displayVal = curR / 1e6; }
+                        else if (curR >= 1e3) { unitMul = 1e3; displayVal = curR / 1e3; }
+                        displayVal = parseFloat(displayVal.toFixed(4));
+                        const curWiper = p.wiper !== undefined ? p.wiper : 0.5;
+                        const wiperPct = Math.round(curWiper * 100);
+
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Total Track Resistance</span>
+                                    <span class="note">Terminal 1 to Terminal 2</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValPotResistance" class="ms-insp-input" step="any" min="1" value="${displayVal}">
+                                    <select id="msUnitPotResistance" class="ms-insp-unit-select">
+                                        <option value="1" ${unitMul === 1 ? 'selected' : ''}>Ω</option>
+                                        <option value="1000" ${unitMul === 1000 ? 'selected' : ''}>kΩ</option>
+                                        <option value="1000000" ${unitMul === 1000000 ? 'selected' : ''}>MΩ</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 1, mul: 1000, lbl: '1 kΩ' },
+                                        { val: 5, mul: 1000, lbl: '5 kΩ' },
+                                        { val: 10, mul: 1000, lbl: '10 kΩ' },
+                                        { val: 50, mul: 1000, lbl: '50 kΩ' },
+                                        { val: 100, mul: 1000, lbl: '100 kΩ' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curR - (pill.val * pill.mul)) < 1e-4 ? 'active' : ''}" 
+                                                data-target="PotResistance" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Wiper Position (Knob Ratio)</span>
+                                    <span class="note" id="msWiperDetails">${wiperPct}% (Center)</span>
+                                </label>
+                                <div class="ms-insp-slider-row">
+                                    <input type="range" id="msValWiper" class="ms-insp-range" min="0" max="100" step="1" value="${wiperPct}">
+                                    <span class="ms-insp-badge" id="msWiperBadge">${wiperPct}%</span>
+                                </div>
+                                <div class="ms-insp-preset-pills" style="margin-top: 6px;">
+                                    <button type="button" class="ms-insp-pill" data-wiper="0">0% (Min)</button>
+                                    <button type="button" class="ms-insp-pill" data-wiper="25">25%</button>
+                                    <button type="button" class="ms-insp-pill" data-wiper="50">50% (Mid)</button>
+                                    <button type="button" class="ms-insp-pill" data-wiper="75">75%</button>
+                                    <button type="button" class="ms-insp-pill" data-wiper="100">100% (Max)</button>
+                                </div>
+                                <div class="ms-insp-help">Moving the slider interactively adjusts the live potentiometer voltage divider on the fly.</div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'capacitor': {
+                        const curC = p.capacitance !== undefined ? p.capacitance : 0.0001;
+                        let unitMul = 1e-6;
+                        let displayVal = curC / 1e-6;
+                        if (curC >= 1e-3) { unitMul = 1e-3; displayVal = curC / 1e-3; }
+                        else if (curC >= 1e-6) { unitMul = 1e-6; displayVal = curC / 1e-6; }
+                        else if (curC >= 1e-9) { unitMul = 1e-9; displayVal = curC / 1e-9; }
+                        else { unitMul = 1e-12; displayVal = curC / 1e-12; }
+                        displayVal = parseFloat(displayVal.toFixed(4));
+
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Capacitance Value</span>
+                                    <span class="note">Base unit: Farads (F)</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValCapacitance" class="ms-insp-input" step="any" min="0.000000000001" value="${displayVal}">
+                                    <select id="msUnitCapacitance" class="ms-insp-unit-select">
+                                        <option value="1e-12" ${unitMul === 1e-12 ? 'selected' : ''}>pF</option>
+                                        <option value="1e-9" ${unitMul === 1e-9 ? 'selected' : ''}>nF</option>
+                                        <option value="1e-6" ${unitMul === 1e-6 ? 'selected' : ''}>µF</option>
+                                        <option value="1e-3" ${unitMul === 1e-3 ? 'selected' : ''}>mF</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 100, mul: 1e-12, lbl: '100 pF' },
+                                        { val: 1, mul: 1e-9, lbl: '1 nF' },
+                                        { val: 10, mul: 1e-9, lbl: '10 nF' },
+                                        { val: 100, mul: 1e-9, lbl: '100 nF' },
+                                        { val: 1, mul: 1e-6, lbl: '1 µF' },
+                                        { val: 10, mul: 1e-6, lbl: '10 µF' },
+                                        { val: 47, mul: 1e-6, lbl: '47 µF' },
+                                        { val: 100, mul: 1e-6, lbl: '100 µF' },
+                                        { val: 470, mul: 1e-6, lbl: '470 µF' },
+                                        { val: 1000, mul: 1e-6, lbl: '1000 µF' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curC - (pill.val * pill.mul)) < (pill.mul * 0.01) ? 'active' : ''}" 
+                                                data-target="Capacitance" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                                <div class="ms-insp-help">Controls transient RC filtering ripple, discharge time &tau; = R&middot;C, and AC coupling response.</div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'inductor': {
+                        const curL = p.inductance !== undefined ? p.inductance : 0.01;
+                        let unitMul = 1e-3;
+                        let displayVal = curL / 1e-3;
+                        if (curL >= 1) { unitMul = 1; displayVal = curL; }
+                        else if (curL >= 1e-3) { unitMul = 1e-3; displayVal = curL / 1e-3; }
+                        else { unitMul = 1e-6; displayVal = curL / 1e-6; }
+                        displayVal = parseFloat(displayVal.toFixed(4));
+
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Inductance Value</span>
+                                    <span class="note">Base unit: Henries (H)</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValInductance" class="ms-insp-input" step="any" min="0.000001" value="${displayVal}">
+                                    <select id="msUnitInductance" class="ms-insp-unit-select">
+                                        <option value="1e-6" ${unitMul === 1e-6 ? 'selected' : ''}>µH</option>
+                                        <option value="1e-3" ${unitMul === 1e-3 ? 'selected' : ''}>mH</option>
+                                        <option value="1" ${unitMul === 1 ? 'selected' : ''}>H</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 10, mul: 1e-6, lbl: '10 µH' },
+                                        { val: 100, mul: 1e-6, lbl: '100 µH' },
+                                        { val: 1, mul: 1e-3, lbl: '1 mH' },
+                                        { val: 10, mul: 1e-3, lbl: '10 mH' },
+                                        { val: 100, mul: 1e-3, lbl: '100 mH' },
+                                        { val: 1, mul: 1, lbl: '1 H' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curL - (pill.val * pill.mul)) < (pill.mul * 0.01) ? 'active' : ''}" 
+                                                data-target="Inductance" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                                <div class="ms-insp-help">Sets inductive reactance XL = 2&pi;&middot;f&middot;L and resonant tank properties.</div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'switch_spst': {
+                        const swClosed = p.closed !== false;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Switch Contact State</span>
+                                    <span class="note">Circuit Conduction</span>
+                                </label>
+                                <div class="ms-insp-seg-group">
+                                    <button type="button" class="ms-insp-seg-btn ${swClosed ? 'active green' : ''}" id="msBtnSwClosed">
+                                        <i class="fa-solid fa-circle-check"></i> CLOSED (Conducting / ON)
+                                    </button>
+                                    <button type="button" class="ms-insp-seg-btn ${!swClosed ? 'active amber' : ''}" id="msBtnSwOpen">
+                                        <i class="fa-solid fa-circle-xmark"></i> OPEN (Isolated / OFF)
+                                    </button>
+                                </div>
+                                <div class="ms-insp-help">You can also toggle this switch anytime with a single click directly on the schematic knife.</div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'dc_source': {
+                        const curV = p.voltage !== undefined ? p.voltage : 12;
+                        let unitMul = 1;
+                        let displayVal = curV;
+                        if (Math.abs(curV) < 1 && curV !== 0) { unitMul = 0.001; displayVal = curV * 1000; }
+                        displayVal = parseFloat(displayVal.toFixed(4));
+
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>DC Output Voltage</span>
+                                    <span class="note">Potential Difference (V)</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValDcVoltage" class="ms-insp-input" step="any" value="${displayVal}">
+                                    <select id="msUnitDcVoltage" class="ms-insp-unit-select">
+                                        <option value="0.001" ${unitMul === 0.001 ? 'selected' : ''}>mV</option>
+                                        <option value="1" ${unitMul === 1 ? 'selected' : ''}>V</option>
+                                        <option value="1000" ${unitMul === 1000 ? 'selected' : ''}>kV</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 1.5, mul: 1, lbl: '1.5 V (AA)' },
+                                        { val: 3.3, mul: 1, lbl: '3.3 V' },
+                                        { val: 5.0, mul: 1, lbl: '5.0 V (TTL)' },
+                                        { val: 9.0, mul: 1, lbl: '9.0 V' },
+                                        { val: 12.0, mul: 1, lbl: '12.0 V' },
+                                        { val: 15.0, mul: 1, lbl: '15.0 V' },
+                                        { val: 24.0, mul: 1, lbl: '24.0 V' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curV - (pill.val * pill.mul)) < 1e-4 ? 'active' : ''}" 
+                                                data-target="DcVoltage" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'ac_source': {
+                        const curAmp = p.amplitude !== undefined ? p.amplitude : 10;
+                        const curFreq = p.frequency !== undefined ? p.frequency : 50;
+                        const curWf = p.waveform || 'sine';
+                        const curPhase = p.phase || 0;
+                        const curOffset = p.offset || 0;
+
+                        let freqMul = 1;
+                        let dispFreq = curFreq;
+                        if (curFreq >= 1e6) { freqMul = 1e6; dispFreq = curFreq / 1e6; }
+                        else if (curFreq >= 1e3) { freqMul = 1e3; dispFreq = curFreq / 1e3; }
+                        dispFreq = parseFloat(dispFreq.toFixed(4));
+
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Signal Waveform</span>
+                                    <span class="note">Periodic Function</span>
+                                </label>
+                                <div class="ms-insp-seg-group" id="msWaveformGroup">
+                                    <button type="button" class="ms-insp-seg-btn ${curWf === 'sine' ? 'active' : ''}" data-wf="sine">
+                                        <i class="fa-solid fa-wave-square"></i> Sine (~)
+                                    </button>
+                                    <button type="button" class="ms-insp-seg-btn ${curWf === 'square' ? 'active' : ''}" data-wf="square">
+                                        <i class="fa-solid fa-grip-lines"></i> Square (⎍)
+                                    </button>
+                                    <button type="button" class="ms-insp-seg-btn ${curWf === 'triangle' ? 'active' : ''}" data-wf="triangle">
+                                        <i class="fa-solid fa-mountain"></i> Triangle (⋀)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Peak Amplitude (Vp)</span>
+                                    <span class="note">Vpp = ${(curAmp * 2).toFixed(1)} V | RMS &approx; ${(curAmp / Math.SQRT2).toFixed(2)} V</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValAcAmp" class="ms-insp-input" step="any" min="0.001" value="${curAmp}">
+                                    <select id="msUnitAcAmp" class="ms-insp-unit-select">
+                                        <option value="1" selected>V (Peak)</option>
+                                        <option value="0.001">mV (Peak)</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 1, lbl: '1 Vp' },
+                                        { val: 2, lbl: '2 Vp' },
+                                        { val: 5, lbl: '5 Vp' },
+                                        { val: 10, lbl: '10 Vp' },
+                                        { val: 12, lbl: '12 Vp' },
+                                        { val: 230, lbl: '230 V (Mains)' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curAmp - pill.val) < 1e-3 ? 'active' : ''}" 
+                                                data-target="AcAmp" data-val="${pill.val}" data-mul="1">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Frequency (f)</span>
+                                    <span class="note">Period T = ${(1 / Math.max(0.1, curFreq)).toFixed(4)} s</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValAcFreq" class="ms-insp-input" step="any" min="0.1" value="${dispFreq}">
+                                    <select id="msUnitAcFreq" class="ms-insp-unit-select">
+                                        <option value="1" ${freqMul === 1 ? 'selected' : ''}>Hz</option>
+                                        <option value="1000" ${freqMul === 1000 ? 'selected' : ''}>kHz</option>
+                                        <option value="1000000" ${freqMul === 1000000 ? 'selected' : ''}>MHz</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 50, mul: 1, lbl: '50 Hz (Mains)' },
+                                        { val: 60, mul: 1, lbl: '60 Hz' },
+                                        { val: 100, mul: 1, lbl: '100 Hz' },
+                                        { val: 1, mul: 1000, lbl: '1 kHz (Audio)' },
+                                        { val: 10, mul: 1000, lbl: '10 kHz' },
+                                        { val: 100, mul: 1000, lbl: '100 kHz' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curFreq - (pill.val * pill.mul)) < 1e-3 ? 'active' : ''}" 
+                                                data-target="AcFreq" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 10px;">
+                                <div class="ms-insp-group" style="flex: 1;">
+                                    <label class="ms-insp-label"><span>Phase (&deg;)</span></label>
+                                    <div class="ms-insp-unit-group">
+                                        <input type="number" id="msValAcPhase" class="ms-insp-input" step="any" value="${curPhase}">
+                                    </div>
+                                </div>
+                                <div class="ms-insp-group" style="flex: 1;">
+                                    <label class="ms-insp-label"><span>DC Offset (V)</span></label>
+                                    <div class="ms-insp-unit-group">
+                                        <input type="number" id="msValAcOffset" class="ms-insp-input" step="any" value="${curOffset}">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'current_source': {
+                        const curI = p.current !== undefined ? p.current : 0.005;
+                        const dispI = parseFloat((curI * 1000).toFixed(4));
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>DC Current Value</span>
+                                    <span class="note">Base unit: Amperes</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValCurrent" class="ms-insp-input" step="any" value="${dispI}">
+                                    <select id="msUnitCurrent" class="ms-insp-unit-select">
+                                        <option value="0.000001">µA</option>
+                                        <option value="0.001" selected>mA</option>
+                                        <option value="1">A</option>
+                                    </select>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { val: 1, mul: 0.001, lbl: '1 mA' },
+                                        { val: 2, mul: 0.001, lbl: '2 mA' },
+                                        { val: 5, mul: 0.001, lbl: '5 mA' },
+                                        { val: 10, mul: 0.001, lbl: '10 mA' },
+                                        { val: 20, mul: 0.001, lbl: '20 mA' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curI - (pill.val * pill.mul)) < 1e-5 ? 'active' : ''}" 
+                                                data-target="Current" data-val="${pill.val}" data-mul="${pill.mul}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'diode': {
+                        const curVf = p.vf !== undefined ? p.vf : 0.7;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Diode Semiconductor Model</span>
+                                    <span class="note">Pre-calibrated barrier potentials</span>
+                                </label>
+                                <div class="ms-insp-preset-pills">
+                                    <button type="button" class="ms-insp-pill ${Math.abs(curVf - 0.7) < 0.05 ? 'active' : ''}" data-vf="0.7">Silicon 1N4007 (0.7V)</button>
+                                    <button type="button" class="ms-insp-pill ${Math.abs(curVf - 0.3) < 0.05 ? 'active' : ''}" data-vf="0.3">Germanium 1N34A (0.3V)</button>
+                                    <button type="button" class="ms-insp-pill ${Math.abs(curVf - 0.2) < 0.05 ? 'active' : ''}" data-vf="0.2">Schottky 1N5819 (0.2V)</button>
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Forward Knee Voltage (Vf)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValDiodeVf" class="ms-insp-input" step="0.01" min="0.05" max="5.0" value="${curVf}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'zener': {
+                        const curVz = p.vz !== undefined ? p.vz : 5.1;
+                        const curVf = p.vf !== undefined ? p.vf : 0.7;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>Zener Breakdown Voltage (Vz)</span>
+                                    <span class="note">Reverse regulation clamp</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValZenerVz" class="ms-insp-input" step="0.1" min="1.0" value="${curVz}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[3.3, 4.7, 5.1, 5.6, 6.2, 9.1, 12.0, 15.0].map(vz => `
+                                        <button type="button" class="ms-insp-pill ${Math.abs(curVz - vz) < 0.05 ? 'active' : ''}" data-vz="${vz}">${vz} V</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Forward Conduction Drop (Vf)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValZenerVf" class="ms-insp-input" step="0.05" min="0.1" value="${curVf}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'led': {
+                        const curColor = p.color || '#ef4444';
+                        const curVf = p.vf || 2.0;
+                        const colors = [
+                            { name: 'Red', hex: '#ef4444', vf: 1.8 },
+                            { name: 'Green', hex: '#22c55e', vf: 2.1 },
+                            { name: 'Blue', hex: '#3b82f6', vf: 3.2 },
+                            { name: 'Amber', hex: '#f59e0b', vf: 2.0 },
+                            { name: 'White', hex: '#f8fafc', vf: 3.2 }
+                        ];
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>LED Emission Color</span></label>
+                                <div class="ms-insp-color-group">
+                                    ${colors.map(c => `
+                                        <button type="button" class="ms-insp-color-btn ${curColor === c.hex ? 'active' : ''}" 
+                                                data-color="${c.hex}" data-vf="${c.vf}" style="background: ${c.hex}; color: ${c.hex === '#f8fafc' ? '#000' : '#fff'};">
+                                            ${c.name}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Nominal Forward Drop (Vf)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValLedVf" class="ms-insp-input" step="0.05" value="${curVf}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'bjt_npn':
+                    case 'bjt_pnp': {
+                        const curBeta = p.beta || 150;
+                        const curVbe = p.vbe || 0.7;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label">
+                                    <span>DC Current Gain (&beta; / hFE)</span>
+                                    <span class="note">Amplification Factor</span>
+                                </label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValBjtBeta" class="ms-insp-input" step="1" min="10" max="1000" value="${curBeta}">
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    ${[
+                                        { beta: 50, lbl: 'β = 50' },
+                                        { beta: 100, lbl: 'β = 100 (2N2222)' },
+                                        { beta: 150, lbl: 'β = 150 (BC547)' },
+                                        { beta: 200, lbl: 'β = 200 (2N3904)' },
+                                        { beta: 300, lbl: 'β = 300 (High-Gain)' }
+                                    ].map(pill => `
+                                        <button type="button" class="ms-insp-pill ${curBeta === pill.beta ? 'active' : ''}" data-beta="${pill.beta}">${pill.lbl}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Base-Emitter Junction Drop (Vbe)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValBjtVbe" class="ms-insp-input" step="0.02" value="${curVbe}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'jfet_n': {
+                        const curVp = p.vp !== undefined ? p.vp : -3.0;
+                        const curIdss = p.idss !== undefined ? p.idss * 1000 : 9.0;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Pinch-Off Voltage (Vp)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValJfetVp" class="ms-insp-input" step="0.1" value="${curVp}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Saturation Drain Current (IDSS)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValJfetIdss" class="ms-insp-input" step="0.5" value="${curIdss}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">mA</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'mosfet_n': {
+                        const curVth = p.vth !== undefined ? p.vth : 2.5;
+                        const curKn = p.kn !== undefined ? p.kn * 1000 : 20.0;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Threshold Voltage (Vth)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValMosVth" class="ms-insp-input" step="0.1" value="${curVth}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Conduction Parameter (kn)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValMosKn" class="ms-insp-input" step="1.0" value="${curKn}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">mA/V²</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    case 'opamp': {
+                        const curAol = p.aol || 100000;
+                        const curVsupply = p.vsupply || 15;
+                        html += `
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Open Loop Gain (Aol)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValOpampAol" class="ms-insp-input" step="10000" min="1000" value="${curAol}">
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    <button type="button" class="ms-insp-pill ${curAol === 50000 ? 'active' : ''}" data-aol="50000">50,000</button>
+                                    <button type="button" class="ms-insp-pill ${curAol === 100000 ? 'active' : ''}" data-aol="100000">100,000 (100 dB)</button>
+                                    <button type="button" class="ms-insp-pill ${curAol === 200000 ? 'active' : ''}" data-aol="200000">200,000</button>
+                                </div>
+                            </div>
+                            <div class="ms-insp-group">
+                                <label class="ms-insp-label"><span>Supply Rails (&plusmn;Vsupply)</span></label>
+                                <div class="ms-insp-unit-group">
+                                    <input type="number" id="msValOpampSupply" class="ms-insp-input" step="1" min="3" max="30" value="${curVsupply}">
+                                    <span style="display:flex; align-items:center; padding:0 12px; color:#94a3b8; font-weight:700;">V</span>
+                                </div>
+                                <div class="ms-insp-preset-pills">
+                                    <button type="button" class="ms-insp-pill ${curVsupply === 9 ? 'active' : ''}" data-vsup="9">&plusmn;9 V</button>
+                                    <button type="button" class="ms-insp-pill ${curVsupply === 12 ? 'active' : ''}" data-vsup="12">&plusmn;12 V</button>
+                                    <button type="button" class="ms-insp-pill ${curVsupply === 15 ? 'active' : ''}" data-vsup="15">&plusmn;15 V (Standard)</button>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    }
+
+                    default: {
+                        for (const propKey in comp.props) {
+                            if (propKey === 'unit') continue;
+                            const val = comp.props[propKey];
+                            html += `
+                                <div class="ms-insp-group">
+                                    <label class="ms-insp-label"><span>${propKey.toUpperCase()}</span></label>
+                                    <div class="ms-insp-unit-group">
+                                        <input type="text" class="ms-insp-input ms-prop-input" data-key="${propKey}" value="${val}">
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        break;
+                    }
+                }
+
+                body.innerHTML = html;
+                bindFieldInteractions();
+            };
+
+            const bindFieldInteractions = () => {
+                // Preset pills with data-target
+                body.querySelectorAll('.ms-insp-pill[data-target]').forEach(pill => {
+                    pill.addEventListener('click', () => {
+                        const target = pill.getAttribute('data-target');
+                        const val = pill.getAttribute('data-val');
+                        const mul = pill.getAttribute('data-mul');
+                        const inp = document.getElementById('msVal' + target);
+                        const sel = document.getElementById('msUnit' + target);
+                        if (inp) inp.value = val;
+                        if (sel) sel.value = mul;
+                        body.querySelectorAll(`.ms-insp-pill[data-target="${target}"]`).forEach(p => p.classList.remove('active'));
+                        pill.classList.add('active');
+                    });
                 });
+
+                // Potentiometer wiper slider & quick buttons
+                const wiperSlider = document.getElementById('msValWiper');
+                const wiperBadge = document.getElementById('msWiperBadge');
+                const wiperDetails = document.getElementById('msWiperDetails');
+                if (wiperSlider) {
+                    const updateWiper = val => {
+                        const pct = parseInt(val, 10);
+                        if (wiperBadge) wiperBadge.innerText = pct + '%';
+                        if (wiperDetails) {
+                            const desc = pct === 0 ? '0% (Ground / Min)' : (pct === 100 ? '100% (Rail / Max)' : `${pct}% Ratio`);
+                            wiperDetails.innerText = desc;
+                        }
+                        comp.props.wiper = pct / 100;
+                        this.render();
+                    };
+                    wiperSlider.addEventListener('input', e => updateWiper(e.target.value));
+                    body.querySelectorAll('button[data-wiper]').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const pct = btn.getAttribute('data-wiper');
+                            wiperSlider.value = pct;
+                            updateWiper(pct);
+                        });
+                    });
+                }
+
+                // Switch segmented buttons
+                const btnClosed = document.getElementById('msBtnSwClosed');
+                const btnOpen = document.getElementById('msBtnSwOpen');
+                if (btnClosed && btnOpen) {
+                    btnClosed.addEventListener('click', () => {
+                        comp.props.closed = true;
+                        btnClosed.className = 'ms-insp-seg-btn active green';
+                        btnOpen.className = 'ms-insp-seg-btn';
+                        this.render();
+                    });
+                    btnOpen.addEventListener('click', () => {
+                        comp.props.closed = false;
+                        btnClosed.className = 'ms-insp-seg-btn';
+                        btnOpen.className = 'ms-insp-seg-btn active amber';
+                        this.render();
+                    });
+                }
+
+                // Waveform selector segmented buttons
+                const wfGroup = document.getElementById('msWaveformGroup');
+                if (wfGroup) {
+                    wfGroup.querySelectorAll('.ms-insp-seg-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            wfGroup.querySelectorAll('.ms-insp-seg-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            comp.props.waveform = btn.getAttribute('data-wf');
+                            this.render();
+                        });
+                    });
+                }
+
+                // Diode Vf preset pills
+                body.querySelectorAll('.ms-insp-pill[data-vf]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const vf = btn.getAttribute('data-vf');
+                        const inp = document.getElementById('msValDiodeVf');
+                        if (inp) inp.value = vf;
+                        body.querySelectorAll('.ms-insp-pill[data-vf]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+
+                // Zener Vz preset pills
+                body.querySelectorAll('.ms-insp-pill[data-vz]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const vz = btn.getAttribute('data-vz');
+                        const inp = document.getElementById('msValZenerVz');
+                        if (inp) inp.value = vz;
+                        body.querySelectorAll('.ms-insp-pill[data-vz]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+
+                // LED color picker buttons
+                body.querySelectorAll('.ms-insp-color-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const color = btn.getAttribute('data-color');
+                        const vf = btn.getAttribute('data-vf');
+                        const inpVf = document.getElementById('msValLedVf');
+                        if (inpVf) inpVf.value = vf;
+                        comp.props.color = color;
+                        body.querySelectorAll('.ms-insp-color-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.render();
+                    });
+                });
+
+                // BJT beta preset pills
+                body.querySelectorAll('.ms-insp-pill[data-beta]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const beta = btn.getAttribute('data-beta');
+                        const inp = document.getElementById('msValBjtBeta');
+                        if (inp) inp.value = beta;
+                        body.querySelectorAll('.ms-insp-pill[data-beta]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+
+                // Op-Amp AOL pills
+                body.querySelectorAll('.ms-insp-pill[data-aol]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const aol = btn.getAttribute('data-aol');
+                        const inp = document.getElementById('msValOpampAol');
+                        if (inp) inp.value = aol;
+                        body.querySelectorAll('.ms-insp-pill[data-aol]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+
+                // Op-Amp Supply pills
+                body.querySelectorAll('.ms-insp-pill[data-vsup]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const vsup = btn.getAttribute('data-vsup');
+                        const inp = document.getElementById('msValOpampSupply');
+                        if (inp) inp.value = vsup;
+                        body.querySelectorAll('.ms-insp-pill[data-vsup]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+            };
+
+            renderFields();
+            modal.classList.add('active');
+
+            // Reset to defaults button
+            if (resetBtn) {
+                resetBtn.onclick = () => {
+                    comp.props = Object.assign({}, def.defaults);
+                    renderFields();
+                    this.render();
+                    this.showToast(`Reset ${comp.label} to standard factory default values.`);
+                };
+            }
+
+            // Save / Apply Changes
+            const saveHandler = () => {
+                const labelInp = document.getElementById('msInspLabel');
+                if (labelInp && labelInp.value.trim()) {
+                    comp.label = labelInp.value.trim();
+                }
+
+                switch (comp.type) {
+                    case 'resistor': {
+                        const val = parseFloat(document.getElementById('msValResistance').value);
+                        const mul = parseFloat(document.getElementById('msUnitResistance').value);
+                        if (!isNaN(val) && val > 0) comp.props.resistance = val * mul;
+                        break;
+                    }
+                    case 'potentiometer': {
+                        const val = parseFloat(document.getElementById('msValPotResistance').value);
+                        const mul = parseFloat(document.getElementById('msUnitPotResistance').value);
+                        if (!isNaN(val) && val > 0) comp.props.total_resistance = val * mul;
+                        const wInp = document.getElementById('msValWiper');
+                        if (wInp) comp.props.wiper = Math.max(0.001, Math.min(0.999, parseInt(wInp.value, 10) / 100));
+                        break;
+                    }
+                    case 'capacitor': {
+                        const val = parseFloat(document.getElementById('msValCapacitance').value);
+                        const mul = parseFloat(document.getElementById('msUnitCapacitance').value);
+                        if (!isNaN(val) && val > 0) comp.props.capacitance = val * mul;
+                        break;
+                    }
+                    case 'inductor': {
+                        const val = parseFloat(document.getElementById('msValInductance').value);
+                        const mul = parseFloat(document.getElementById('msUnitInductance').value);
+                        if (!isNaN(val) && val > 0) comp.props.inductance = val * mul;
+                        break;
+                    }
+                    case 'dc_source': {
+                        const val = parseFloat(document.getElementById('msValDcVoltage').value);
+                        const mul = parseFloat(document.getElementById('msUnitDcVoltage').value);
+                        if (!isNaN(val)) comp.props.voltage = val * mul;
+                        break;
+                    }
+                    case 'ac_source': {
+                        const amp = parseFloat(document.getElementById('msValAcAmp').value);
+                        const ampMul = parseFloat(document.getElementById('msUnitAcAmp').value);
+                        if (!isNaN(amp) && amp > 0) comp.props.amplitude = amp * ampMul;
+
+                        const freq = parseFloat(document.getElementById('msValAcFreq').value);
+                        const freqMul = parseFloat(document.getElementById('msUnitAcFreq').value);
+                        if (!isNaN(freq) && freq > 0) comp.props.frequency = freq * freqMul;
+
+                        const phase = parseFloat(document.getElementById('msValAcPhase').value);
+                        if (!isNaN(phase)) comp.props.phase = phase;
+
+                        const offset = parseFloat(document.getElementById('msValAcOffset').value);
+                        if (!isNaN(offset)) comp.props.offset = offset;
+                        break;
+                    }
+                    case 'current_source': {
+                        const val = parseFloat(document.getElementById('msValCurrent').value);
+                        const mul = parseFloat(document.getElementById('msUnitCurrent').value);
+                        if (!isNaN(val)) comp.props.current = val * mul;
+                        break;
+                    }
+                    case 'diode': {
+                        const vf = parseFloat(document.getElementById('msValDiodeVf').value);
+                        if (!isNaN(vf) && vf > 0) comp.props.vf = vf;
+                        break;
+                    }
+                    case 'zener': {
+                        const vz = parseFloat(document.getElementById('msValZenerVz').value);
+                        if (!isNaN(vz) && vz > 0) comp.props.vz = vz;
+                        const vf = parseFloat(document.getElementById('msValZenerVf').value);
+                        if (!isNaN(vf) && vf > 0) comp.props.vf = vf;
+                        break;
+                    }
+                    case 'led': {
+                        const vf = parseFloat(document.getElementById('msValLedVf').value);
+                        if (!isNaN(vf) && vf > 0) comp.props.vf = vf;
+                        break;
+                    }
+                    case 'bjt_npn':
+                    case 'bjt_pnp': {
+                        const beta = parseFloat(document.getElementById('msValBjtBeta').value);
+                        if (!isNaN(beta) && beta > 0) comp.props.beta = beta;
+                        const vbe = parseFloat(document.getElementById('msValBjtVbe').value);
+                        if (!isNaN(vbe) && vbe > 0) comp.props.vbe = vbe;
+                        break;
+                    }
+                    case 'jfet_n': {
+                        const vp = parseFloat(document.getElementById('msValJfetVp').value);
+                        if (!isNaN(vp)) comp.props.vp = vp;
+                        const idss = parseFloat(document.getElementById('msValJfetIdss').value);
+                        if (!isNaN(idss) && idss > 0) comp.props.idss = idss * 0.001;
+                        break;
+                    }
+                    case 'mosfet_n': {
+                        const vth = parseFloat(document.getElementById('msValMosVth').value);
+                        if (!isNaN(vth)) comp.props.vth = vth;
+                        const kn = parseFloat(document.getElementById('msValMosKn').value);
+                        if (!isNaN(kn) && kn > 0) comp.props.kn = kn * 0.001;
+                        break;
+                    }
+                    case 'opamp': {
+                        const aol = parseFloat(document.getElementById('msValOpampAol').value);
+                        if (!isNaN(aol) && aol > 0) comp.props.aol = aol;
+                        const sup = parseFloat(document.getElementById('msValOpampSupply').value);
+                        if (!isNaN(sup) && sup > 0) comp.props.vsupply = sup;
+                        break;
+                    }
+                    default: {
+                        body.querySelectorAll('.ms-prop-input').forEach(inp => {
+                            const key = inp.getAttribute('data-key');
+                            const numVal = parseFloat(inp.value);
+                            comp.props[key] = isNaN(numVal) ? inp.value : numVal;
+                        });
+                        break;
+                    }
+                }
 
                 modal.classList.remove('active');
                 this.render();
-                saveBtn.removeEventListener('click', saveHandler);
+                this.showToast(`Updated ${comp.label} properties successfully.`);
+                saveBtn.onclick = null;
             };
 
             saveBtn.onclick = saveHandler;
-            cancelBtn.onclick = () => modal.classList.remove('active');
+            const closeModal = () => modal.classList.remove('active');
+            if (cancelBtn) cancelBtn.onclick = closeModal;
+            if (closeBtn) closeBtn.onclick = closeModal;
         }
 
         // --------------------------------------------------------------------
@@ -1045,6 +2027,17 @@
 
             const delBtn = document.getElementById('msBtnDelete');
             if (delBtn) delBtn.addEventListener('click', () => self.deleteSelected());
+
+            const propsBtn = document.getElementById('msBtnProps');
+            if (propsBtn) {
+                propsBtn.addEventListener('click', () => {
+                    if (self.selectedItem && self.selectedItem.id) {
+                        self.openPropertyModal(self.selectedItem);
+                    } else {
+                        self.showToast('Click any component on the schematic to select it and edit its value.');
+                    }
+                });
+            }
 
             const clearBtn = document.getElementById('msBtnClear');
             if (clearBtn) {
@@ -1719,7 +2712,7 @@
             const wrapper = document.getElementById('msWorkbenchWrapper');
             html2canvas(wrapper).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'multisim_circuit_schematic.png';
+                link.download = 'circuit_schematic.png';
                 link.href = canvas.toDataURL();
                 link.click();
             });
@@ -3173,6 +4166,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         window.CircuitWorkbench = CircuitWorkbench;
         window.MultisimApp = new CircuitWorkbench();
+        window.CircuitApp = window.MultisimApp;
     });
 
 })(window, document);
