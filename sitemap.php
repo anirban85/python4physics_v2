@@ -38,6 +38,7 @@ function build_sitemap_urls($base_url, $conn = null) {
     $core_pages = [
         ['path' => '', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
         ['path' => 'index.php', 'priority' => 1.0, 'freq' => 'daily', 'file' => 'index.php'],
+        ['path' => 'circuit_simulator.php', 'priority' => 0.98, 'freq' => 'daily', 'file' => 'circuit_simulator.php'],
         ['path' => 'about.php', 'priority' => 0.85, 'freq' => 'monthly', 'file' => 'about.php'],
         ['path' => 'assignments.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'assignments.php'],
         ['path' => 'visualization.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'visualization.php'],
@@ -45,7 +46,7 @@ function build_sitemap_urls($base_url, $conn = null) {
         ['path' => 'program/python/index.php', 'priority' => 0.95, 'freq' => 'weekly', 'file' => 'program/python/index.php'],
         ['path' => 'program/gnuplot/index.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'program/gnuplot/index.php'],
         ['path' => 'program/latex/index.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'program/latex/index.php'],
-        ['path' => 'arduino.php', 'priority' => 0.90, 'freq' => 'weekly', 'file' => 'arduino.php'],
+        ['path' => 'arduino.php', 'priority' => 0.98, 'freq' => 'daily', 'file' => 'arduino.php'],
         ['path' => 'api/docs.php', 'priority' => 0.70, 'freq' => 'monthly', 'file' => 'api/docs.php'],
         ['path' => 'contact.php', 'priority' => 0.65, 'freq' => 'monthly', 'file' => 'contact.php'],
         ['path' => 'feedback.php', 'priority' => 0.60, 'freq' => 'monthly', 'file' => 'feedback.php'],

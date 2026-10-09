@@ -34,6 +34,74 @@ require_once __DIR__ . '/include/navbar.php';
 <!-- html2canvas for High-Resolution Schematic PNG Export -->
 <script src="<?php echo $siteurl; ?>assets/js/html2canvas.min.js"></script>
 
+<!-- Schema.org WebApplication & FAQPage JSON-LD for Google Rich Snippets & Page Ranking -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Python4Physics Circuit Simulator & Virtual Instrumentation Suite",
+      "url": "https://python4physics.in/circuit_simulator.php",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All (Modern Web Browser)",
+      "browserRequirements": "Requires HTML5, Canvas and JavaScript support",
+      "description": "Professional browser-based electronics CAD & SPICE simulation environment with dual-trace oscilloscope (CRO), digital multimeter (DMM), and 21 standard university electronics curriculum presets.",
+      "featureList": [
+        "Real-time SPICE Modified Nodal Analysis (MNA) solver for DC, AC and Transient responses",
+        "Schematic CAD workbench with orthogonal net routing and grid snapping",
+        "Dual-trace Cathode Ray Oscilloscope (CRO) with dual-channel timebase and Lissajous X-Y modes",
+        "Digital Multimeter (DMM) measuring true RMS AC/DC voltage, current and resistance",
+        "Component Value Inspector with standard E12/EIA decade pickers and potentiometer wiper sliders",
+        "21 curriculum preset circuits spanning BJT, FET, Op-Amp, and Rectifier topologies"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does the Python4Physics Circuit Simulator work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The circuit simulator employs Modified Nodal Analysis (MNA) with trapezoidal numerical integration to simulate linear and nonlinear analog circuits in real time directly inside your web browser."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I connect virtual laboratory instruments like an oscilloscope and multimeter?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The simulator includes an authentic dual-trace Cathode Ray Oscilloscope (CRO) with dual-channel timebase, Volts/Div, and Trigger controls, as well as a 4.5-digit Digital Multimeter (DMM) for DC/AC voltage, current, and resistance measurement."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What circuit components and semiconductor models are supported?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Supported components include Resistors, Capacitors, Inductors, Potentiometers, DC/AC Voltage Sources, Current Sources, Ground, Silicon/Germanium/Schottky/Zener Diodes, LEDs, NPN/PNP Bipolar Junction Transistors (BJTs), JFETs, MOSFETs, Operational Amplifiers (IC 741), SPST Switches, and Live Voltage/Current Probes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the circuit simulator free for students and university educators?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Python4Physics is completely free and open for educational use, scientific learning, and university coursework worldwide."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
 <main class="container-fluid" style="padding-top: 1.5rem; padding-bottom: 5rem; max-width: 1520px; margin: 0 auto; box-sizing: border-box; overflow-x: hidden;">
     
     <!-- Hero Header -->

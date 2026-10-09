@@ -2065,7 +2065,16 @@
             if (modSelect) {
                 modSelect.addEventListener('change', e => {
                     const preset = e.target.value;
-                    if (preset) self.loadPreset(preset);
+                    if (preset) {
+                        self.loadPreset(preset);
+                        if (typeof window.trackPhysicsEvent === 'function') {
+                            const optText = e.target.options[e.target.selectedIndex] ? e.target.options[e.target.selectedIndex].text : preset;
+                            window.trackPhysicsEvent('circuit_preset_load', {
+                                preset: preset,
+                                label: optText
+                            });
+                        }
+                    }
                 });
             }
         }
@@ -2130,6 +2139,17 @@
                 runBtn.innerHTML = '<i class="fa-solid fa-stop"></i> <span>Stop (F5)</span>';
             }
             if (this.ledEl) this.ledEl.classList.add('running');
+
+            // Dispatch Physics Telemetry Event
+            if (typeof window.trackPhysicsEvent === 'function') {
+                const sel = document.getElementById('msModuleSelect');
+                window.trackPhysicsEvent('circuit_simulate_run', {
+                    preset: (sel ? sel.value : 'custom'),
+                    label: (sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : 'Circuit Simulation'),
+                    components: (this.components ? this.components.length : 0),
+                    wires: (this.wires ? this.wires.length : 0)
+                });
+            }
 
             const self = this;
             this.simInterval = setInterval(() => {

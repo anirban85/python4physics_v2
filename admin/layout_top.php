@@ -61,6 +61,9 @@ $base_url = get_base_url();
             <a href="<?php echo $base_url; ?>/admin/feedback.php" class="admin-nav-link <?php echo $current_page === 'feedback.php' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-comments"></i> Feedback
             </a>
+            <a href="<?php echo $base_url; ?>/admin/analytics.php" class="admin-nav-link <?php echo $current_page === 'analytics.php' ? 'active' : ''; ?>">
+                <i class="fa-solid fa-chart-pie"></i> Traffic &amp; Telemetry
+            </a>
         </div>
 
         <div class="admin-nav-actions">

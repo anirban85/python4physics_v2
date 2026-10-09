@@ -24,6 +24,31 @@ require_once __DIR__ . '/include/navbar.php';
 <!-- html2canvas for High-Fidelity Circuit Workbench PNG Export -->
 <script src="<?php echo $siteurl; ?>assets/js/html2canvas.min.js"></script>
 
+<!-- Schema.org SoftwareApplication JSON-LD for Google Rich Results -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Arduino in the Physics Laboratory - Virtual Circuits & Firmware Simulator",
+  "url": "https://python4physics.in/arduino.php",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "All (Web Browser)",
+  "description": "Interactive virtual breadboard and Arduino Uno R3 electronics simulator. Mount components, wire orthogonal breadboards, write C++ sketches, and plot live telemetry graphs.",
+  "featureList": [
+    "Solderless breadboard mounting with full pin connectivity",
+    "Photorealistic Arduino Uno R3 with interactive digital and analog pins",
+    "Live CodeMirror editor for Arduino C++ firmware compilation and execution",
+    "Real-time serial oscilloscope monitor and sensor waveform telemetry",
+    "BOM (Bill of Materials) CSV export and high-resolution schematic snapshot"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
 <main class="container-fluid" style="padding-top: 1.5rem; padding-bottom: 5rem; max-width: 1480px; margin: 0 auto; box-sizing: border-box; overflow-x: hidden;">
     
     <!-- Hero Header -->

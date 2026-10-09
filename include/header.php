@@ -89,6 +89,20 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="bingbot" content="index, follow">
 
+    <meta name="theme-color" content="#0b0f19" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="Python4Physics">
+
+    <!-- DNS Prefetch & Preconnect for Fast Asset Delivery -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+
     <!-- OpenGraph / Social Graph Meta Tags -->
     <meta property="og:locale" content="en_US">
     <meta property="og:type" content="website">
@@ -150,7 +164,25 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
             "Quantum Mechanics Simulation",
             "GNUplot Scientific Plotting",
             "LaTeX Document Typesetting",
-            "Arduino Physics Instrumentation"
+            "Arduino Physics Instrumentation",
+            "Electronic Circuit Simulation (SPICE)"
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "<?php echo rtrim($siteurl, '/'); ?>/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": <?php echo json_encode(htmlspecialchars($page_title ?? 'Physics Laboratory')); ?>,
+              "item": <?php echo json_encode($canonical_url_clean); ?>
+            }
           ]
         }
       ]
@@ -191,6 +223,9 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     </script>
     <!-- Early Theme Applier (prevents theme flicker) -->
     <script src="<?php echo $siteurl; ?>assets/js/theme.js?v=<?php echo file_exists(__DIR__ . '/../assets/js/theme.js') ? filemtime(__DIR__ . '/../assets/js/theme.js') : '1.1'; ?>"></script>
+
+    <!-- First-Party Engagement & Telemetry Tracker -->
+    <script defer src="<?php echo $siteurl; ?>assets/js/telemetry.js?v=<?php echo file_exists(__DIR__ . '/../assets/js/telemetry.js') ? filemtime(__DIR__ . '/../assets/js/telemetry.js') : '1.0'; ?>"></script>
 
     <!-- Global Physics Telemetry & Analytics Event Tracker -->
     <script>

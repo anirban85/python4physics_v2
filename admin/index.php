@@ -73,7 +73,10 @@ try {
         <p class="admin-page-subtitle">Overview of Computational Physics programs, curricula menus, and interactive problem sets.</p>
     </div>
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-        <a href="programs.php?action=create" class="btn-admin btn-admin-primary">
+        <a href="analytics.php" class="btn-admin btn-admin-primary" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); border: none;">
+            <i class="fa-solid fa-chart-pie"></i> Traffic &amp; Telemetry
+        </a>
+        <a href="programs.php?action=create" class="btn-admin btn-admin-secondary">
             <i class="fa-solid fa-plus"></i> Upload Program
         </a>
         <a href="menus.php" class="btn-admin btn-admin-secondary">
@@ -128,6 +131,18 @@ try {
             Interactive computational problem sets
         </div>
     </div>
+
+    <a href="analytics.php" class="admin-stat-card" style="border-color: rgba(14, 165, 233, 0.4); text-decoration: none; display: block;">
+        <i class="fa-solid fa-chart-pie admin-stat-icon" style="color: #38bdf8;"></i>
+        <div class="admin-stat-label">Traffic &amp; Telemetry</div>
+        <div class="admin-stat-value" style="color: #38bdf8; font-size: 1.55rem; display: flex; align-items: center; gap: 8px;">
+            <span>Insights</span>
+            <span class="admin-badge admin-badge-green" style="font-size: 0.72rem; padding: 2px 7px;"><i class="fa-solid fa-circle" style="font-size: 0.45rem; vertical-align: middle;"></i> Live</span>
+        </div>
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+            Demography, engagement &amp; simulation runs &rarr;
+        </div>
+    </a>
 </div>
 
 <!-- Secondary Stats & Environment row -->
