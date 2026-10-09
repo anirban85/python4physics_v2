@@ -1048,3 +1048,87 @@
         align-items: stretch;
     }
 }
+
+/* ==========================================================================
+   Advanced Multisim Real-Time Probe HUD & Virtual Instruments Enhancements
+   ========================================================================== */
+.ms-pin-hitbox {
+    fill: transparent;
+    stroke: transparent;
+    cursor: crosshair;
+    pointer-events: all;
+}
+
+.ms-pin-hitbox:hover + .ms-terminal-pin,
+.ms-terminal-pin:hover {
+    fill: #10b981 !important;
+    stroke: #ffffff !important;
+    transform: scale(1.5);
+}
+
+/* Multisim Interactive Live Node Probe Tooltip */
+.ms-probe-tooltip {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.94);
+    border: 1px solid #0284c7;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    pointer-events: none;
+    z-index: 500;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 10px rgba(2, 132, 199, 0.3);
+    display: none;
+    white-space: nowrap;
+}
+
+.ms-probe-tooltip .ms-probe-header {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.ms-probe-tooltip .ms-probe-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ms-probe-tooltip .ms-probe-val {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+/* Floating Window Draggable Cursor */
+.ms-floating-window {
+    cursor: default;
+}
+
+.ms-floating-window.dragging {
+    opacity: 0.95;
+    user-select: none;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+}
+
+/* Glowing LED Dynamic Style */
+.ms-led-lit {
+    filter: drop-shadow(0 0 8px currentColor);
+    animation: msLedFlicker 0.1s infinite alternate;
+}
+
+@keyframes msLedFlicker {
+    from { opacity: 0.9; }
+    to { opacity: 1; }
+}
+
+/* Switch Interactive Hover */
+.ms-switch-interactive {
+    cursor: pointer;
+}
+
+.ms-switch-interactive:hover line {
+    stroke: #22c55e !important;
+}

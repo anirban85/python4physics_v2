@@ -1,38 +1,41 @@
 /**
  * ============================================================================
- * National Instruments Multisim - Interactive Circuit Simulator Engine (v2.0)
+ * National Instruments Multisim - Interactive Circuit Simulator Engine (v3.0)
  * Python4Physics Engineering EDA & Virtual Instrumentation Suite
  * 
  * Features:
- *  - CAD Schematic Editor: Snapping grid, orthogonal multi-point wiring, junctions
- *  - SPICE-grade Numerical MNA (Modified Nodal Analysis) & Transient ODE Solver
- *  - Virtual Instruments: Dual-Trace CRO (Oscilloscope), Digital Multimeter (DMM),
- *    Function Generator (XFG), and Bode Analyzer
+ *  - Full Modified Nodal Analysis (MNA) & Companion ODE Circuit Solver
+ *    (Solves real physical node voltages & branch currents for ANY custom circuit)
+ *  - Graph Disjoint-Set Union (DSU) clustering of wires and pins into electrical nets
+ *  - Real-Time Numerical Models: Resistors, Caps, Inductors, Switches, Diodes,
+ *    Zeners, LEDs, BJTs (NPN/PNP), JFETs, MOSFETs, and Op-Amps (IC 741)
+ *  - Virtual Test Instruments:
+ *    * Tektronix/NI Dual-Trace CRO with rolling phosphor buffer & X-Y Lissajous
+ *    * Agilent 34401A Digital Multimeter (DMM) with True-RMS & Auto-Ranging
+ *    * Function Generator (XFG) with live frequency & amplitude modulation
+ *    * In-line Voltmeter & Ammeter probes + Interactive Live Node HUD Probe
+ *  - Draggable Instrument Floating Windows
  *  - 21 Pre-built circuits for all 7 University Physics / Electronics Modules
- *  - Custom circuit design, JSON import/export, PNG schematic export
- *  - Mobile touch support with adaptive hitboxes and sliding panels
+ *  - Full touch-screen support for mobile devices
  * ============================================================================
  */
 
 (function (window, document) {
     'use strict';
 
-    // Global Namespace
     window.MultisimEngine = window.MultisimEngine || {};
 
-    // ========================================================================
-    // 1. CONSTANTS & COMPONENT DEFINITIONS
-    // ========================================================================
     const GRID_SIZE = 20;
 
+    // Component Definitions & Physical Parameter Templates
     const COMP_TYPES = {
-        // Sources
+        // --- Sources ---
         dc_source: {
             name: 'DC Voltage Source',
             prefix: 'V',
             category: 'sources',
             pins: [{ id: 'p', x: 0, y: -30, label: '+' }, { id: 'n', x: 0, y: 30, label: '-' }],
-            defaults: { voltage: 10, unit: 'V' },
+            defaults: { voltage: 12, unit: 'V' },
             width: 40, height: 60
         },
         ac_source: {
@@ -40,7 +43,7 @@
             prefix: 'V_ac',
             category: 'sources',
             pins: [{ id: 'p', x: 0, y: -30, label: '+' }, { id: 'n', x: 0, y: 30, label: '-' }],
-            defaults: { amplitude: 10, frequency: 50, phase: 0, offset: 0, unit: 'V' },
+            defaults: { amplitude: 10, frequency: 50, phase: 0, offset: 0, waveform: 'sine', unit: 'V' },
             width: 40, height: 60
         },
         current_source: {
@@ -52,7 +55,7 @@
             width: 40, height: 60
         },
         ground: {
-            name: 'Ground (0V Ref)',
+            name: 'Ground (0V Reference)',
             prefix: 'GND',
             category: 'sources',
             pins: [{ id: 'g', x: 0, y: -10, label: '0V' }],
@@ -60,7 +63,7 @@
             width: 30, height: 25
         },
 
-        // Basic / Passive
+        // --- Basic / Passive ---
         resistor: {
             name: 'Resistor',
             prefix: 'R',
@@ -102,13 +105,13 @@
             width: 60, height: 30
         },
 
-        // Diodes
+        // --- Diodes ---
         diode: {
             name: 'PN Junction Diode (1N4007)',
             prefix: 'D',
             category: 'diodes',
             pins: [{ id: 'a', x: -30, y: 0, label: 'A' }, { id: 'k', x: 30, y: 0, label: 'K' }],
-            defaults: { vf: 0.7, is: 1e-12 },
+            defaults: { vf: 0.7, r_on: 1.0, r_off: 1e7 },
             width: 60, height: 30
         },
         zener: {
@@ -116,7 +119,7 @@
             prefix: 'DZ',
             category: 'diodes',
             pins: [{ id: 'a', x: -30, y: 0, label: 'A' }, { id: 'k', x: 30, y: 0, label: 'K' }],
-            defaults: { vz: 5.1, vf: 0.7, rz: 10 },
+            defaults: { vz: 5.1, vf: 0.7, rz: 10, r_off: 1e7 },
             width: 60, height: 30
         },
         led: {
@@ -124,11 +127,11 @@
             prefix: 'LED',
             category: 'diodes',
             pins: [{ id: 'a', x: -30, y: 0, label: 'A' }, { id: 'k', x: 30, y: 0, label: 'K' }],
-            defaults: { vf: 2.0, color: '#ef4444' },
+            defaults: { vf: 2.0, color: '#ef4444', lit: false },
             width: 60, height: 35
         },
 
-        // Transistors
+        // --- Transistors & FETs ---
         bjt_npn: {
             name: 'BJT NPN Transistor (BC547 / 2N3904)',
             prefix: 'Q',
@@ -162,7 +165,7 @@
             width: 60, height: 60
         },
 
-        // Op-Amps
+        // --- Op-Amps ---
         opamp: {
             name: 'Operational Amplifier (IC 741)',
             prefix: 'U',
@@ -174,11 +177,11 @@
                 { id: 'vp', x: 0, y: -30, label: 'V+' },
                 { id: 'vn', x: 0, y: 30, label: 'V-' }
             ],
-            defaults: { aol: 200000, vsupply: 15 },
+            defaults: { aol: 100000, vsupply: 15 },
             width: 80, height: 60
         },
 
-        // Instruments & Meters (On-canvas probes)
+        // --- Meters & Probes ---
         voltmeter: {
             name: 'Voltmeter Probe',
             prefix: 'VM',
@@ -210,7 +213,7 @@
     };
 
     // ========================================================================
-    // 2. WORKBENCH STATE ENGINE
+    // CIRCUIT WORKBENCH CLASS
     // ========================================================================
     class CircuitWorkbench {
         constructor() {
@@ -218,35 +221,31 @@
             this.wires = [];
             this.nextId = 1;
             this.selectedItem = null;
-            this.selectedPin = null;
             this.activeWireDraft = null;
             this.isDragging = false;
             this.dragOffset = { x: 0, y: 0 };
             this.dragItem = null;
 
-            // Simulation state
+            // Numerical Solver State
             this.isRunning = false;
-            this.isPaused = false;
-            this.simTime = 0; // seconds
-            this.simStep = 0.0002; // 200 microseconds per iteration
+            this.simTime = 0.0;          // Seconds
+            this.simDt = 0.00005;        // 50 microseconds SPICE step
+            this.stepsPerTick = 6;       // 6 steps per frame = 300us step
             this.simInterval = null;
-            this.nodeVoltages = {}; // nodeId -> voltage
-            this.history = {
-                times: [],
-                cro_chA: [],
-                cro_chB: []
-            };
 
-            // Instrument references
+            // Topological state
+            this.pinToNode = {};         // "compId:pinId" -> nodeId
+            this.nodeVoltages = {};      // nodeId -> voltage
+            this.compStates = {};        // compId -> state (cap charge, inductor current)
+            this.compBranchCurrents = {};// compId -> current (A)
+
+            // Live HUD Tooltip
+            this.hudTooltip = null;
+
+            // Instruments
             this.cro = null;
             this.dmm = null;
             this.xfg = null;
-
-            // DOM elements
-            this.svg = null;
-            this.container = null;
-            this.clockEl = null;
-            this.ledEl = null;
 
             this.init();
         }
@@ -259,10 +258,16 @@
 
             if (!this.svg || !this.container) return;
 
+            // Create HUD Probe Tooltip
+            this.createHUDTooltip();
+
             // Setup Instruments
             this.cro = new VirtualCRO(this);
             this.dmm = new VirtualDMM(this);
             this.xfg = new VirtualXFG(this);
+
+            // Make instrument windows draggable
+            this.makeWindowsDraggable();
 
             // Bind Canvas Events
             this.bindEvents();
@@ -270,12 +275,67 @@
             this.bindPaletteButtons();
             this.bindMenuActions();
 
-            // Load default circuit: Module 2 Bridge Rectifier with C-Filter
+            // Default preset
             this.loadPreset('mod2_bridge_rectifier');
         }
 
+        createHUDTooltip() {
+            this.hudTooltip = document.createElement('div');
+            this.hudTooltip.className = 'ms-probe-tooltip';
+            this.hudTooltip.id = 'msProbeTooltip';
+            this.container.appendChild(this.hudTooltip);
+        }
+
+        makeWindowsDraggable() {
+            const windows = document.querySelectorAll('.ms-floating-window');
+            windows.forEach(win => {
+                const header = win.querySelector('.ms-window-header');
+                if (!header) return;
+
+                let isMoving = false;
+                let startX, startY, origLeft, origTop;
+
+                const startDrag = e => {
+                    if (e.target.classList.contains('ms-window-close-btn')) return;
+                    isMoving = true;
+                    win.classList.add('dragging');
+                    const clientX = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+                    const clientY = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
+                    startX = clientX;
+                    startY = clientY;
+                    origLeft = win.offsetLeft;
+                    origTop = win.offsetTop;
+                };
+
+                const doDrag = e => {
+                    if (!isMoving) return;
+                    const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+                    const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+                    win.style.left = (origLeft + dx) + 'px';
+                    win.style.top = (origTop + dy) + 'px';
+                    win.style.right = 'auto'; // allow free moving
+                };
+
+                const endDrag = () => {
+                    isMoving = false;
+                    win.classList.remove('dragging');
+                };
+
+                header.addEventListener('mousedown', startDrag);
+                window.addEventListener('mousemove', doDrag);
+                window.addEventListener('mouseup', endDrag);
+
+                // Touch support for dragging windows
+                header.addEventListener('touchstart', startDrag, { passive: true });
+                window.addEventListener('touchmove', doDrag, { passive: true });
+                window.addEventListener('touchend', endDrag);
+            });
+        }
+
         // --------------------------------------------------------------------
-        // SVG Vector Symbol Drawing Helpers
+        // SCHEMATIC SYMBOL VECTOR RENDERING
         // --------------------------------------------------------------------
         drawComponentSVG(comp) {
             const def = COMP_TYPES[comp.type];
@@ -360,13 +420,16 @@
                     break;
 
                 case 'switch_spst':
-                    const swAngle = comp.props.closed ? '0' : '-30';
+                    const swClosed = comp.props.closed !== false;
+                    const swAngle = swClosed ? '0' : '-35';
                     symbolContent = `
-                        <line x1="-30" y1="0" x2="-14" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
-                        <circle cx="-12" cy="0" r="2.5" fill="var(--ms-comp-stroke)"/>
-                        <circle cx="12" cy="0" r="2.5" fill="var(--ms-comp-stroke)"/>
-                        <line x1="-12" y1="0" x2="10" y2="0" stroke="#38bdf8" stroke-width="2.5" transform="rotate(${swAngle}, -12, 0)"/>
-                        <line x1="14" y1="0" x2="30" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
+                        <g class="ms-switch-interactive" title="Click to toggle switch">
+                            <line x1="-30" y1="0" x2="-14" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
+                            <circle cx="-12" cy="0" r="2.5" fill="var(--ms-comp-stroke)"/>
+                            <circle cx="12" cy="0" r="2.5" fill="var(--ms-comp-stroke)"/>
+                            <line x1="-12" y1="0" x2="10" y2="0" stroke="${swClosed ? '#22c55e' : '#f59e0b'}" stroke-width="2.5" transform="rotate(${swAngle}, -12, 0)"/>
+                            <line x1="14" y1="0" x2="30" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
+                        </g>
                     `;
                     break;
 
@@ -389,15 +452,18 @@
                     break;
 
                 case 'led':
+                    const isLit = comp.props.lit;
+                    const ledColor = comp.props.color || '#ef4444';
                     symbolContent = `
                         <line x1="-30" y1="0" x2="-10" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
-                        <polygon points="-10,-12 -10,12 10,0" fill="${comp.props.lit ? comp.props.color : 'var(--ms-comp-fill)'}" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
+                        <polygon points="-10,-12 -10,12 10,0" fill="${isLit ? ledColor : 'var(--ms-comp-fill)'}" 
+                                 stroke="var(--ms-comp-stroke)" stroke-width="2" class="${isLit ? 'ms-led-lit' : ''}"/>
                         <line x1="10" y1="-12" x2="10" y2="12" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
                         <line x1="10" y1="0" x2="30" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
-                        <line x1="-2" y1="-14" x2="6" y2="-22" stroke="${comp.props.color}" stroke-width="1.8"/>
-                        <polygon points="8,-24 4,-20 8,-19" fill="${comp.props.color}"/>
-                        <line x1="4" y1="-14" x2="12" y2="-22" stroke="${comp.props.color}" stroke-width="1.8"/>
-                        <polygon points="14,-24 10,-20 14,-19" fill="${comp.props.color}"/>
+                        <line x1="-2" y1="-14" x2="6" y2="-22" stroke="${ledColor}" stroke-width="1.8"/>
+                        <polygon points="8,-24 4,-20 8,-19" fill="${ledColor}"/>
+                        <line x1="4" y1="-14" x2="12" y2="-22" stroke="${ledColor}" stroke-width="1.8"/>
+                        <polygon points="14,-24 10,-20 14,-19" fill="${ledColor}"/>
                     `;
                     break;
 
@@ -461,7 +527,7 @@
                         <line x1="-30" y1="0" x2="-18" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
                         <line x1="18" y1="0" x2="30" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
                         <text x="0" y="4" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="bold">V</text>
-                        <rect x="-26" y="22" width="52" height="15" rx="3" fill="#030712" stroke="#22c55e" stroke-width="1"/>
+                        <rect x="-28" y="22" width="56" height="15" rx="3" fill="#030712" stroke="#22c55e" stroke-width="1"/>
                         <text x="0" y="33" text-anchor="middle" fill="#4ade80" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="bold">${vRead}</text>
                     `;
                     break;
@@ -473,7 +539,7 @@
                         <line x1="-30" y1="0" x2="-18" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
                         <line x1="18" y1="0" x2="30" y2="0" stroke="var(--ms-comp-stroke)" stroke-width="2"/>
                         <text x="0" y="4" text-anchor="middle" fill="#c7d2fe" font-size="11" font-weight="bold">A</text>
-                        <rect x="-26" y="22" width="52" height="15" rx="3" fill="#030712" stroke="#818cf8" stroke-width="1"/>
+                        <rect x="-28" y="22" width="56" height="15" rx="3" fill="#030712" stroke="#818cf8" stroke-width="1"/>
                         <text x="0" y="33" text-anchor="middle" fill="#c7d2fe" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="bold">${aRead}</text>
                     `;
                     break;
@@ -495,12 +561,14 @@
                     symbolContent = `<rect x="-20" y="-15" width="40" height="30" fill="var(--ms-comp-fill)" stroke="var(--ms-comp-stroke)" stroke-width="2"/>`;
             }
 
-            // Terminal pins
+            // Terminal pins with large touch-friendly hitboxes
             let pinsSvg = '';
             def.pins.forEach(pin => {
                 pinsSvg += `
-                    <circle class="ms-terminal-pin" data-comp-id="${comp.id}" data-pin-id="${pin.id}" 
-                            cx="${pin.x}" cy="${pin.y}" r="4.5"/>
+                    <g class="ms-pin-wrapper" data-comp-id="${comp.id}" data-pin-id="${pin.id}">
+                        <circle class="ms-pin-hitbox" data-comp-id="${comp.id}" data-pin-id="${pin.id}" cx="${pin.x}" cy="${pin.y}" r="12"/>
+                        <circle class="ms-terminal-pin" data-comp-id="${comp.id}" data-pin-id="${pin.id}" cx="${pin.x}" cy="${pin.y}" r="4.5"/>
+                    </g>
                 `;
             });
 
@@ -521,18 +589,18 @@
             const p = comp.props;
             if (!p) return '';
             if (p.resistance !== undefined) {
-                return p.resistance >= 1e6 ? (p.resistance / 1e6) + ' MΩ' : (p.resistance >= 1000 ? (p.resistance / 1000) + ' kΩ' : p.resistance + ' Ω');
+                return p.resistance >= 1e6 ? (p.resistance / 1e6).toFixed(1) + ' MΩ' : (p.resistance >= 1000 ? (p.resistance / 1000).toFixed(1) + ' kΩ' : p.resistance + ' Ω');
             }
             if (p.voltage !== undefined) return p.voltage + ' V';
             if (p.amplitude !== undefined) return p.amplitude + ' V, ' + (p.frequency || 50) + ' Hz';
             if (p.capacitance !== undefined) {
-                return p.capacitance >= 1e-3 ? (p.capacitance * 1e3) + ' mF' : (p.capacitance >= 1e-6 ? (p.capacitance * 1e6) + ' µF' : (p.capacitance * 1e9) + ' nF');
+                return p.capacitance >= 1e-3 ? (p.capacitance * 1e3).toFixed(1) + ' mF' : (p.capacitance >= 1e-6 ? (p.capacitance * 1e6).toFixed(1) + ' µF' : (p.capacitance * 1e9).toFixed(1) + ' nF');
             }
             if (p.inductance !== undefined) {
-                return p.inductance >= 1 ? p.inductance + ' H' : (p.inductance * 1e3) + ' mH';
+                return p.inductance >= 1 ? p.inductance + ' H' : (p.inductance * 1e3).toFixed(1) + ' mH';
             }
             if (p.vz !== undefined) return 'Vz = ' + p.vz + ' V';
-            if (p.current !== undefined) return (p.current * 1000) + ' mA';
+            if (p.current !== undefined) return (p.current * 1000).toFixed(1) + ' mA';
             return '';
         }
 
@@ -548,13 +616,13 @@
                 html += `<path class="ms-wire ${isSelected ? 'selected' : ''}" d="${pathStr}" data-wire-index="${idx}"/>`;
             });
 
-            // Draw Draft Wire (if user is currently connecting pins)
+            // Draw Draft Wire
             if (this.activeWireDraft) {
                 const draftPath = this.computeDraftPath(this.activeWireDraft);
                 html += `<path class="ms-wire-drawing" d="${draftPath}"/>`;
             }
 
-            // Draw Junction Nodes (intersections)
+            // Draw Junction Nodes
             const junctions = this.computeJunctions();
             junctions.forEach(j => {
                 html += `<circle class="ms-junction" cx="${j.x}" cy="${j.y}" r="3.5"/>`;
@@ -568,7 +636,6 @@
             this.svg.innerHTML = html;
         }
 
-        // Calculate absolute coordinate of a pin
         getPinPos(compId, pinId) {
             const comp = this.components.find(c => c.id === compId);
             if (!comp) return { x: 0, y: 0 };
@@ -577,7 +644,6 @@
             const pinDef = def.pins.find(p => p.id === pinId);
             if (!pinDef) return { x: comp.x, y: comp.y };
 
-            // Rotate pin coordinate
             const rad = (comp.rotation || 0) * Math.PI / 180;
             const cos = Math.cos(rad);
             const sin = Math.sin(rad);
@@ -593,8 +659,6 @@
         computeWirePath(wire) {
             const start = this.getPinPos(wire.fromComp, wire.fromPin);
             const end = this.getPinPos(wire.toComp, wire.toPin);
-
-            // Multisim Orthogonal 90-degree routing
             const midX = Math.round((start.x + end.x) / 2);
             return `M ${start.x} ${start.y} H ${midX} V ${end.y} H ${end.x}`;
         }
@@ -607,7 +671,6 @@
         }
 
         computeJunctions() {
-            // Find points where 3 or more wire segments meet
             const pinMap = {};
             this.wires.forEach(w => {
                 const p1 = this.getPinPos(w.fromComp, w.fromPin);
@@ -629,13 +692,12 @@
         }
 
         // --------------------------------------------------------------------
-        // Component Manipulation: Add, Move, Rotate, Delete
+        // COMPONENT & CIRCUIT MANIPULATION
         // --------------------------------------------------------------------
         addComponent(type, x, y, customProps = {}) {
             const def = COMP_TYPES[type];
             if (!def) return null;
 
-            // Snap to grid
             const snapX = Math.round((x || 100) / GRID_SIZE) * GRID_SIZE;
             const snapY = Math.round((y || 100) / GRID_SIZE) * GRID_SIZE;
 
@@ -676,7 +738,6 @@
             } else if (this.selectedItem.id) {
                 const compId = this.selectedItem.id;
                 this.components = this.components.filter(c => c.id !== compId);
-                // Remove all attached wires
                 this.wires = this.wires.filter(w => w.fromComp !== compId && w.toComp !== compId);
             }
 
@@ -690,16 +751,19 @@
             this.wires = [];
             this.selectedItem = null;
             this.activeWireDraft = null;
+            this.simTime = 0.0;
+            this.nodeVoltages = {};
+            this.compStates = {};
+            if (this.clockEl) this.clockEl.innerText = '0.0000 s';
             this.render();
         }
 
         // --------------------------------------------------------------------
-        // Canvas Interactive Events (Touch + Mouse)
+        // EVENT BINDINGS & USER INTERACTION (DESKTOP + MOBILE)
         // --------------------------------------------------------------------
         bindEvents() {
             const self = this;
 
-            // Handle clicking on Canvas / SVG
             this.svg.addEventListener('mousedown', e => self.onPointerDown(e));
             window.addEventListener('mousemove', e => self.onPointerMove(e));
             window.addEventListener('mouseup', e => self.onPointerUp(e));
@@ -707,15 +771,13 @@
             // Mobile Touch Events
             this.svg.addEventListener('touchstart', e => {
                 if (e.touches.length === 1) {
-                    const touch = e.touches[0];
-                    self.onPointerDown(touch);
+                    self.onPointerDown(e.touches[0]);
                 }
             }, { passive: false });
 
             window.addEventListener('touchmove', e => {
                 if (self.isDragging || self.activeWireDraft) {
-                    const touch = e.touches[0];
-                    self.onPointerMove(touch);
+                    self.onPointerMove(e.touches[0]);
                     e.preventDefault();
                 }
             }, { passive: false });
@@ -747,7 +809,6 @@
                     self.selectedItem = null;
                     self.render();
                 } else if (e.key === ' ') {
-                    // Spacebar toggles simulation
                     e.preventDefault();
                     self.toggleSimulation();
                 }
@@ -768,20 +829,21 @@
             const coords = this.getCanvasCoords(e);
             const target = e.target;
 
-            // 1. Clicked on a Terminal Pin?
-            if (target && target.classList.contains('ms-terminal-pin')) {
-                const compId = parseInt(target.getAttribute('data-comp-id'), 10);
-                const pinId = target.getAttribute('data-pin-id');
+            // 1. Clicked on Terminal Pin / Hitbox?
+            const pinTarget = target.closest('.ms-terminal-pin') || target.closest('.ms-pin-hitbox');
+            if (pinTarget) {
+                const compId = parseInt(pinTarget.getAttribute('data-comp-id'), 10);
+                const pinId = pinTarget.getAttribute('data-pin-id');
 
                 if (!this.activeWireDraft) {
-                    // Start new wire
+                    // Start drafting new wire
                     this.activeWireDraft = {
                         fromComp: compId,
                         fromPin: pinId,
                         current: coords
                     };
                 } else {
-                    // Complete wire if connecting to a different component/pin
+                    // Connect to another pin
                     if (this.activeWireDraft.fromComp !== compId || this.activeWireDraft.fromPin !== pinId) {
                         this.wires.push({
                             fromComp: this.activeWireDraft.fromComp,
@@ -796,7 +858,22 @@
                 return;
             }
 
-            // 2. Clicked on a Wire?
+            // 2. Clicked on an Interactive Switch? (Toggle instantly)
+            const swTarget = target.closest('.ms-switch-interactive');
+            if (swTarget) {
+                const compGroup = target.closest('.ms-comp-group');
+                if (compGroup) {
+                    const compId = parseInt(compGroup.getAttribute('data-id'), 10);
+                    const comp = this.components.find(c => c.id === compId);
+                    if (comp && comp.type === 'switch_spst') {
+                        comp.props.closed = !comp.props.closed;
+                        this.render();
+                        return;
+                    }
+                }
+            }
+
+            // 3. Clicked on a Wire?
             if (target && target.classList.contains('ms-wire')) {
                 const wireIdx = parseInt(target.getAttribute('data-wire-index'), 10);
                 this.selectedItem = { type: 'wire', index: wireIdx };
@@ -804,7 +881,7 @@
                 return;
             }
 
-            // 3. Clicked on a Component?
+            // 4. Clicked on a Component?
             const compGroup = target ? target.closest('.ms-comp-group') : null;
             if (compGroup) {
                 const compId = parseInt(compGroup.getAttribute('data-id'), 10);
@@ -822,9 +899,9 @@
                 }
             }
 
-            // 4. Clicked on empty canvas
+            // 5. Empty Canvas Click
             if (this.activeWireDraft) {
-                this.activeWireDraft = null; // Cancel drafting
+                this.activeWireDraft = null;
             }
             this.selectedItem = null;
             this.render();
@@ -845,7 +922,52 @@
                     y: Math.round(coords.y / 10) * 10
                 };
                 this.render();
+            } else {
+                // Interactive HUD Node Probe
+                this.handleHUDProbe(e, coords);
             }
+        }
+
+        handleHUDProbe(e, coords) {
+            if (!this.hudTooltip || !this.isRunning) {
+                if (this.hudTooltip) this.hudTooltip.style.display = 'none';
+                return;
+            }
+
+            const target = e.target;
+            const isWire = target && target.classList.contains('ms-wire');
+            const pinTarget = target && (target.closest('.ms-terminal-pin') || target.closest('.ms-pin-hitbox'));
+
+            if (isWire || pinTarget) {
+                let nodeId = null;
+                if (pinTarget) {
+                    const cId = parseInt(pinTarget.getAttribute('data-comp-id'), 10);
+                    const pId = pinTarget.getAttribute('data-pin-id');
+                    nodeId = this.pinToNode[`${cId}:${pId}`];
+                } else if (isWire) {
+                    const wireIdx = parseInt(target.getAttribute('data-wire-index'), 10);
+                    const w = this.wires[wireIdx];
+                    if (w) {
+                        nodeId = this.pinToNode[`${w.fromComp}:${w.fromPin}`];
+                    }
+                }
+
+                if (nodeId !== null && nodeId !== undefined) {
+                    const v = this.nodeVoltages[nodeId] || 0.0;
+                    this.hudTooltip.innerHTML = `
+                        <div class="ms-probe-header">NI Multisim Live Probe</div>
+                        <div class="ms-probe-row"><span>Node ID:</span><span class="ms-probe-val">N${nodeId}</span></div>
+                        <div class="ms-probe-row"><span>Voltage V(t):</span><span class="ms-probe-val">${(v >= 0 ? '+' : '') + v.toFixed(3)} V</span></div>
+                        <div class="ms-probe-row"><span>V (RMS):</span><span class="ms-probe-val">${Math.abs(v / Math.SQRT2).toFixed(3)} V</span></div>
+                    `;
+                    this.hudTooltip.style.left = (coords.x + 18) + 'px';
+                    this.hudTooltip.style.top = (coords.y - 30) + 'px';
+                    this.hudTooltip.style.display = 'block';
+                    return;
+                }
+            }
+
+            this.hudTooltip.style.display = 'none';
         }
 
         onPointerUp() {
@@ -854,7 +976,7 @@
         }
 
         // --------------------------------------------------------------------
-        // Property Inspector Dialog
+        // PROPERTY INSPECTOR MODAL
         // --------------------------------------------------------------------
         openPropertyModal(comp) {
             const modal = document.getElementById('msInspectorModal');
@@ -907,36 +1029,23 @@
         }
 
         // --------------------------------------------------------------------
-        // Ribbon, Menu & Component Palette Bindings
+        // RIBBON & MENU BUTTON ACTIONS
         // --------------------------------------------------------------------
         bindRibbonControls() {
             const self = this;
 
-            // Run / Stop Simulation Button
             const runBtn = document.getElementById('msBtnSimRun');
-            if (runBtn) {
-                runBtn.addEventListener('click', () => self.toggleSimulation());
-            }
+            if (runBtn) runBtn.addEventListener('click', () => self.toggleSimulation());
 
-            // Step Button
             const stepBtn = document.getElementById('msBtnSimStep');
-            if (stepBtn) {
-                stepBtn.addEventListener('click', () => self.stepSimulation());
-            }
+            if (stepBtn) stepBtn.addEventListener('click', () => self.stepSimulation());
 
-            // Rotate Button
             const rotBtn = document.getElementById('msBtnRotate');
-            if (rotBtn) {
-                rotBtn.addEventListener('click', () => self.rotateSelected());
-            }
+            if (rotBtn) rotBtn.addEventListener('click', () => self.rotateSelected());
 
-            // Delete Button
             const delBtn = document.getElementById('msBtnDelete');
-            if (delBtn) {
-                delBtn.addEventListener('click', () => self.deleteSelected());
-            }
+            if (delBtn) delBtn.addEventListener('click', () => self.deleteSelected());
 
-            // Clear Button
             const clearBtn = document.getElementById('msBtnClear');
             if (clearBtn) {
                 clearBtn.addEventListener('click', () => {
@@ -946,7 +1055,6 @@
                 });
             }
 
-            // Fullscreen Button
             const fsBtn = document.getElementById('msBtnFullscreen');
             const wrapper = document.getElementById('msWorkbenchWrapper');
             if (fsBtn && wrapper) {
@@ -957,13 +1065,9 @@
                 });
             }
 
-            // Export PNG
             const exportBtn = document.getElementById('msBtnExport');
-            if (exportBtn) {
-                exportBtn.addEventListener('click', () => self.exportSchematicPNG());
-            }
+            if (exportBtn) exportBtn.addEventListener('click', () => self.exportSchematicPNG());
 
-            // Module Selector Dropdown
             const modSelect = document.getElementById('msModuleSelect');
             if (modSelect) {
                 modSelect.addEventListener('change', e => {
@@ -979,14 +1083,12 @@
             cards.forEach(card => {
                 card.addEventListener('click', () => {
                     const type = card.getAttribute('data-type');
-                    // Add near center of canvas
                     const cx = (self.container.clientWidth / 2) - 30;
                     const cy = (self.container.clientHeight / 2) - 30;
                     self.addComponent(type, cx, cy);
                 });
             });
 
-            // Component Search
             const searchInput = document.getElementById('msCompSearch');
             if (searchInput) {
                 searchInput.addEventListener('input', e => {
@@ -1002,41 +1104,28 @@
         bindMenuActions() {
             const self = this;
 
-            // Instrument Sidebar Buttons
             const btnDMM = document.getElementById('msInstDMM');
-            if (btnDMM) {
-                btnDMM.addEventListener('click', () => self.dmm.toggle());
-            }
+            if (btnDMM) btnDMM.addEventListener('click', () => self.dmm.toggle());
 
             const btnCRO = document.getElementById('msInstCRO');
-            if (btnCRO) {
-                btnCRO.addEventListener('click', () => self.cro.toggle());
-            }
+            if (btnCRO) btnCRO.addEventListener('click', () => self.cro.toggle());
 
             const btnXFG = document.getElementById('msInstXFG');
-            if (btnXFG) {
-                btnXFG.addEventListener('click', () => self.xfg.toggle());
-            }
+            if (btnXFG) btnXFG.addEventListener('click', () => self.xfg.toggle());
 
-            // Mobile Component Drawer Toggle
             const toggleDrawerBtn = document.getElementById('msToggleDrawerBtn');
             const drawer = document.getElementById('msComponentDrawer');
             if (toggleDrawerBtn && drawer) {
-                toggleDrawerBtn.addEventListener('click', () => {
-                    drawer.classList.toggle('open');
-                });
+                toggleDrawerBtn.addEventListener('click', () => drawer.classList.toggle('open'));
             }
         }
 
-        // --------------------------------------------------------------------
-        // 3. SPICE-GRADE CIRCUIT SIMULATION SOLVER
-        // --------------------------------------------------------------------
+        // ====================================================================
+        // 4. TRUE PHYSICAL MODIFIED NODAL ANALYSIS (MNA) SOLVER ENGINE
+        // ====================================================================
         toggleSimulation() {
-            if (this.isRunning) {
-                this.stopSimulation();
-            } else {
-                this.startSimulation();
-            }
+            if (this.isRunning) this.stopSimulation();
+            else this.startSimulation();
         }
 
         startSimulation() {
@@ -1052,7 +1141,7 @@
             const self = this;
             this.simInterval = setInterval(() => {
                 self.simulationTick();
-            }, 30); // ~33 FPS simulation loop
+            }, 30);
         }
 
         stopSimulation() {
@@ -1067,6 +1156,7 @@
                 runBtn.innerHTML = '<i class="fa-solid fa-play"></i> <span>Run (F5)</span>';
             }
             if (this.ledEl) this.ledEl.classList.remove('running');
+            if (this.hudTooltip) this.hudTooltip.style.display = 'none';
         }
 
         stepSimulation() {
@@ -1074,133 +1164,513 @@
         }
 
         simulationTick() {
-            this.simTime += this.simStep * 10;
+            // Run multiple sub-steps for physical numerical stability
+            for (let s = 0; s < this.stepsPerTick; s++) {
+                this.simTime += this.simDt;
+                this.solveMNA();
+            }
+
             if (this.clockEl) {
                 this.clockEl.innerText = this.simTime.toFixed(4) + ' s';
             }
 
-            // 1. Solve Node Voltages & Branch Currents
-            this.solveCircuit();
-
-            // 2. Feed waveforms to Oscilloscope (CRO)
+            // Update virtual instruments with true physical node measurements
             if (this.cro && this.cro.isOpen) {
-                this.cro.updateTrace(this.simTime);
+                this.cro.recordSample(this.simTime);
+                this.cro.updateDisplay();
             }
 
-            // 3. Feed live reading to Digital Multimeter (DMM)
             if (this.dmm && this.dmm.isOpen) {
                 this.dmm.updateReadout();
             }
 
-            // 4. Update On-Canvas Voltmeters and Ammeters
             this.updateOnCanvasMeters();
         }
 
-        solveCircuit() {
-            // Find active sources
-            let acSrc = this.components.find(c => c.type === 'ac_source');
-            let dcSrc = this.components.find(c => c.type === 'dc_source');
-            let zener = this.components.find(c => c.type === 'zener');
-            let diode = this.components.find(c => c.type === 'diode');
-            let opamp = this.components.find(c => c.type === 'opamp');
-            let cap = this.components.find(c => c.type === 'capacitor');
-            let rload = this.components.find(c => c.label.includes('L') || c.props.resistance < 5000);
-
-            // Compute Input AC Voltage
-            let vin = 0;
-            if (acSrc) {
-                const amp = acSrc.props.amplitude || 10;
-                const freq = acSrc.props.frequency || 50;
-                const phase = (acSrc.props.phase || 0) * Math.PI / 180;
-                vin = amp * Math.sin(2 * Math.PI * freq * this.simTime + phase);
-            } else if (dcSrc) {
-                vin = dcSrc.props.voltage || 10;
-            }
-
-            let vout = 0;
-
-            // Scenario A: Rectifier / Diode Circuit
-            if (diode || this.components.filter(c => c.type === 'diode').length >= 4) {
-                const isBridge = this.components.filter(c => c.type === 'diode').length >= 4;
-                if (isBridge) {
-                    // Full-Wave Bridge Rectification
-                    const vdrop = 1.4; // 2 diode drops
-                    const rawRect = Math.max(0, Math.abs(vin) - vdrop);
-                    if (cap) {
-                        // Capacitor filter smoothing
-                        const rc = (rload ? rload.props.resistance : 1000) * (cap.props.capacitance || 0.0001);
-                        const rippleFactor = 1 / (4 * Math.sqrt(3) * 50 * (cap.props.capacitance || 0.0001) * 1000);
-                        const vpeak = Math.abs(acSrc ? acSrc.props.amplitude : 10) - 1.4;
-                        const vdc = vpeak * (1 - 1 / (4 * 50 * rc));
-                        const vrip = (vpeak / (2 * 50 * rc)) * Math.sin(2 * Math.PI * 100 * this.simTime);
-                        vout = Math.max(0, vdc + vrip);
-                    } else {
-                        vout = rawRect;
-                    }
-                } else {
-                    // Half-Wave Rectification
-                    const vdrop = 0.7;
-                    const rawHalf = Math.max(0, vin - vdrop);
-                    if (cap) {
-                        const rc = 1000 * (cap.props.capacitance || 0.0001);
-                        const vpeak = Math.max(0, (acSrc ? acSrc.props.amplitude : 10) - 0.7);
-                        vout = vpeak * Math.exp(-((this.simTime * 50) % 1) / (50 * rc)) * 0.95 + rawHalf * 0.05;
-                    } else {
-                        vout = rawHalf;
-                    }
-                }
-            }
-            // Scenario B: Zener Voltage Regulator
-            else if (zener) {
-                const vz = zener.props.vz || 5.1;
-                if (vin > vz) {
-                    vout = vz + 0.02 * (vin - vz); // Small dynamic zener resistance slope
-                } else {
-                    vout = vin * 0.9;
-                }
-            }
-            // Scenario C: Op-Amp Amplifier (Inverting / Non-inverting)
-            else if (opamp) {
-                const r1 = this.components.find(c => c.label === 'R1');
-                const rf = this.components.find(c => c.label === 'Rf' || c.label === 'RF');
-                const r1Val = r1 ? r1.props.resistance : 10000;
-                const rfVal = rf ? rf.props.resistance : 20000;
-                const gain = -(rfVal / r1Val); // Inverting gain
-                vout = Math.max(-14, Math.min(14, vin * gain)); // Saturation rails ±14V
-            }
-            // Scenario D: BJT Single Stage CE Amplifier
-            else if (this.components.find(c => c.type === 'bjt_npn')) {
-                // CE Inverting Amplifier with 180 deg phase shift and Av ~ 15
-                const gain = -15;
-                vout = Math.max(-10, Math.min(10, vin * gain * 0.1));
-            }
-            // Default: Simple potential divider
-            else {
-                vout = vin * 0.5;
-            }
-
-            this.nodeVoltages = {
-                vin: vin,
-                vout: vout,
-                gnd: 0
+        // --- Topological Clustering: Disjoint Set Union (DSU) ---
+        buildTopology() {
+            const parent = {};
+            const find = p => {
+                if (parent[p] === undefined) parent[p] = p;
+                if (parent[p] !== p) parent[p] = find(parent[p]);
+                return parent[p];
             };
+            const union = (p1, p2) => {
+                const r1 = find(p1);
+                const r2 = find(p2);
+                if (r1 !== r2) parent[r1] = r2;
+            };
+
+            // Register all pins
+            this.components.forEach(comp => {
+                const def = COMP_TYPES[comp.type];
+                if (def) {
+                    def.pins.forEach(pin => {
+                        const key = `${comp.id}:${pin.id}`;
+                        find(key);
+                    });
+                }
+            });
+
+            // Connect via Wires
+            this.wires.forEach(w => {
+                const k1 = `${w.fromComp}:${w.fromPin}`;
+                const k2 = `${w.toComp}:${w.toPin}`;
+                union(k1, k2);
+            });
+
+            // Connect geometric overlaps
+            const coordsMap = {};
+            this.components.forEach(comp => {
+                const def = COMP_TYPES[comp.type];
+                if (def) {
+                    def.pins.forEach(pin => {
+                        const pos = this.getPinPos(comp.id, pin.id);
+                        const cKey = `${pos.x},${pos.y}`;
+                        const pKey = `${comp.id}:${pin.id}`;
+                        if (coordsMap[cKey]) {
+                            union(coordsMap[cKey], pKey);
+                        } else {
+                            coordsMap[cKey] = pKey;
+                        }
+                    });
+                }
+            });
+
+            // Find Ground Pin (Node 0)
+            let gndRoot = null;
+            const gndComp = this.components.find(c => c.type === 'ground');
+            if (gndComp) {
+                gndRoot = find(`${gndComp.id}:g`);
+            } else {
+                // Default ground to negative of first voltage source or first pin
+                const src = this.components.find(c => c.type === 'dc_source' || c.type === 'ac_source');
+                if (src) {
+                    gndRoot = find(`${src.id}:n`);
+                }
+            }
+
+            // Assign consecutive integers 0, 1, 2, ...
+            const rootToNode = {};
+            if (gndRoot) {
+                rootToNode[gndRoot] = 0;
+            }
+
+            let nextNodeNum = 1;
+            this.pinToNode = {};
+
+            for (const pKey in parent) {
+                const r = find(pKey);
+                if (rootToNode[r] === undefined) {
+                    rootToNode[r] = nextNodeNum++;
+                }
+                this.pinToNode[pKey] = rootToNode[r];
+            }
+
+            const numNodes = nextNodeNum; // Node 0 is GND, 1 to numNodes-1 are active
+            return numNodes;
+        }
+
+        // --- MNA Matrix Stamping & Gaussian Elimination ---
+        solveMNA() {
+            const numNodes = this.buildTopology();
+            const N = numNodes - 1; // Number of non-ground nodal equations
+
+            // Count independent voltage sources
+            const vSources = [];
+            this.components.forEach(comp => {
+                if (comp.type === 'dc_source' || comp.type === 'ac_source') {
+                    vSources.push(comp);
+                } else if (comp.type === 'opamp') {
+                    // Op-Amp output behaves as controlled voltage source
+                    vSources.push({
+                        id: comp.id,
+                        type: 'opamp_out',
+                        refComp: comp
+                    });
+                }
+            });
+
+            const M = vSources.length;
+            const totalVars = N + M;
+
+            if (totalVars <= 0) return;
+
+            // Allocate Matrix A (totalVars x totalVars) and vector Z
+            const A = Array.from({ length: totalVars }, () => new Float64Array(totalVars));
+            const Z = new Float64Array(totalVars);
+
+            const stampConductance = (n1, n2, g) => {
+                if (n1 > 0) A[n1 - 1][n1 - 1] += g;
+                if (n2 > 0) A[n2 - 1][n2 - 1] += g;
+                if (n1 > 0 && n2 > 0) {
+                    A[n1 - 1][n2 - 1] -= g;
+                    A[n2 - 1][n1 - 1] -= g;
+                }
+            };
+
+            const stampCurrentSource = (nFrom, nTo, iVal) => {
+                if (nFrom > 0) Z[nFrom - 1] -= iVal;
+                if (nTo > 0) Z[nTo - 1] += iVal;
+            };
+
+            const dt = this.simDt;
+
+            // Stamp Passive and Active Components
+            this.components.forEach(comp => {
+                const p = comp.props;
+
+                switch (comp.type) {
+                    case 'resistor': {
+                        const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                        const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                        const g = 1.0 / Math.max(0.001, p.resistance || 1000);
+                        stampConductance(n1, n2, g);
+                        break;
+                    }
+
+                    case 'potentiometer': {
+                        const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                        const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                        const nw = this.pinToNode[`${comp.id}:w`] || 0;
+                        const w = Math.min(0.999, Math.max(0.001, p.wiper || 0.5));
+                        const rTot = p.total_resistance || 10000;
+                        const r1 = Math.max(1, rTot * w);
+                        const r2 = Math.max(1, rTot * (1 - w));
+                        stampConductance(n1, nw, 1.0 / r1);
+                        stampConductance(nw, n2, 1.0 / r2);
+                        break;
+                    }
+
+                    case 'switch_spst': {
+                        const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                        const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                        const isClosed = p.closed !== false;
+                        const g = isClosed ? 1000.0 : 1e-8; // 1mΩ vs 100MΩ
+                        stampConductance(n1, n2, g);
+                        break;
+                    }
+
+                    case 'capacitor': {
+                        // Companion Model: G_eq = C/dt, I_eq = G_eq * V_prev
+                        const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                        const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                        const cVal = p.capacitance || 0.0001;
+                        const gC = cVal / dt;
+                        const vPrev = this.compStates[comp.id]?.v || 0.0;
+                        const iEq = gC * vPrev;
+                        stampConductance(n1, n2, gC);
+                        stampCurrentSource(n1, n2, -iEq);
+                        break;
+                    }
+
+                    case 'inductor': {
+                        // Companion Model: G_eq = dt/L, I_eq = I_prev
+                        const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                        const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                        const lVal = p.inductance || 0.01;
+                        const gL = dt / lVal;
+                        const iPrev = this.compStates[comp.id]?.i || 0.0;
+                        stampConductance(n1, n2, gL);
+                        stampCurrentSource(n1, n2, -iPrev);
+                        break;
+                    }
+
+                    case 'diode':
+                    case 'led': {
+                        const na = this.pinToNode[`${comp.id}:a`] || 0;
+                        const nk = this.pinToNode[`${comp.id}:k`] || 0;
+                        const va = this.nodeVoltages[na] || 0.0;
+                        const vk = this.nodeVoltages[nk] || 0.0;
+                        const vd = va - vk;
+                        const vf = comp.type === 'led' ? (p.vf || 2.0) : (p.vf || 0.7);
+
+                        if (vd > vf) {
+                            const rOn = p.r_on || 1.0;
+                            const gD = 1.0 / rOn;
+                            const iEq = vf / rOn;
+                            stampConductance(na, nk, gD);
+                            stampCurrentSource(na, nk, -iEq);
+                            if (comp.type === 'led') comp.props.lit = (vd - vf) / rOn > 0.001;
+                        } else {
+                            stampConductance(na, nk, 1e-7); // Reverse leakage
+                            if (comp.type === 'led') comp.props.lit = false;
+                        }
+                        break;
+                    }
+
+                    case 'zener': {
+                        const na = this.pinToNode[`${comp.id}:a`] || 0;
+                        const nk = this.pinToNode[`${comp.id}:k`] || 0;
+                        const va = this.nodeVoltages[na] || 0.0;
+                        const vk = this.nodeVoltages[nk] || 0.0;
+                        const vz = p.vz || 5.1;
+                        const vf = p.vf || 0.7;
+
+                        if (vk - va >= vz) {
+                            // Reverse Zener Breakdown Region
+                            const rZ = p.rz || 10.0;
+                            const gZ = 1.0 / rZ;
+                            const iEq = vz / rZ;
+                            stampConductance(nk, na, gZ);
+                            stampCurrentSource(nk, na, -iEq);
+                        } else if (va - vk >= vf) {
+                            // Forward Conduction Region
+                            const gF = 1.0 / 1.0;
+                            const iEq = vf / 1.0;
+                            stampConductance(na, nk, gF);
+                            stampCurrentSource(na, nk, -iEq);
+                        } else {
+                            stampConductance(na, nk, 1e-7);
+                        }
+                        break;
+                    }
+
+                    case 'bjt_npn': {
+                        const nb = this.pinToNode[`${comp.id}:b`] || 0;
+                        const nc = this.pinToNode[`${comp.id}:c`] || 0;
+                        const ne = this.pinToNode[`${comp.id}:e`] || 0;
+                        const vb = this.nodeVoltages[nb] || 0.0;
+                        const ve = this.nodeVoltages[ne] || 0.0;
+                        const vc = this.nodeVoltages[nc] || 0.0;
+                        const vbe = vb - ve;
+                        const beta = p.beta || 150;
+
+                        if (vbe > 0.65) {
+                            // Forward active / saturation
+                            const rpi = 1000.0;
+                            const ib = (vbe - 0.7) / rpi;
+                            stampConductance(nb, ne, 1.0 / rpi);
+                            stampCurrentSource(nb, ne, -0.7 / rpi);
+
+                            // Collector Current
+                            const ic = Math.max(0, Math.min(beta * ib, (vc - ve - 0.2) / 10.0));
+                            stampCurrentSource(nc, ne, ic);
+                        } else {
+                            stampConductance(nb, ne, 1e-7);
+                            stampConductance(nc, ne, 1e-7);
+                        }
+                        break;
+                    }
+
+                    case 'jfet_n': {
+                        const ng = this.pinToNode[`${comp.id}:g`] || 0;
+                        const nd = this.pinToNode[`${comp.id}:d`] || 0;
+                        const ns = this.pinToNode[`${comp.id}:s`] || 0;
+                        const vg = this.nodeVoltages[ng] || 0.0;
+                        const vs = this.nodeVoltages[ns] || 0.0;
+                        const vgs = vg - vs;
+                        const vp = p.vp || -3.0;
+                        const idss = p.idss || 0.009;
+
+                        stampConductance(ng, ns, 1e-9); // High gate impedance
+
+                        if (vgs >= vp) {
+                            const id = idss * Math.pow(1 - vgs / vp, 2);
+                            stampCurrentSource(nd, ns, id);
+                        } else {
+                            stampConductance(nd, ns, 1e-7);
+                        }
+                        break;
+                    }
+
+                    case 'mosfet_n': {
+                        const ng = this.pinToNode[`${comp.id}:g`] || 0;
+                        const nd = this.pinToNode[`${comp.id}:d`] || 0;
+                        const ns = this.pinToNode[`${comp.id}:s`] || 0;
+                        const vg = this.nodeVoltages[ng] || 0.0;
+                        const vs = this.nodeVoltages[ns] || 0.0;
+                        const vgs = vg - vs;
+                        const vth = p.vth || 2.5;
+
+                        stampConductance(ng, ns, 1e-9);
+
+                        if (vgs >= vth) {
+                            stampConductance(nd, ns, 2.0); // 0.5Ω on-resistance
+                        } else {
+                            stampConductance(nd, ns, 1e-8);
+                        }
+                        break;
+                    }
+
+                    case 'voltmeter': {
+                        const np = this.pinToNode[`${comp.id}:p`] || 0;
+                        const nn = this.pinToNode[`${comp.id}:n`] || 0;
+                        stampConductance(np, nn, 1e-7); // 10MΩ input impedance
+                        break;
+                    }
+
+                    case 'ammeter': {
+                        const np = this.pinToNode[`${comp.id}:p`] || 0;
+                        const nn = this.pinToNode[`${comp.id}:n`] || 0;
+                        stampConductance(np, nn, 1000.0); // 1mΩ low-impedance shunt
+                        break;
+                    }
+
+                    case 'current_source': {
+                        const np = this.pinToNode[`${comp.id}:p`] || 0;
+                        const nn = this.pinToNode[`${comp.id}:n`] || 0;
+                        stampCurrentSource(np, nn, p.current || 0.005);
+                        break;
+                    }
+                }
+            });
+
+            // Stamp Voltage Sources into B & C matrix blocks
+            vSources.forEach((src, idx) => {
+                const row = N + idx;
+
+                if (src.type === 'dc_source') {
+                    const np = this.pinToNode[`${src.id}:p`] || 0;
+                    const nn = this.pinToNode[`${src.id}:n`] || 0;
+                    const vVal = src.props.voltage !== undefined ? src.props.voltage : 12;
+
+                    if (np > 0) { A[np - 1][row] += 1; A[row][np - 1] += 1; }
+                    if (nn > 0) { A[nn - 1][row] -= 1; A[row][nn - 1] -= 1; }
+                    Z[row] = vVal;
+                } else if (src.type === 'ac_source') {
+                    const np = this.pinToNode[`${src.id}:p`] || 0;
+                    const nn = this.pinToNode[`${src.id}:n`] || 0;
+                    const amp = src.props.amplitude || 10;
+                    const freq = src.props.frequency || 50;
+                    const phase = (src.props.phase || 0) * Math.PI / 180;
+                    const wf = src.props.waveform || 'sine';
+
+                    let vVal = 0;
+                    const theta = (2 * Math.PI * freq * this.simTime + phase) % (2 * Math.PI);
+                    if (wf === 'sine') {
+                        vVal = amp * Math.sin(theta);
+                    } else if (wf === 'square') {
+                        vVal = theta < Math.PI ? amp : -amp;
+                    } else if (wf === 'triangle') {
+                        vVal = amp * (2 * Math.abs((theta / Math.PI) - 1) - 1);
+                    }
+                    vVal += (src.props.offset || 0);
+
+                    if (np > 0) { A[np - 1][row] += 1; A[row][np - 1] += 1; }
+                    if (nn > 0) { A[nn - 1][row] -= 1; A[row][nn - 1] -= 1; }
+                    Z[row] = vVal;
+                } else if (src.type === 'opamp_out') {
+                    // Operational Amplifier Output Equation
+                    const op = src.refComp;
+                    const nOut = this.pinToNode[`${op.id}:out`] || 0;
+                    const nInv = this.pinToNode[`${op.id}:inv`] || 0;
+                    const nNon = this.pinToNode[`${op.id}:non`] || 0;
+
+                    const vInv = this.nodeVoltages[nInv] || 0.0;
+                    const vNon = this.nodeVoltages[nNon] || 0.0;
+                    const aol = op.props.aol || 100000;
+                    const vDiff = vNon - vInv;
+
+                    // Clamped saturation limits ±14V
+                    const vTarget = Math.max(-14.0, Math.min(14.0, aol * vDiff));
+
+                    if (nOut > 0) {
+                        A[nOut - 1][row] += 1;
+                        A[row][nOut - 1] += 1;
+                        Z[row] = vTarget;
+                    }
+                }
+            });
+
+            // Solve System [A] [x] = [Z] via Gaussian Elimination with Partial Pivoting
+            const x = this.solveGaussian(A, Z, totalVars);
+
+            // Record Node Voltages
+            this.nodeVoltages[0] = 0.0;
+            for (let i = 1; i <= N; i++) {
+                this.nodeVoltages[i] = x ? x[i - 1] : 0.0;
+            }
+
+            // Update states for Capacitors & Inductors
+            this.components.forEach(comp => {
+                if (comp.type === 'capacitor') {
+                    const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                    const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                    const vNow = (this.nodeVoltages[n1] || 0.0) - (this.nodeVoltages[n2] || 0.0);
+                    this.compStates[comp.id] = { v: vNow };
+                } else if (comp.type === 'inductor') {
+                    const n1 = this.pinToNode[`${comp.id}:1`] || 0;
+                    const n2 = this.pinToNode[`${comp.id}:2`] || 0;
+                    const vNow = (this.nodeVoltages[n1] || 0.0) - (this.nodeVoltages[n2] || 0.0);
+                    const lVal = comp.props.inductance || 0.01;
+                    const prevI = this.compStates[comp.id]?.i || 0.0;
+                    const iNow = prevI + (vNow * dt / lVal);
+                    this.compStates[comp.id] = { i: iNow };
+                }
+            });
+        }
+
+        solveGaussian(A, B, n) {
+            for (let i = 0; i < n; i++) {
+                // Find pivot
+                let maxRow = i;
+                let maxVal = Math.abs(A[i][i]);
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(A[k][i]) > maxVal) {
+                        maxVal = Math.abs(A[k][i]);
+                        maxRow = k;
+                    }
+                }
+
+                // Swap rows
+                if (maxRow !== i) {
+                    const tmpRow = A[i];
+                    A[i] = A[maxRow];
+                    A[maxRow] = tmpRow;
+                    const tmpB = B[i];
+                    B[i] = B[maxRow];
+                    B[maxRow] = tmpB;
+                }
+
+                if (Math.abs(A[i][i]) < 1e-12) {
+                    A[i][i] = 1e-12; // Numerical regularizer
+                }
+
+                // Eliminate below
+                for (let k = i + 1; k < n; k++) {
+                    const factor = A[k][i] / A[i][i];
+                    for (let j = i; j < n; j++) {
+                        A[k][j] -= factor * A[i][j];
+                    }
+                    B[k] -= factor * B[i];
+                }
+            }
+
+            // Back substitution
+            const x = new Float64Array(n);
+            for (let i = n - 1; i >= 0; i--) {
+                let sum = B[i];
+                for (let j = i + 1; j < n; j++) {
+                    sum -= A[i][j] * x[j];
+                }
+                x[i] = sum / A[i][i];
+            }
+            return x;
         }
 
         updateOnCanvasMeters() {
-            const vms = this.components.filter(c => c.type === 'voltmeter');
-            vms.forEach(vm => {
-                const val = this.nodeVoltages.vout !== undefined ? this.nodeVoltages.vout : 0;
-                vm.liveRead = (val >= 0 ? '+' : '') + val.toFixed(2) + ' V';
+            // Update Voltmeter Display Badges
+            this.components.filter(c => c.type === 'voltmeter').forEach(vm => {
+                const np = this.pinToNode[`${vm.id}:p`] || 0;
+                const nn = this.pinToNode[`${vm.id}:n`] || 0;
+                const vp = this.nodeVoltages[np] || 0.0;
+                const vn = this.nodeVoltages[nn] || 0.0;
+                const vDiff = vp - vn;
+                vm.liveRead = (vDiff >= 0 ? '+' : '') + vDiff.toFixed(2) + ' V';
             });
 
-            const ams = this.components.filter(c => c.type === 'ammeter');
-            ams.forEach(am => {
-                const v = this.nodeVoltages.vout || 0;
-                const i_mA = (v / 1000) * 1000; // Across 1k load
-                am.liveRead = i_mA.toFixed(1) + ' mA';
+            // Update Ammeter Display Badges
+            this.components.filter(c => c.type === 'ammeter').forEach(am => {
+                const np = this.pinToNode[`${am.id}:p`] || 0;
+                const nn = this.pinToNode[`${am.id}:n`] || 0;
+                const vp = this.nodeVoltages[np] || 0.0;
+                const vn = this.nodeVoltages[nn] || 0.0;
+                const iBranch = (vp - vn) / 0.001; // I = V / R_am
+                const i_mA = iBranch * 1000.0;
+                am.liveRead = (i_mA >= 0 ? '+' : '') + (Math.abs(i_mA) < 1000 ? i_mA.toFixed(1) + ' mA' : (i_mA / 1000).toFixed(2) + ' A');
             });
 
-            // Re-render live badges only if not dragging
             if (!this.isDragging) {
                 this.render();
             }
@@ -1221,13 +1691,13 @@
         }
 
         // ====================================================================
-        // 4. PRE-BUILT CURRICULUM MODULE PRESETS (Modules 1 - 7)
+        // 5. 21 CURRICULUM MODULE PRESETS (Modules 1 - 7 from Uploaded Image)
         // ====================================================================
         loadPreset(presetName) {
             this.clearAll();
 
             switch (presetName) {
-                // Module 1: DC Circuits & Network Theorems
+                // --- Module 1: DC Circuits & Network Theorems ---
                 case 'mod1_thevenin_norton':
                     this.setupTheveninCircuit();
                     break;
@@ -1238,21 +1708,21 @@
                     this.setupSuperpositionCircuit();
                     break;
 
-                // Module 2: Diodes & Rectifiers
-                case 'mod2_pn_diode':
-                    this.setupPNDiodeCircuit();
+                // --- Module 2: Semiconductor Diodes & Rectifiers ---
+                case 'mod2_bridge_rectifier':
+                    this.setupBridgeRectifierCircuit();
                     break;
                 case 'mod2_halfwave_rectifier':
                     this.setupHalfWaveRectifierCircuit();
                     break;
-                case 'mod2_bridge_rectifier':
-                    this.setupBridgeRectifierCircuit();
+                case 'mod2_pn_diode':
+                    this.setupPNDiodeCircuit();
                     break;
                 case 'mod2_clipper_clamper':
                     this.setupClipperClamperCircuit();
                     break;
 
-                // Module 3: BJT Transistors & Biasing
+                // --- Module 3: BJT Transistors & Biasing ---
                 case 'mod3_voltage_divider_bias':
                     this.setupBJTVoltageDividerCircuit();
                     break;
@@ -1260,7 +1730,7 @@
                     this.setupBJTCharacteristicsCircuit();
                     break;
 
-                // Module 4: FET & MOSFET
+                // --- Module 4: FET & MOSFET ---
                 case 'mod4_jfet_characteristics':
                     this.setupJFETCircuit();
                     break;
@@ -1268,7 +1738,7 @@
                     this.setupMOSFETCircuit();
                     break;
 
-                // Module 5: Regulated Power Supplies
+                // --- Module 5: Regulated Power Supplies ---
                 case 'mod5_zener_regulator':
                     this.setupZenerRegulatorCircuit();
                     break;
@@ -1276,7 +1746,7 @@
                     this.setupSeriesPassRegulatorCircuit();
                     break;
 
-                // Module 6: Amplifiers & Frequency Response
+                // --- Module 6: Amplifiers & Frequency Response ---
                 case 'mod6_ce_amplifier':
                     this.setupCEAmplifierCircuit();
                     break;
@@ -1284,7 +1754,7 @@
                     this.setupEmitterFollowerCircuit();
                     break;
 
-                // Module 7: Op-Amp & Feedback
+                // --- Module 7: Op-Amp (IC 741) & Feedback ---
                 case 'mod7_opamp_inverting':
                     this.setupOpAmpInvertingCircuit();
                     break;
@@ -1302,14 +1772,15 @@
                     this.setupBridgeRectifierCircuit();
             }
 
-            // Sync Module Select Dropdown
             const modSelect = document.getElementById('msModuleSelect');
             if (modSelect) modSelect.value = presetName;
 
             this.render();
+            // Start simulation automatically for live preview
+            this.startSimulation();
         }
 
-        // --- Module 1: Thevenin Equivalent ---
+        // --- Module 1: Thevenin Equivalent Circuit ---
         setupTheveninCircuit() {
             const v1 = this.addComponent('dc_source', 140, 220, { voltage: 12 });
             const r1 = this.addComponent('resistor', 260, 140, { resistance: 3000 });
@@ -1322,7 +1793,6 @@
             vm.rotation = 90;
             const gnd = this.addComponent('ground', 380, 340);
 
-            // Wiring
             this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: r2.id, toPin: '1' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: rl.id, toPin: '1' });
@@ -1333,7 +1803,7 @@
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 1: Maximum Power Transfer ---
+        // --- Module 1: Maximum Power Transfer Theorem ---
         setupMaxPowerCircuit() {
             const v1 = this.addComponent('dc_source', 160, 220, { voltage: 10 });
             const rth = this.addComponent('resistor', 300, 140, { resistance: 1000 });
@@ -1374,7 +1844,7 @@
             this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 2: PN Diode Characteristics ---
+        // --- Module 2: PN Diode Forward & Reverse Bias ---
         setupPNDiodeCircuit() {
             const v1 = this.addComponent('dc_source', 140, 220, { voltage: 5 });
             const pot = this.addComponent('potentiometer', 280, 220);
@@ -1401,8 +1871,8 @@
             const vac = this.addComponent('ac_source', 140, 220, { amplitude: 12, frequency: 50 });
             const d1 = this.addComponent('diode', 280, 140);
             const sw = this.addComponent('switch_spst', 420, 140);
-            sw.label = 'SW_C_Filter';
-            const c1 = this.addComponent('capacitor', 420, 240, { capacitance: 0.0001 });
+            sw.label = 'SW_Filter';
+            const c1 = this.addComponent('capacitor', 420, 240, { capacitance: 0.0001 }); // 100uF
             c1.rotation = 90;
             const rl = this.addComponent('resistor', 540, 220, { resistance: 1000 });
             rl.rotation = 90;
@@ -1437,7 +1907,6 @@
             const cro = this.addComponent('cro_tap', 780, 180);
             const gnd = this.addComponent('ground', 540, 340);
 
-            // Connect Bridge Network
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: d1.id, toPin: 'a' });
             this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: c1.id, toPin: '1' });
@@ -1472,20 +1941,19 @@
         // --- Module 3: BJT Voltage Divider Bias (Self-Bias) ---
         setupBJTVoltageDividerCircuit() {
             const vcc = this.addComponent('dc_source', 140, 160, { voltage: 12 });
-            const r1 = this.addComponent('resistor', 280, 120, { resistance: 33000 }); // R1 = 33k
+            const r1 = this.addComponent('resistor', 280, 120, { resistance: 33000 });
             r1.rotation = 90;
-            const r2 = this.addComponent('resistor', 280, 260, { resistance: 6800 });  // R2 = 6.8k
+            const r2 = this.addComponent('resistor', 280, 260, { resistance: 6800 });
             r2.rotation = 90;
-            const rc = this.addComponent('resistor', 420, 120, { resistance: 2200 });  // RC = 2.2k
+            const rc = this.addComponent('resistor', 420, 120, { resistance: 2200 });
             rc.rotation = 90;
             const q1 = this.addComponent('bjt_npn', 400, 220);
-            const re = this.addComponent('resistor', 420, 310, { resistance: 1000 });  // RE = 1k
+            const re = this.addComponent('resistor', 420, 310, { resistance: 1000 });
             re.rotation = 90;
-            const ce = this.addComponent('capacitor', 500, 310, { capacitance: 0.0001 }); // CE Bypass
+            const ce = this.addComponent('capacitor', 500, 310, { capacitance: 0.0001 });
             ce.rotation = 90;
             const gnd = this.addComponent('ground', 340, 380);
 
-            // Base Bias Network
             this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
             this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc.id, toPin: '1' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: r2.id, toPin: '1' });
@@ -1499,7 +1967,7 @@
             this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 3: BJT CE Characteristics ---
+        // --- Module 3: BJT CE Characteristics & DC Load Line ---
         setupBJTCharacteristicsCircuit() {
             const vbb = this.addComponent('dc_source', 140, 220, { voltage: 2 });
             const rb = this.addComponent('resistor', 260, 180, { resistance: 100000 });
@@ -1521,10 +1989,10 @@
             this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 4: JFET Characteristics ---
+        // --- Module 4: JFET Drain & Transfer Characteristics ---
         setupJFETCircuit() {
             const vgg = this.addComponent('dc_source', 140, 220, { voltage: 2 });
-            vgg.rotation = 180; // Negative bias Vgs
+            vgg.rotation = 180;
             const j1 = this.addComponent('jfet_n', 300, 200);
             const am_d = this.addComponent('ammeter', 420, 140);
             const vdd = this.addComponent('dc_source', 540, 220, { voltage: 12 });
@@ -1538,7 +2006,7 @@
             this.wires.push({ fromComp: j1.id, fromPin: 's', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 4: MOSFET Switch ---
+        // --- Module 4: N-MOSFET Electronic Switch ---
         setupMOSFETCircuit() {
             const vgate = this.addComponent('dc_source', 140, 220, { voltage: 5 });
             const sw = this.addComponent('switch_spst', 240, 160);
@@ -1612,8 +2080,8 @@
 
         // --- Module 6: Single-Stage CE AC Amplifier ---
         setupCEAmplifierCircuit() {
-            const vac = this.addComponent('ac_source', 100, 220, { amplitude: 0.1, frequency: 1000 }); // 100mV 1kHz
-            const c_in = this.addComponent('capacitor', 200, 160, { capacitance: 0.00001 }); // 10uF
+            const vac = this.addComponent('ac_source', 100, 220, { amplitude: 0.1, frequency: 1000 });
+            const c_in = this.addComponent('capacitor', 200, 160, { capacitance: 0.00001 });
             const r1 = this.addComponent('resistor', 300, 100, { resistance: 47000 });
             r1.rotation = 90;
             const r2 = this.addComponent('resistor', 300, 240, { resistance: 10000 });
@@ -1632,7 +2100,6 @@
             const vcc = this.addComponent('dc_source', 200, 60, { voltage: 12 });
             const gnd = this.addComponent('ground', 340, 360);
 
-            // Connect Signal & Base Bias
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: c_in.id, toPin: '1' });
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: c_in.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
@@ -1654,7 +2121,7 @@
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 6: Emitter Follower (Common Collector) ---
+        // --- Module 6: Emitter Follower (Common Collector Buffer) ---
         setupEmitterFollowerCircuit() {
             const vac = this.addComponent('ac_source', 120, 220, { amplitude: 2, frequency: 1000 });
             const c_in = this.addComponent('capacitor', 240, 180, { capacitance: 0.00001 });
@@ -1682,7 +2149,7 @@
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 7: Op-Amp 741 Inverting Amplifier ---
+        // --- Module 7: Op-Amp IC 741 Inverting Amplifier ---
         setupOpAmpInvertingCircuit() {
             const vac = this.addComponent('ac_source', 120, 220, { amplitude: 1, frequency: 1000 });
             const r1 = this.addComponent('resistor', 260, 170, { resistance: 10000 });
@@ -1704,7 +2171,7 @@
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 7: Op-Amp 741 Non-Inverting Amplifier ---
+        // --- Module 7: Op-Amp IC 741 Non-Inverting Amplifier ---
         setupOpAmpNonInvertingCircuit() {
             const vac = this.addComponent('ac_source', 120, 220, { amplitude: 1, frequency: 1000 });
             const u1 = this.addComponent('opamp', 360, 200);
@@ -1727,12 +2194,12 @@
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
 
-        // --- Module 7: Op-Amp Integrator ---
+        // --- Module 7: Op-Amp Operational Integrator ---
         setupOpAmpIntegratorCircuit() {
-            const vac = this.addComponent('ac_source', 120, 220, { amplitude: 2, frequency: 500 });
+            const vac = this.addComponent('ac_source', 120, 220, { amplitude: 2, frequency: 500, waveform: 'square' });
             const r1 = this.addComponent('resistor', 260, 170, { resistance: 10000 });
             r1.label = 'R';
-            const c1 = this.addComponent('capacitor', 380, 90, { capacitance: 0.0000001 }); // 100nF
+            const c1 = this.addComponent('capacitor', 380, 90, { capacitance: 0.0000001 });
             c1.label = 'C';
             const u1 = this.addComponent('opamp', 400, 200);
             const cro = this.addComponent('cro_tap', 580, 170);
@@ -1769,7 +2236,7 @@
     }
 
     // ========================================================================
-    // 5. VIRTUAL CATHODE RAY OSCILLOSCOPE (CRO)
+    // 6. TEKTRONIX / NI DUAL-CHANNEL CATHODE RAY OSCILLOSCOPE (CRO)
     // ========================================================================
     class VirtualCRO {
         constructor(workbench) {
@@ -1779,15 +2246,18 @@
             this.canvas = document.getElementById('msCroCanvas');
             this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
 
-            // Oscilloscope settings
             this.chA_enabled = true;
             this.chB_enabled = true;
-            this.chA_voltsDiv = 2;   // 2 V/div
-            this.chB_voltsDiv = 2;   // 2 V/div
+            this.chA_voltsDiv = 2.0; // 2 V/div
+            this.chB_voltsDiv = 2.0; // 2 V/div
             this.timeDiv = 0.002;    // 2 ms/div
-            this.chA_yPos = 0;       // div offset
-            this.chB_yPos = 0;       // div offset
+            this.chA_yPos = 0;       // divisions
+            this.chB_yPos = 0;       // divisions
             this.mode = 'YT';        // 'YT' or 'XY'
+
+            // Real Rolling History Buffer
+            this.historyBuffer = []; // [ { t, vA, vB } ]
+            this.maxHistory = 1200;
 
             this.bindControls();
         }
@@ -1796,31 +2266,15 @@
             const closeBtn = document.getElementById('msCroCloseBtn');
             if (closeBtn) closeBtn.onclick = () => this.hide();
 
-            // Time/div selector
             const timeSel = document.getElementById('msCroTimeDiv');
-            if (timeSel) {
-                timeSel.onchange = e => {
-                    this.timeDiv = parseFloat(e.target.value);
-                };
-            }
+            if (timeSel) timeSel.onchange = e => { this.timeDiv = parseFloat(e.target.value); };
 
-            // Ch A Volts/div
             const vA = document.getElementById('msCroVoltsA');
-            if (vA) {
-                vA.onchange = e => {
-                    this.chA_voltsDiv = parseFloat(e.target.value);
-                };
-            }
+            if (vA) vA.onchange = e => { this.chA_voltsDiv = parseFloat(e.target.value); };
 
-            // Ch B Volts/div
             const vB = document.getElementById('msCroVoltsB');
-            if (vB) {
-                vB.onchange = e => {
-                    this.chB_voltsDiv = parseFloat(e.target.value);
-                };
-            }
+            if (vB) vB.onchange = e => { this.chB_voltsDiv = parseFloat(e.target.value); };
 
-            // Channel Toggles
             const togA = document.getElementById('msCroToggleA');
             if (togA) togA.onclick = () => {
                 this.chA_enabled = !this.chA_enabled;
@@ -1833,12 +2287,11 @@
                 togB.classList.toggle('active', this.chB_enabled);
             };
 
-            // Mode Selector
             const modeBtn = document.getElementById('msCroModeBtn');
             if (modeBtn) {
                 modeBtn.onclick = () => {
                     this.mode = this.mode === 'YT' ? 'XY' : 'YT';
-                    modeBtn.innerText = this.mode === 'YT' ? 'Mode: Y-T' : 'Mode: X-Y (Lissajous)';
+                    modeBtn.innerText = this.mode === 'YT' ? 'Mode: Y-T (Dual Sweep)' : 'Mode: X-Y (Lissajous)';
                 };
             }
         }
@@ -1863,16 +2316,40 @@
             else this.show();
         }
 
+        recordSample(simTime) {
+            // Find active CRO tap or default probing nodes
+            let vA = 0.0;
+            let vB = 0.0;
+
+            const croTap = this.wb.components.find(c => c.type === 'cro_tap');
+            if (croTap) {
+                const nA = this.wb.pinToNode[`${croTap.id}:chA`];
+                const nB = this.wb.pinToNode[`${croTap.id}:chB`];
+                const nG = this.wb.pinToNode[`${croTap.id}:gnd`] || 0;
+                const vG = this.wb.nodeVoltages[nG] || 0.0;
+
+                if (nA !== undefined) vA = (this.wb.nodeVoltages[nA] || 0.0) - vG;
+                if (nB !== undefined) vB = (this.wb.nodeVoltages[nB] || 0.0) - vG;
+            } else {
+                // Probes default: Node 1 (Input) and Node 2 (Output)
+                vA = this.wb.nodeVoltages[1] || 0.0;
+                vB = this.wb.nodeVoltages[2] || 0.0;
+            }
+
+            this.historyBuffer.push({ t: simTime, vA, vB });
+            if (this.historyBuffer.length > this.maxHistory) {
+                this.historyBuffer.shift();
+            }
+        }
+
         drawGrid() {
             if (!this.ctx || !this.canvas) return;
             const w = this.canvas.width;
             const h = this.canvas.height;
 
-            // CRT Dark Phosphor screen
             this.ctx.fillStyle = '#021a12';
             this.ctx.fillRect(0, 0, w, h);
 
-            // 10 Horizontal Divisions x 8 Vertical Divisions
             const numDivX = 10;
             const numDivY = 8;
             const dx = w / numDivX;
@@ -1881,7 +2358,6 @@
             this.ctx.strokeStyle = 'rgba(34, 197, 94, 0.18)';
             this.ctx.lineWidth = 1;
 
-            // Grid lines
             for (let i = 0; i <= numDivX; i++) {
                 this.ctx.beginPath();
                 this.ctx.moveTo(i * dx, 0);
@@ -1895,10 +2371,9 @@
                 this.ctx.stroke();
             }
 
-            // Center Major Crosshairs
+            // Central Axes Crosshairs
             this.ctx.strokeStyle = 'rgba(74, 222, 128, 0.45)';
             this.ctx.lineWidth = 1.5;
-
             this.ctx.beginPath();
             this.ctx.moveTo(w / 2, 0);
             this.ctx.lineTo(w / 2, h);
@@ -1906,7 +2381,7 @@
             this.ctx.lineTo(w, h / 2);
             this.ctx.stroke();
 
-            // Sub-division ticks along center axes (5 ticks per div)
+            // Reticle Sub-divisions (0.2 div)
             for (let i = 0; i < numDivX * 5; i++) {
                 const tx = (i * dx) / 5;
                 this.ctx.beginPath();
@@ -1923,124 +2398,117 @@
             }
         }
 
-        updateTrace(simTime) {
-            if (!this.ctx || !this.canvas) return;
+        updateDisplay() {
+            if (!this.ctx || !this.canvas || this.historyBuffer.length < 2) return;
             const w = this.canvas.width;
             const h = this.canvas.height;
+            const midY = h / 2;
+            const dy = h / 8; // Pixels per vertical division
 
             this.drawGrid();
 
-            const numDivX = 10;
-            const numDivY = 8;
-            const dx = w / numDivX;
-            const dy = h / numDivY;
-            const midY = h / 2;
+            const windowTime = 10 * this.timeDiv;
+            const curTime = this.historyBuffer[this.historyBuffer.length - 1].t;
+            const startTime = curTime - windowTime;
 
-            const totalTime = numDivX * this.timeDiv;
-            const acSrc = this.wb.components.find(c => c.type === 'ac_source');
-            const freq = acSrc ? acSrc.props.frequency || 50 : 50;
-            const vpeak = acSrc ? acSrc.props.amplitude || 10 : 10;
+            // Filter samples in current screen window
+            const visible = this.historyBuffer.filter(s => s.t >= startTime);
+            if (visible.length < 2) return;
 
             if (this.mode === 'YT') {
-                // Dual Trace Y-T Sweep
-                const points = 300;
-
-                // --- Channel A (Input Trace - Yellow Amber) ---
+                // --- Channel A (Yellow Trace) ---
                 if (this.chA_enabled) {
                     this.ctx.strokeStyle = '#fbbf24';
-                    this.ctx.lineWidth = 2;
-                    this.ctx.shadowColor = 'rgba(251, 191, 36, 0.8)';
+                    this.ctx.lineWidth = 2.2;
+                    this.ctx.shadowColor = '#fbbf24';
                     this.ctx.shadowBlur = 6;
                     this.ctx.beginPath();
 
-                    for (let i = 0; i < points; i++) {
-                        const t = (i / points) * totalTime + simTime;
-                        const vin = vpeak * Math.sin(2 * Math.PI * freq * t);
-                        const px = (i / points) * w;
-                        const py = midY - (vin / this.chA_voltsDiv) * dy - this.chA_yPos * dy;
-
-                        if (i === 0) this.ctx.moveTo(px, py);
+                    visible.forEach((s, idx) => {
+                        const px = ((s.t - startTime) / windowTime) * w;
+                        const py = midY - (s.vA / this.chA_voltsDiv) * dy - this.chA_yPos * dy;
+                        if (idx === 0) this.ctx.moveTo(px, py);
                         else this.ctx.lineTo(px, py);
-                    }
+                    });
                     this.ctx.stroke();
                     this.ctx.shadowBlur = 0;
                 }
 
-                // --- Channel B (Output Trace - Cyan Blue) ---
+                // --- Channel B (Cyan Trace) ---
                 if (this.chB_enabled) {
                     this.ctx.strokeStyle = '#38bdf8';
-                    this.ctx.lineWidth = 2;
-                    this.ctx.shadowColor = 'rgba(56, 189, 248, 0.8)';
+                    this.ctx.lineWidth = 2.2;
+                    this.ctx.shadowColor = '#38bdf8';
                     this.ctx.shadowBlur = 6;
                     this.ctx.beginPath();
 
-                    for (let i = 0; i < points; i++) {
-                        const t = (i / points) * totalTime + simTime;
-                        const vin = vpeak * Math.sin(2 * Math.PI * freq * t);
-                        let vout = this.wb.nodeVoltages.vout !== undefined ? this.wb.nodeVoltages.vout : vin * 0.8;
-
-                        // Add realistic harmonic wave modulation for rectifiers/amplifiers
-                        if (this.wb.components.some(c => c.type === 'diode')) {
-                            const isBridge = this.wb.components.filter(c => c.type === 'diode').length >= 4;
-                            if (isBridge) {
-                                vout = Math.max(0, Math.abs(vin) - 1.4);
-                            } else {
-                                vout = Math.max(0, vin - 0.7);
-                            }
-                        } else if (this.wb.components.some(c => c.type === 'opamp')) {
-                            vout = Math.max(-14, Math.min(14, -2 * vin)); // 180 deg out of phase
-                        }
-
-                        const px = (i / points) * w;
-                        const py = midY - (vout / this.chB_voltsDiv) * dy - this.chB_yPos * dy;
-
-                        if (i === 0) this.ctx.moveTo(px, py);
+                    visible.forEach((s, idx) => {
+                        const px = ((s.t - startTime) / windowTime) * w;
+                        const py = midY - (s.vB / this.chB_voltsDiv) * dy - this.chB_yPos * dy;
+                        if (idx === 0) this.ctx.moveTo(px, py);
                         else this.ctx.lineTo(px, py);
-                    }
+                    });
                     this.ctx.stroke();
                     this.ctx.shadowBlur = 0;
                 }
             } else {
-                // X-Y Mode (Lissajous Figure)
+                // --- X-Y Mode (Lissajous Figure) ---
+                const dx = w / 10;
+                const midX = w / 2;
+
                 this.ctx.strokeStyle = '#4ade80';
                 this.ctx.lineWidth = 2.2;
                 this.ctx.shadowColor = '#4ade80';
                 this.ctx.shadowBlur = 8;
                 this.ctx.beginPath();
 
-                const points = 360;
-                const midX = w / 2;
-
-                for (let i = 0; i <= points; i++) {
-                    const theta = (i * Math.PI) / 180;
-                    const vx = (vpeak * Math.sin(theta)) / this.chA_voltsDiv * dx;
-                    const vy = (vpeak * Math.sin(theta + Math.PI)) / this.chB_voltsDiv * dy; // 180 deg phase
-
-                    const px = midX + vx;
-                    const py = midY - vy;
-
-                    if (i === 0) this.ctx.moveTo(px, py);
+                visible.forEach((s, idx) => {
+                    const px = midX + (s.vA / this.chA_voltsDiv) * dx;
+                    const py = midY - (s.vB / this.chB_voltsDiv) * dy;
+                    if (idx === 0) this.ctx.moveTo(px, py);
                     else this.ctx.lineTo(px, py);
-                }
+                });
                 this.ctx.stroke();
                 this.ctx.shadowBlur = 0;
             }
 
-            // Update Telemetry Display
+            // Calculate True Telemetry
+            let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
+            let sumSqA = 0, sumSqB = 0;
+
+            visible.forEach(s => {
+                if (s.vA < minA) minA = s.vA;
+                if (s.vA > maxA) maxA = s.vA;
+                if (s.vB < minB) minB = s.vB;
+                if (s.vB > maxB) maxB = s.vB;
+                sumSqA += s.vA * s.vA;
+                sumSqB += s.vB * s.vB;
+            });
+
+            const vppA = maxA > minA ? (maxA - minA) : 0;
+            const vppB = maxB > minB ? (maxB - minB) : 0;
+
+            // Zero-crossing frequency detection for Ch A
+            let crossings = 0;
+            for (let i = 1; i < visible.length; i++) {
+                if (visible[i - 1].vA < 0 && visible[i].vA >= 0) crossings++;
+            }
+            const freqA = crossings > 1 ? Math.round(crossings / (2 * windowTime)) : 50;
+
             const telA_vpp = document.getElementById('msCroVppA');
             const telA_freq = document.getElementById('msCroFreqA');
             const telB_vpp = document.getElementById('msCroVppB');
             const telB_freq = document.getElementById('msCroFreqB');
 
-            if (telA_vpp) telA_vpp.innerText = (2 * vpeak).toFixed(2) + ' V';
-            if (telA_freq) telA_freq.innerText = freq + ' Hz';
-            if (telB_vpp) telB_vpp.innerText = (vpeak * 1.8).toFixed(2) + ' V';
-            if (telB_freq) telB_freq.innerText = freq + ' Hz';
+            if (telA_vpp) telA_vpp.innerText = vppA.toFixed(2) + ' V';
+            if (telA_freq) telA_freq.innerText = freqA + ' Hz';
+            if (telB_vpp) telB_vpp.innerText = vppB.toFixed(2) + ' V';
+            if (telB_freq) telB_freq.innerText = freqA + ' Hz';
         }
     }
 
     // ========================================================================
-    // 6. VIRTUAL DIGITAL MULTIMETER (DMM)
+    // 7. AGILENT 34401A DIGITAL MULTIMETER (DMM)
     // ========================================================================
     class VirtualDMM {
         constructor(workbench) {
@@ -2049,7 +2517,7 @@
             this.windowEl = document.getElementById('msDmmWindow');
             this.displayEl = document.getElementById('msDmmValueDisplay');
             this.unitEl = document.getElementById('msDmmUnitDisplay');
-            this.mode = 'V_DC'; // 'V_DC', 'V_AC', 'I_DC', 'I_AC', 'OHM'
+            this.mode = 'V_DC';
 
             this.bindControls();
         }
@@ -2092,28 +2560,38 @@
         updateReadout() {
             if (!this.displayEl || !this.unitEl) return;
 
-            const v = this.wb.nodeVoltages.vout !== undefined ? this.wb.nodeVoltages.vout : 0;
-            const acSrc = this.wb.components.find(c => c.type === 'ac_source');
-            const vpeak = acSrc ? acSrc.props.amplitude || 10 : 10;
+            // Probe primary load or active output node
+            let v = 0.0;
+            const vm = this.wb.components.find(c => c.type === 'voltmeter');
+            const am = this.wb.components.find(c => c.type === 'ammeter');
+
+            if (vm) {
+                const np = this.wb.pinToNode[`${vm.id}:p`] || 0;
+                const nn = this.wb.pinToNode[`${vm.id}:n`] || 0;
+                v = (this.wb.nodeVoltages[np] || 0.0) - (this.wb.nodeVoltages[nn] || 0.0);
+            } else {
+                v = this.wb.nodeVoltages[1] || 0.0;
+            }
+
+            const i_mA = am ? parseFloat(am.liveRead) || 0.0 : (v / 1000.0) * 1000.0;
 
             switch (this.mode) {
                 case 'V_DC':
-                    this.displayEl.innerText = v.toFixed(3);
+                    this.displayEl.innerText = (v >= 0 ? ' ' : '') + v.toFixed(3);
                     this.unitEl.innerText = 'V DC';
                     break;
                 case 'V_AC':
-                    const vrms = (vpeak / Math.SQRT2).toFixed(3);
-                    this.displayEl.innerText = vrms;
+                    const vrms = Math.abs(v / Math.SQRT2);
+                    this.displayEl.innerText = vrms.toFixed(3);
                     this.unitEl.innerText = 'V RMS';
                     break;
                 case 'I_DC':
-                    const i_ma = (v / 1000) * 1000;
-                    this.displayEl.innerText = i_ma.toFixed(3);
+                    this.displayEl.innerText = Math.abs(i_mA).toFixed(3);
                     this.unitEl.innerText = 'mA DC';
                     break;
                 case 'I_AC':
-                    const irms_ma = (vpeak / (Math.SQRT2 * 1000)) * 1000;
-                    this.displayEl.innerText = irms_ma.toFixed(3);
+                    const irms = Math.abs(i_mA / Math.SQRT2);
+                    this.displayEl.innerText = irms.toFixed(3);
                     this.unitEl.innerText = 'mA RMS';
                     break;
                 case 'OHM':
@@ -2127,17 +2605,15 @@
     }
 
     // ========================================================================
-    // 7. VIRTUAL FUNCTION GENERATOR (XFG)
+    // 8. AGILENT FUNCTION GENERATOR (XFG)
     // ========================================================================
     class VirtualXFG {
         constructor(workbench) {
             this.wb = workbench;
             this.isOpen = false;
             this.windowEl = document.getElementById('msXfgWindow');
-            this.waveform = 'sine'; // 'sine', 'triangle', 'square'
-            this.frequency = 1000;  // Hz
-            this.amplitude = 5;     // Vp
-            this.offset = 0;        // V
+            this.frequency = 1000;
+            this.amplitude = 5.0;
 
             this.bindControls();
         }
@@ -2197,7 +2673,7 @@
     }
 
     // ========================================================================
-    // 8. INITIALIZATION ON DOM CONTENT LOADED
+    // 9. APP LAUNCHER
     // ========================================================================
     document.addEventListener('DOMContentLoaded', function () {
         window.MultisimApp = new CircuitWorkbench();
