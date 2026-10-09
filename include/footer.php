@@ -51,6 +51,7 @@ if (!isset($siteurl)) {
                     <li><a href="<?php echo $siteurl; ?>about.php">About Python4Physics</a></li>
                     <li><a href="<?php echo $siteurl; ?>assignments.php">Interactive Problem Sets</a></li>
                     <li><a href="<?php echo $siteurl; ?>arduino.php">Arduino Lab Interfacing</a></li>
+                    <li><a href="<?php echo $siteurl; ?>circuit_simulator.php">Circuit Simulator (Multisim)</a></li>
                     <li><a href="<?php echo $siteurl; ?>feedback.php">Submit Feedback</a></li>
                     <li><a href="<?php echo $siteurl; ?>contact.php">Faculty & Contact</a></li>
                     <li><a href="<?php echo $siteurl; ?>privacy.php">Privacy Policy</a></li>

@@ -29,7 +29,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
                 <li><a href="<?php echo $siteurl; ?>assignments.php" class="nav-link-item <?php echo ($current_script == 'assignments.php') ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> Assignments</a></li>
                 <li><a href="<?php echo $siteurl; ?>visualization.php" class="nav-link-item <?php echo ($current_script == 'visualization.php' || strpos($current_uri, 'visualization') !== false) ? 'active' : ''; ?>"><i class="fa-solid fa-sliders"></i> Visualization</a></li>
                 <li><a href="<?php echo $siteurl; ?>arduino.php" class="nav-link-item <?php echo ($current_script == 'arduino.php') ? 'active' : ''; ?>"><i class="fa-solid fa-microchip"></i> Arduino Lab</a></li>
-                <li><a href="<?php echo $siteurl; ?>feedback.php" class="nav-link-item <?php echo ($current_script == 'feedback.php') ? 'active' : ''; ?>"><i class="fa-regular fa-comment-dots"></i> Feedback</a></li>
+                <li><a href="<?php echo $siteurl; ?>circuit_simulator.php" class="nav-link-item <?php echo ($current_script == 'circuit_simulator.php') ? 'active' : ''; ?>"><i class="fa-solid fa-wave-square"></i> Circuit Simulator</a></li>
                 <li><a href="<?php echo $siteurl; ?>contact.php" class="nav-link-item <?php echo ($current_script == 'contact.php') ? 'active' : ''; ?>"><i class="fa-solid fa-user-graduate"></i> Contact</a></li>
             </ul>
 
@@ -81,7 +81,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
             <li><a href="<?php echo $siteurl; ?>assignments.php" class="nav-link-item"><i class="fa-solid fa-list-check fa-fw"></i> Interactive Assignments</a></li>
             <li><a href="<?php echo $siteurl; ?>visualization.php" class="nav-link-item"><i class="fa-solid fa-sliders fa-fw"></i> Interactive Visualization</a></li>
             <li><a href="<?php echo $siteurl; ?>arduino.php" class="nav-link-item"><i class="fa-solid fa-microchip fa-fw"></i> Arduino Physics Lab</a></li>
-            <li><a href="<?php echo $siteurl; ?>feedback.php" class="nav-link-item"><i class="fa-regular fa-comment-dots fa-fw"></i> Submit Feedback</a></li>
+            <li><a href="<?php echo $siteurl; ?>circuit_simulator.php" class="nav-link-item"><i class="fa-solid fa-wave-square fa-fw"></i> Circuit Simulator (Multisim)</a></li>
             <li><a href="<?php echo $siteurl; ?>contact.php" class="nav-link-item"><i class="fa-solid fa-user-graduate fa-fw"></i> Faculty & Contact</a></li>
             <li>
                 <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" class="nav-link-item" style="border: 1px dashed rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08); margin-top: 0.25rem;">

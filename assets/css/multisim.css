@@ -1,0 +1,1050 @@
+/* ==========================================================================
+   National Instruments Multisim - Interactive Circuit Simulator Stylesheet
+   Python4Physics Engineering EDA & Virtual Instrumentation Suite
+   ========================================================================== */
+
+:root {
+    --ms-bg-workspace: #0f172a;
+    --ms-grid-dot: rgba(148, 163, 184, 0.22);
+    --ms-grid-line: rgba(51, 65, 85, 0.35);
+    --ms-ribbon-bg: #1e293b;
+    --ms-ribbon-border: #334155;
+    --ms-panel-bg: #111827;
+    --ms-panel-border: #1f2937;
+    --ms-wire-color: #38bdf8;
+    --ms-wire-active: #22c55e;
+    --ms-wire-selected: #f59e0b;
+    --ms-comp-stroke: #e2e8f0;
+    --ms-comp-fill: #1e293b;
+    --ms-pin-color: #ef4444;
+    --ms-pin-hover: #10b981;
+    --ms-cro-screen: #021a12;
+    --ms-cro-grid: rgba(34, 197, 94, 0.22);
+    --ms-cro-trace-a: #fbbf24;
+    --ms-cro-trace-b: #38bdf8;
+    --ms-dmm-lcd-bg: #032b1a;
+    --ms-dmm-digits: #4ade80;
+    --ms-accent: #0284c7;
+    --ms-accent-glow: rgba(2, 132, 199, 0.4);
+    --ms-danger: #ef4444;
+    --ms-success: #22c55e;
+}
+
+[data-theme="light"] {
+    --ms-bg-workspace: #f8fafc;
+    --ms-grid-dot: rgba(100, 116, 139, 0.28);
+    --ms-grid-line: rgba(203, 213, 225, 0.55);
+    --ms-ribbon-bg: #ffffff;
+    --ms-ribbon-border: #cbd5e1;
+    --ms-panel-bg: #f1f5f9;
+    --ms-panel-border: #cbd5e1;
+    --ms-wire-color: #0284c7;
+    --ms-comp-stroke: #0f172a;
+    --ms-comp-fill: #ffffff;
+}
+
+/* Base Workbench Container */
+.ms-workbench-wrapper {
+    position: relative;
+    width: 100%;
+    height: 860px;
+    min-height: 680px;
+    background: var(--ms-bg-workspace);
+    border: 1px solid var(--ms-ribbon-border);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    transition: height 0.2s ease;
+}
+
+/* Fullscreen Mode */
+.ms-workbench-wrapper.ms-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+/* Multisim Title Bar & Ribbon */
+.ms-menu-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #090d16;
+    border-bottom: 1px solid #1e293b;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+}
+
+.ms-menu-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ms-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    color: #38bdf8;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    padding-right: 12px;
+    border-right: 1px solid #334155;
+    margin-right: 6px;
+}
+
+.ms-logo i {
+    color: #f59e0b;
+    font-size: 1rem;
+}
+
+.ms-menu-item {
+    position: relative;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s;
+    font-weight: 500;
+}
+
+.ms-menu-item:hover, .ms-menu-item.active {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+.ms-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    min-width: 200px;
+    padding: 4px 0;
+    z-index: 1000;
+    display: none;
+}
+
+.ms-menu-item:hover .ms-dropdown-menu,
+.ms-menu-item.active .ms-dropdown-menu {
+    display: block;
+}
+
+.ms-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.ms-dropdown-item:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.ms-dropdown-item kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #64748b;
+    background: rgba(0,0,0,0.3);
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.ms-dropdown-divider {
+    height: 1px;
+    background: #334155;
+    margin: 4px 0;
+}
+
+/* Multisim Standard & Simulation Toolbars */
+.ms-ribbon-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--ms-ribbon-bg);
+    border-bottom: 1px solid var(--ms-ribbon-border);
+    padding: 6px 12px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.ms-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ms-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 8px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.ms-tool-btn:hover {
+    background: #1e293b;
+    border-color: #0284c7;
+    color: #38bdf8;
+}
+
+.ms-tool-btn.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 10px var(--ms-accent-glow);
+}
+
+.ms-tool-btn i {
+    font-size: 0.82rem;
+}
+
+.ms-tool-divider {
+    width: 1px;
+    height: 22px;
+    background: #334155;
+    margin: 0 4px;
+}
+
+/* Simulation Controls (Play / Stop / Pause) */
+.ms-sim-btn {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.ms-sim-btn.run {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.ms-sim-btn.run:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.6);
+}
+
+.ms-sim-btn.stop {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.ms-sim-btn.stop:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.ms-sim-clock {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #030712;
+    border: 1px solid #1f2937;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: #4ade80;
+}
+
+.ms-clock-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #475569;
+}
+
+.ms-clock-led.running {
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: msPulse 1s infinite alternate;
+}
+
+@keyframes msPulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+/* Main Body Layout (Left Palette, Center Canvas, Right Instruments) */
+.ms-body-layout {
+    display: flex;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    height: calc(100% - 76px);
+}
+
+/* Left Component Palette */
+.ms-component-drawer {
+    width: 250px;
+    background: var(--ms-panel-bg);
+    border-right: 1px solid var(--ms-panel-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    transition: transform 0.25s ease, width 0.25s ease;
+}
+
+.ms-drawer-header {
+    padding: 10px 12px;
+    background: #090d16;
+    border-bottom: 1px solid #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ms-drawer-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ms-search-input {
+    width: calc(100% - 24px);
+    margin: 8px 12px;
+    background: #030712;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    color: #f8fafc;
+    padding: 5px 8px;
+    font-size: 0.76rem;
+    outline: none;
+}
+
+.ms-search-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 6px var(--ms-accent-glow);
+}
+
+.ms-palette-categories {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px;
+}
+
+.ms-category-group {
+    margin-bottom: 8px;
+    border: 1px solid rgba(51, 65, 85, 0.4);
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.ms-category-header {
+    padding: 7px 10px;
+    background: rgba(30, 41, 59, 0.6);
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #38bdf8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ms-category-header:hover {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.ms-category-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    padding: 8px;
+}
+
+.ms-comp-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 6px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+}
+
+.ms-comp-card:hover {
+    border-color: #38bdf8;
+    background: #1e293b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.ms-comp-icon-preview {
+    width: 38px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 3px;
+}
+
+.ms-comp-icon-preview svg {
+    max-width: 100%;
+    max-height: 100%;
+    stroke: #38bdf8;
+    stroke-width: 2;
+    fill: none;
+}
+
+.ms-comp-name {
+    font-size: 0.68rem;
+    color: #cbd5e1;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+/* Center Schematic Canvas */
+.ms-canvas-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--ms-bg-workspace);
+    background-image: 
+        radial-gradient(var(--ms-grid-dot) 1.2px, transparent 1.2px),
+        linear-gradient(to right, var(--ms-grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--ms-grid-line) 1px, transparent 1px);
+    background-size: 20px 20px, 100px 100px, 100px 100px;
+    cursor: crosshair;
+}
+
+.ms-schematic-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: all;
+}
+
+/* Schematic Elements (Wires, Components, Junctions) */
+.ms-wire {
+    stroke: var(--ms-wire-color);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    cursor: pointer;
+    transition: stroke 0.15s, stroke-width 0.15s;
+}
+
+.ms-wire:hover {
+    stroke: #38bdf8;
+    stroke-width: 3.5;
+}
+
+.ms-wire.selected {
+    stroke: var(--ms-wire-selected);
+    stroke-width: 3;
+}
+
+.ms-wire-drawing {
+    stroke: #f59e0b;
+    stroke-width: 2;
+    stroke-dasharray: 4, 4;
+}
+
+.ms-junction {
+    fill: #e2e8f0;
+    r: 3.5;
+    cursor: pointer;
+}
+
+.ms-terminal-pin {
+    fill: #ef4444;
+    stroke: #090d16;
+    stroke-width: 1.5;
+    r: 4;
+    cursor: pointer;
+    transition: transform 0.15s, fill 0.15s;
+}
+
+.ms-terminal-pin:hover {
+    fill: #10b981;
+    transform: scale(1.4);
+}
+
+.ms-comp-group {
+    cursor: grab;
+    transition: filter 0.15s;
+}
+
+.ms-comp-group:active {
+    cursor: grabbing;
+}
+
+.ms-comp-group.selected {
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+}
+
+.ms-comp-body {
+    stroke: var(--ms-comp-stroke);
+    stroke-width: 2;
+    fill: var(--ms-comp-fill);
+}
+
+.ms-comp-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    fill: #94a3b8;
+    user-select: none;
+}
+
+.ms-comp-text.val {
+    fill: #38bdf8;
+    font-weight: 600;
+}
+
+/* Right Instruments Toolbar (NI Multisim Style Vertical Bar) */
+.ms-instruments-bar {
+    width: 52px;
+    background: #090d16;
+    border-left: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 4px;
+    gap: 10px;
+    z-index: 10;
+}
+
+.ms-inst-btn {
+    width: 40px;
+    height: 40px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #94a3b8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.85rem;
+    position: relative;
+}
+
+.ms-inst-btn:hover {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.ms-inst-btn.active {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 0 12px var(--ms-accent-glow);
+}
+
+.ms-inst-label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    margin-top: 2px;
+    text-transform: uppercase;
+}
+
+/* Floating Instruments Windows (Oscilloscope, Multimeter, Function Generator) */
+.ms-floating-window {
+    position: absolute;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    animation: msWindowPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes msWindowPop {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.ms-floating-window.active {
+    display: flex;
+}
+
+.ms-window-header {
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: move;
+}
+
+.ms-window-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ms-window-close-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.ms-window-close-btn:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* Dual-Channel Cathode Ray Oscilloscope (CRO) */
+.ms-cro-window {
+    width: 680px;
+    top: 30px;
+    right: 60px;
+}
+
+.ms-cro-body {
+    display: flex;
+    padding: 12px;
+    gap: 12px;
+    background: #090d16;
+}
+
+.ms-cro-screen-container {
+    position: relative;
+    width: 380px;
+    height: 300px;
+    background: var(--ms-cro-screen);
+    border: 3px solid #1e293b;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+}
+
+.ms-cro-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.ms-cro-controls {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ms-cro-section {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.ms-cro-sec-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ms-cro-knob-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.ms-cro-label {
+    font-size: 0.72rem;
+    color: #cbd5e1;
+}
+
+.ms-cro-select {
+    background: #030712;
+    border: 1px solid #334155;
+    color: #38bdf8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    outline: none;
+}
+
+.ms-cro-telemetry {
+    background: #030712;
+    border: 1px solid #1f2937;
+    border-radius: 4px;
+    padding: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: #4ade80;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+/* Digital Multimeter (DMM - Agilent Style) */
+.ms-dmm-window {
+    width: 440px;
+    top: 50px;
+    left: 280px;
+}
+
+.ms-dmm-body {
+    padding: 12px;
+    background: #090d16;
+}
+
+.ms-dmm-display {
+    background: var(--ms-dmm-lcd-bg);
+    border: 2px solid #1e293b;
+    border-radius: 6px;
+    padding: 12px 16px;
+    text-align: right;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+}
+
+.ms-dmm-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ms-dmm-digits);
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+}
+
+.ms-dmm-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    color: #38bdf8;
+    margin-left: 6px;
+}
+
+.ms-dmm-modes {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.ms-dmm-mode-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 0;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.ms-dmm-mode-btn:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.ms-dmm-mode-btn.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 10px var(--ms-accent-glow);
+}
+
+/* Function Generator (XFG) */
+.ms-xfg-window {
+    width: 420px;
+    top: 80px;
+    left: 320px;
+}
+
+.ms-xfg-body {
+    padding: 12px;
+    background: #090d16;
+}
+
+.ms-xfg-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+.ms-xfg-slider {
+    flex: 1;
+    accent-color: #0284c7;
+}
+
+/* Syllabus Modules Drawer / Bar */
+.ms-modules-bar {
+    background: #090d16;
+    border-top: 1px solid #1e293b;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+.ms-module-select {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f8fafc;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    outline: none;
+    cursor: pointer;
+    max-width: 420px;
+}
+
+.ms-module-select option {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+/* Component Properties Inspector Modal */
+.ms-inspector-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 360px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+}
+
+.ms-inspector-modal.active {
+    display: flex;
+}
+
+.ms-inspector-body {
+    padding: 14px;
+}
+
+.ms-inspector-field {
+    margin-bottom: 12px;
+}
+
+.ms-inspector-field label {
+    display: block;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.ms-inspector-input {
+    width: 100%;
+    background: #030712;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    padding: 6px 10px;
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    box-sizing: border-box;
+}
+
+.ms-inspector-input:focus {
+    border-color: #0284c7;
+    outline: none;
+}
+
+.ms-inspector-footer {
+    padding: 10px 14px;
+    background: #090d16;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Bottom Syllabus Curriculum Accordions */
+.ms-curriculum-container {
+    margin-top: 2rem;
+}
+
+.ms-curriculum-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.ms-module-card {
+    background: var(--bg-card, #1e293b);
+    border: 1px solid var(--card-border, #334155);
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.ms-module-card:hover {
+    transform: translateY(-3px);
+    border-color: #0284c7;
+}
+
+.ms-module-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.ms-module-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: #0284c7;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s;
+}
+
+.ms-module-btn:hover {
+    background: #0369a1;
+}
+
+/* Mobile Compatibility */
+@media (max-width: 992px) {
+    .ms-workbench-wrapper {
+        height: 720px;
+    }
+    .ms-component-drawer {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+    }
+    .ms-component-drawer.open {
+        transform: translateX(0);
+    }
+    .ms-cro-window {
+        width: 95vw;
+        left: 2.5vw;
+        right: auto;
+    }
+    .ms-cro-body {
+        flex-direction: column;
+    }
+    .ms-cro-screen-container {
+        width: 100%;
+        height: 220px;
+    }
+    .ms-dmm-window, .ms-xfg-window {
+        width: 92vw;
+        left: 4vw;
+    }
+}
+
+@media (max-width: 640px) {
+    .ms-workbench-wrapper {
+        height: 640px;
+        border-radius: 6px;
+    }
+    .ms-menu-bar {
+        overflow-x: auto;
+    }
+    .ms-ribbon-toolbar {
+        gap: 4px;
+    }
+    .ms-tool-btn span {
+        display: none;
+    }
+    .ms-instruments-bar {
+        width: 44px;
+    }
+    .ms-inst-btn {
+        width: 36px;
+        height: 36px;
+    }
+    .ms-modules-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
