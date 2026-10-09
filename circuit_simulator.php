@@ -180,7 +180,7 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Right Status Ribbon -->
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 0.72rem; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">
+                <span class="ms-engine-status" style="font-size: 0.72rem; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">
                     MNA SPICE ENGINE 2.0 &middot; 33 FPS
                 </span>
                 <button type="button" class="ms-tool-btn" id="msBtnFullscreen" title="Toggle Fullscreen Mode">
@@ -284,7 +284,10 @@ require_once __DIR__ . '/include/navbar.php';
                     <span class="ms-drawer-title">
                         <i class="fa-solid fa-microchip"></i> Components
                     </span>
-                    <span style="font-size: 0.68rem; color: #64748b;">Click to Add</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.68rem; color: #64748b;" class="ms-desktop-only">Click to Add</span>
+                        <button type="button" class="ms-drawer-close-btn" id="msDrawerCloseBtn" title="Close Palette">&times;</button>
+                    </div>
                 </div>
 
                 <div class="ms-search-wrapper">
@@ -474,11 +477,32 @@ require_once __DIR__ . '/include/navbar.php';
                 </div>
             </div>
 
+            <!-- Mobile Drawer Backdrop Overlay -->
+            <div class="ms-drawer-backdrop" id="msDrawerBackdrop"></div>
+
             <!-- Center Schematic CAD Canvas Container -->
             <div class="ms-canvas-container" id="msCanvasContainer">
                 
                 <!-- Dynamic Schematic SVG Layer -->
                 <svg class="ms-schematic-svg" id="msSchematicSvg"></svg>
+
+                <!-- Floating Mobile Add Component Pill Button -->
+                <button type="button" class="ms-canvas-add-btn" id="msCanvasAddBtn" title="Open Components Palette">
+                    <i class="fa-solid fa-plus"></i> <span>Components</span>
+                </button>
+
+                <!-- Floating Canvas Zoom & Auto-Fit Toolbar -->
+                <div class="ms-canvas-zoom-toolbar" id="msCanvasZoomToolbar">
+                    <button type="button" class="ms-zoom-btn" id="msBtnZoomIn" title="Zoom In (+)">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <button type="button" class="ms-zoom-btn fit-btn" id="msBtnZoomFit" title="Fit Entire Circuit to Screen">
+                        <i class="fa-solid fa-expand"></i> <span>Fit</span>
+                    </button>
+                    <button type="button" class="ms-zoom-btn" id="msBtnZoomOut" title="Zoom Out (-)">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                </div>
 
                 <!-- On-Canvas Floating Quick-Action Bar for Selected Component -->
                 <div class="ms-comp-quick-actions" id="msCompQuickActions" style="display: none;">

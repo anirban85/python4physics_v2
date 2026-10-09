@@ -247,6 +247,15 @@
             this.dmm = null;
             this.xfg = null;
 
+            // ViewBox, Pan & Zoom State for Responsive Mobile / CAD Canvas
+            this.view = { x: 0, y: 0, width: 900, height: 600 };
+            this.isPanning = false;
+            this.panStartClient = { x: 0, y: 0 };
+            this.panStartView = { x: 0, y: 0 };
+            this.isPinching = false;
+            this.pinchDist = null;
+            this._resizeDebounce = null;
+
             this.init();
         }
 
@@ -283,8 +292,148 @@
             this.bindPaletteButtons();
             this.bindMenuActions();
 
+            // Listen to viewport resize to auto-fit smoothly
+            window.addEventListener('resize', () => {
+                if (this._resizeDebounce) clearTimeout(this._resizeDebounce);
+                this._resizeDebounce = setTimeout(() => {
+                    this.autoFitView();
+                }, 120);
+            });
+
             // Default preset
             this.loadPreset('mod2_bridge_rectifier');
+            this.autoFitView();
+            setTimeout(() => this.autoFitView(), 150);
+        }
+
+        // ====================================================================
+        // RESPONSIVE VIEWPORT, AUTOFIT & PAN/ZOOM CAD ENGINE
+        // ====================================================================
+        getCircuitBounds() {
+            if (!this.components || this.components.length === 0) {
+                return { minX: 100, minY: 100, maxX: 700, maxY: 400, width: 600, height: 300 };
+            }
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            this.components.forEach(c => {
+                minX = Math.min(minX, c.x - 60);
+                maxX = Math.max(maxX, c.x + 60);
+                minY = Math.min(minY, c.y - 60);
+                maxY = Math.max(maxY, c.y + 60);
+            });
+            this.wires.forEach(w => {
+                const pts = this.getWirePoints(w);
+                pts.forEach(p => {
+                    minX = Math.min(minX, p.x - 20);
+                    maxX = Math.max(maxX, p.x + 20);
+                    minY = Math.min(minY, p.y - 20);
+                    maxY = Math.max(maxY, p.y + 20);
+                });
+            });
+            if (!isFinite(minX) || !isFinite(maxX)) {
+                return { minX: 100, minY: 100, maxX: 700, maxY: 400, width: 600, height: 300 };
+            }
+            return {
+                minX,
+                minY,
+                maxX,
+                maxY,
+                width: Math.max(220, maxX - minX),
+                height: Math.max(160, maxY - minY)
+            };
+        }
+
+        autoFitView(animate = false) {
+            if (!this.svg || !this.container) return;
+            const bounds = this.getCircuitBounds();
+            const cW = this.container.clientWidth || 390;
+            const cH = this.container.clientHeight || 500;
+            if (cW <= 0 || cH <= 0) return;
+
+            const isMobile = cW <= 768;
+            // Generous breathing margins around circuit
+            const padX = isMobile ? 85 : 55;
+            const padY = isMobile ? 70 : 55;
+            const paddedW = bounds.width + padX * 2;
+            const paddedH = bounds.height + padY * 2;
+
+            // Determine scale factor for viewport
+            let scale = Math.max(paddedW / cW, paddedH / cH);
+            if (isMobile) {
+                // Add an extra 12% breathing room on mobile portrait
+                scale = scale * 1.14;
+            } else if (cW > 850 && scale < 1.0) {
+                scale = 1.0; // keep crisp 1:1 view on big desktops
+            }
+
+            const vW = Math.round(cW * scale);
+            const vH = Math.round(cH * scale);
+            const centerX = (bounds.minX + bounds.maxX) / 2;
+            const centerY = (bounds.minY + bounds.maxY) / 2;
+            const vX = Math.round(centerX - vW / 2);
+            const vY = Math.round(centerY - vH / 2);
+
+            this.view.x = vX;
+            this.view.y = vY;
+            this.view.width = vW;
+            this.view.height = vH;
+
+            this.applyViewBox();
+        }
+
+        applyViewBox() {
+            if (!this.svg) return;
+            this.svg.setAttribute('viewBox', `${this.view.x} ${this.view.y} ${this.view.width} ${this.view.height}`);
+            this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        }
+
+        zoom(factor, clientX, clientY) {
+            if (!this.svg || !this.container) return;
+            const cW = this.container.clientWidth || 390;
+            const cH = this.container.clientHeight || 500;
+            const newW = this.view.width * factor;
+            const newH = this.view.height * factor;
+
+            if (newW < 220 || newW > 4500) return;
+
+            let ratioX = 0.5;
+            let ratioY = 0.5;
+            if (clientX !== undefined && clientY !== undefined) {
+                const rect = this.container.getBoundingClientRect();
+                ratioX = Math.max(0, Math.min(1, (clientX - rect.left) / cW));
+                ratioY = Math.max(0, Math.min(1, (clientY - rect.top) / cH));
+            }
+
+            this.view.x += Math.round((this.view.width - newW) * ratioX);
+            this.view.y += Math.round((this.view.height - newH) * ratioY);
+            this.view.width = Math.round(newW);
+            this.view.height = Math.round(newH);
+
+            this.applyViewBox();
+        }
+
+        pan(dx, dy) {
+            this.view.x -= dx;
+            this.view.y -= dy;
+            this.applyViewBox();
+        }
+
+        svgPointToClient(svgX, svgY) {
+            if (!this.svg || !this.container) return { x: svgX, y: svgY };
+            if (this.svg.getScreenCTM) {
+                const pt = this.svg.createSVGPoint();
+                pt.x = svgX;
+                pt.y = svgY;
+                const ctm = this.svg.getScreenCTM();
+                if (ctm) {
+                    const screenP = pt.matrixTransform(ctm);
+                    const containerRect = this.container.getBoundingClientRect();
+                    return {
+                        x: Math.round(screenP.x - containerRect.left),
+                        y: Math.round(screenP.y - containerRect.top)
+                    };
+                }
+            }
+            return { x: svgX, y: svgY };
         }
 
         createHUDTooltip() {
@@ -324,9 +473,18 @@
         showQuickActions(comp) {
             if (!this.quickActionsEl || !comp) return;
             const pad = 36;
-            let x = comp.x;
-            let y = comp.y - pad;
-            if (y < 40) y = comp.y + pad + 30; // flip below if near top boundary
+            const pt = this.svgPointToClient(comp.x, comp.y - pad);
+            let x = pt.x;
+            let y = pt.y;
+            if (y < 40) {
+                const ptBelow = this.svgPointToClient(comp.x, comp.y + pad + 30);
+                y = ptBelow.y;
+            }
+            const cW = this.container.clientWidth || 390;
+            const cH = this.container.clientHeight || 500;
+            x = Math.max(50, Math.min(cW - 90, x));
+            y = Math.max(10, Math.min(cH - 45, y));
+
             this.quickActionsEl.style.left = x + 'px';
             this.quickActionsEl.style.top = y + 'px';
             this.quickActionsEl.style.display = 'flex';
@@ -418,11 +576,20 @@
             const avgX = Math.round(sumX / pts.length);
             const avgY = Math.round(sumY / pts.length);
 
-            let top = avgY - 45;
-            if (top < 40) top = avgY + 30;
+            const pt = this.svgPointToClient(avgX, avgY - 42);
+            let x = pt.x;
+            let y = pt.y;
+            if (y < 40) {
+                const ptBelow = this.svgPointToClient(avgX, avgY + 30);
+                y = ptBelow.y;
+            }
+            const cW = this.container.clientWidth || 390;
+            const cH = this.container.clientHeight || 500;
+            x = Math.max(90, Math.min(cW - 120, x));
+            y = Math.max(10, Math.min(cH - 45, y));
 
-            this.wireQuickActionsEl.style.left = avgX + 'px';
-            this.wireQuickActionsEl.style.top = top + 'px';
+            this.wireQuickActionsEl.style.left = x + 'px';
+            this.wireQuickActionsEl.style.top = y + 'px';
             this.wireQuickActionsEl.style.display = 'flex';
         }
 
@@ -1340,24 +1507,107 @@
             const self = this;
 
             this.svg.addEventListener('mousedown', e => self.onPointerDown(e));
-            window.addEventListener('mousemove', e => self.onPointerMove(e));
-            window.addEventListener('mouseup', e => self.onPointerUp(e));
+            window.addEventListener('mousemove', e => {
+                if (self.isPanning) {
+                    const cW = self.container.clientWidth || 390;
+                    const cH = self.container.clientHeight || 500;
+                    const dx = (e.clientX - self.panStartClient.x) * (self.view.width / cW);
+                    const dy = (e.clientY - self.panStartClient.y) * (self.view.height / cH);
+                    self.view.x = Math.round(self.panStartView.x - dx);
+                    self.view.y = Math.round(self.panStartView.y - dy);
+                    self.applyViewBox();
+                    return;
+                }
+                self.onPointerMove(e);
+            });
+            window.addEventListener('mouseup', e => {
+                if (self.isPanning) {
+                    self.isPanning = false;
+                }
+                self.onPointerUp(e);
+            });
 
-            // Mobile Touch Events
+            // Container Wheel Zoom (Standard CAD navigation)
+            this.container.addEventListener('wheel', e => {
+                e.preventDefault();
+                const factor = e.deltaY > 0 ? 1.12 : 0.88;
+                self.zoom(factor, e.clientX, e.clientY);
+            }, { passive: false });
+
+            // Mobile Touch Events (Pinch-Zoom, 1-Finger Pan, Wire/Comp Drag)
             this.svg.addEventListener('touchstart', e => {
+                if (e.touches.length === 2) {
+                    self.isPinching = true;
+                    self.pinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    return;
+                }
                 if (e.touches.length === 1) {
-                    self.onPointerDown(e.touches[0]);
+                    const touch = e.touches[0];
+                    const target = e.target;
+                    const isInteractive = target && (
+                        target.closest('.ms-wire-handle') ||
+                        target.closest('.ms-terminal-pin') ||
+                        target.closest('.ms-pin-hitbox') ||
+                        target.closest('.ms-switch-interactive') ||
+                        target.classList.contains('ms-wire') ||
+                        target.closest('.ms-comp-group')
+                    );
+                    if (!isInteractive) {
+                        // Touch on empty canvas = Pan!
+                        self.isPanning = true;
+                        self.panStartClient = { x: touch.clientX, y: touch.clientY };
+                        self.panStartView = { x: self.view.x, y: self.view.y };
+                        return;
+                    }
+                    self.onPointerDown(touch);
                 }
             }, { passive: false });
 
             window.addEventListener('touchmove', e => {
-                if (self.isDragging || self.activeWireDraft) {
-                    self.onPointerMove(e.touches[0]);
+                if (self.isPinching && e.touches.length === 2) {
                     e.preventDefault();
+                    const newDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    if (self.pinchDist && self.pinchDist > 0 && newDist > 0) {
+                        const factor = self.pinchDist / newDist;
+                        self.zoom(factor);
+                        self.pinchDist = newDist;
+                    }
+                    return;
+                }
+
+                if (self.isPanning && e.touches.length === 1) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const cW = self.container.clientWidth || 390;
+                    const cH = self.container.clientHeight || 500;
+                    const dx = (touch.clientX - self.panStartClient.x) * (self.view.width / cW);
+                    const dy = (touch.clientY - self.panStartClient.y) * (self.view.height / cH);
+                    self.view.x = Math.round(self.panStartView.x - dx);
+                    self.view.y = Math.round(self.panStartView.y - dy);
+                    self.applyViewBox();
+                    return;
+                }
+
+                if (self.isDragging || self.activeWireDraft) {
+                    e.preventDefault();
+                    self.onPointerMove(e.touches[0]);
                 }
             }, { passive: false });
 
             window.addEventListener('touchend', e => {
+                if (self.isPinching) {
+                    self.isPinching = false;
+                    self.pinchDist = null;
+                }
+                if (self.isPanning) {
+                    self.isPanning = false;
+                }
                 self.onPointerUp(e);
             });
 
@@ -1440,9 +1690,22 @@
         }
 
         getCanvasCoords(e) {
+            const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : 0));
+            const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : 0));
+            if (this.svg && this.svg.getScreenCTM) {
+                const ctm = this.svg.getScreenCTM();
+                if (ctm) {
+                    const pt = this.svg.createSVGPoint();
+                    pt.x = clientX;
+                    pt.y = clientY;
+                    const svgP = pt.matrixTransform(ctm.inverse());
+                    return {
+                        x: Math.round(svgP.x),
+                        y: Math.round(svgP.y)
+                    };
+                }
+            }
             const rect = this.svg.getBoundingClientRect();
-            const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
-            const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
             return {
                 x: Math.round(clientX - rect.left),
                 y: Math.round(clientY - rect.top)
@@ -1552,10 +1815,27 @@
                 this.activeWireDraft = null;
             }
             this.selectedItem = null;
+            const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+            const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+            this.isPanning = true;
+            this.panStartClient = { x: clientX, y: clientY };
+            this.panStartView = { x: this.view.x, y: this.view.y };
             this.render();
         }
 
         onPointerMove(e) {
+            if (this.isPanning) {
+                const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+                const cW = this.container.clientWidth || 390;
+                const cH = this.container.clientHeight || 500;
+                const dx = (clientX - this.panStartClient.x) * (this.view.width / cW);
+                const dy = (clientY - this.panStartClient.y) * (this.view.height / cH);
+                this.view.x = Math.round(this.panStartView.x - dx);
+                this.view.y = Math.round(this.panStartView.y - dy);
+                this.applyViewBox();
+                return;
+            }
             const coords = this.getCanvasCoords(e);
 
             if (this.isDragging && this.dragItem) {
@@ -1643,6 +1923,9 @@
         }
 
         onPointerUp() {
+            this.isPanning = false;
+            this.isPinching = false;
+            this.pinchDist = null;
             this.isDragging = false;
             this.dragItem = null;
             if (this.selectedItem && this.selectedItem.id) {
@@ -2652,6 +2935,41 @@
                     wrapper.classList.toggle('ms-fullscreen');
                     const isFs = wrapper.classList.contains('ms-fullscreen');
                     fsBtn.innerHTML = isFs ? '<i class="fa-solid fa-compress"></i> <span>Exit Fullscreen</span>' : '<i class="fa-solid fa-expand"></i> <span>Fullscreen</span>';
+                    setTimeout(() => self.autoFitView(), 120);
+                });
+            }
+
+            // On-Canvas Zoom & Fit Controls
+            const btnZoomIn = document.getElementById('msBtnZoomIn');
+            if (btnZoomIn) btnZoomIn.addEventListener('click', () => self.zoom(0.85));
+
+            const btnZoomOut = document.getElementById('msBtnZoomOut');
+            if (btnZoomOut) btnZoomOut.addEventListener('click', () => self.zoom(1.18));
+
+            const btnZoomFit = document.getElementById('msBtnZoomFit');
+            if (btnZoomFit) btnZoomFit.addEventListener('click', () => self.autoFitView(true));
+
+            // Floating Mobile Add Component Button & Drawer Backdrop
+            const btnCanvasAdd = document.getElementById('msCanvasAddBtn');
+            const drawer = document.getElementById('msComponentDrawer');
+            const backdrop = document.getElementById('msDrawerBackdrop');
+            if (btnCanvasAdd && drawer) {
+                btnCanvasAdd.addEventListener('click', () => {
+                    drawer.classList.add('open');
+                    if (backdrop) backdrop.classList.add('active');
+                });
+            }
+            const closeDrawerBtn = document.getElementById('msDrawerCloseBtn');
+            if (closeDrawerBtn && drawer) {
+                closeDrawerBtn.addEventListener('click', () => {
+                    drawer.classList.remove('open');
+                    if (backdrop) backdrop.classList.remove('active');
+                });
+            }
+            if (backdrop && drawer) {
+                backdrop.addEventListener('click', () => {
+                    drawer.classList.remove('open');
+                    backdrop.classList.remove('active');
                 });
             }
 
@@ -2684,9 +3002,19 @@
             cards.forEach(card => {
                 card.addEventListener('click', () => {
                     const type = card.getAttribute('data-type');
-                    const cx = (self.container.clientWidth / 2) - 30;
-                    const cy = (self.container.clientHeight / 2) - 30;
+                    // Add near current view center
+                    const cx = Math.round((self.view.x + self.view.width / 2) / 20) * 20;
+                    const cy = Math.round((self.view.y + self.view.height / 2) / 20) * 20;
                     self.addComponent(type, cx, cy);
+
+                    // On mobile, automatically close drawer after picking component
+                    if (window.innerWidth <= 768) {
+                        const drawer = document.getElementById('msComponentDrawer');
+                        const backdrop = document.getElementById('msDrawerBackdrop');
+                        if (drawer) drawer.classList.remove('open');
+                        if (backdrop) backdrop.classList.remove('active');
+                        self.showToast('Component added to circuit canvas.');
+                    }
                 });
             });
 
@@ -2875,8 +3203,14 @@
 
             const toggleDrawerBtn = document.getElementById('msToggleDrawerBtn');
             const drawer = document.getElementById('msComponentDrawer');
+            const backdrop = document.getElementById('msDrawerBackdrop');
             if (toggleDrawerBtn && drawer) {
-                toggleDrawerBtn.addEventListener('click', () => drawer.classList.toggle('open'));
+                toggleDrawerBtn.addEventListener('click', () => {
+                    drawer.classList.toggle('open');
+                    if (backdrop) {
+                        backdrop.classList.toggle('active', drawer.classList.contains('open'));
+                    }
+                });
             }
         }
 
@@ -3589,6 +3923,7 @@
             if (this.cro) {
                 this.cro.calibratePreset(presetName);
             }
+            this.autoFitView();
         }
 
         // --- Module 1: Thevenin Equivalent Circuit ---

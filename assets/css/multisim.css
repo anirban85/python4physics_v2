@@ -85,6 +85,9 @@
 .ms-workbench-wrapper {
     position: relative;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     height: 860px;
     min-height: 680px;
     background: var(--ms-bg-workspace);
@@ -121,6 +124,10 @@
     padding: 4px 12px;
     font-size: 0.8rem;
     color: #cbd5e1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .ms-menu-left {
@@ -222,6 +229,10 @@
     gap: 8px;
     flex-wrap: nowrap;
     overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .ms-toolbar-group {
@@ -345,6 +356,10 @@
     flex: 1;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     height: calc(100% - 76px);
 }
 
@@ -557,6 +572,10 @@
     flex: 1;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     background-color: var(--ms-bg-workspace);
     background-image: 
         radial-gradient(var(--ms-grid-dot) 1.2px, transparent 1.2px),
@@ -572,7 +591,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    overflow: visible;
+    overflow: hidden;
     pointer-events: all;
 }
 
@@ -1847,64 +1866,306 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-/* Mobile Compatibility */
+/* ==========================================================================
+   Mobile & Responsive CAD Layout Enhancements
+   ========================================================================== */
+
+/* Floating Canvas Zoom & Auto-Fit Toolbar */
+.ms-canvas-zoom-toolbar {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 20px;
+    padding: 3px 6px;
+    gap: 4px;
+    z-index: 25;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    user-select: none;
+}
+
+.ms-zoom-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    background: transparent;
+    border: none;
+    border-radius: 14px;
+    color: #cbd5e1;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ms-zoom-btn:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.ms-zoom-btn.fit-btn {
+    background: rgba(2, 132, 199, 0.25);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.ms-zoom-btn.fit-btn:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+/* Floating Mobile "Add Component" Pill Button */
+.ms-canvas-add-btn {
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #ffffff;
+    border: 1px solid #38bdf8;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+    cursor: pointer;
+    z-index: 25;
+    transition: transform 0.15s ease;
+}
+
+.ms-canvas-add-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.6);
+}
+
+/* Drawer Close Button & Backdrop */
+.ms-drawer-close-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.ms-drawer-close-btn:hover {
+    color: #ef4444;
+}
+
+.ms-drawer-backdrop {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    z-index: 80;
+}
+
+.ms-drawer-backdrop.active {
+    display: block;
+}
+
+/* Tablet & Mobile Compatibility */
 @media (max-width: 992px) {
     .ms-workbench-wrapper {
         height: 720px;
+        min-height: 520px;
     }
     .ms-component-drawer {
         position: absolute;
         top: 0;
         bottom: 0;
         left: 0;
+        width: 280px;
+        max-width: 85vw;
+        z-index: 100;
         transform: translateX(-100%);
-        box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+        transition: transform 0.25s ease;
+        box-shadow: 6px 0 30px rgba(0, 0, 0, 0.6);
     }
     .ms-component-drawer.open {
         transform: translateX(0);
     }
+    .ms-canvas-add-btn {
+        display: inline-flex;
+    }
+    .ms-drawer-close-btn {
+        display: block;
+    }
+    .ms-desktop-only {
+        display: none !important;
+    }
     .ms-cro-window {
-        width: 95vw;
-        left: 2.5vw;
-        right: auto;
+        width: 95vw !important;
+        max-width: 95vw !important;
+        left: 2.5vw !important;
+        right: auto !important;
+        top: 10px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
     }
     .ms-cro-body {
-        flex-direction: column;
+        flex-direction: column !important;
+        padding: 8px !important;
+        gap: 8px !important;
     }
     .ms-cro-screen-container {
-        width: 100%;
-        height: 220px;
+        width: 100% !important;
+        height: 210px !important;
+    }
+    .ms-cro-canvas {
+        width: 100% !important;
+        height: 100% !important;
     }
     .ms-dmm-window, .ms-xfg-window {
-        width: 92vw;
-        left: 4vw;
+        width: 92vw !important;
+        max-width: 92vw !important;
+        left: 4vw !important;
+        top: 15px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
     }
 }
 
-@media (max-width: 640px) {
+/* Smartphone Portrait Viewport (max-width: 768px) */
+@media (max-width: 768px) {
     .ms-workbench-wrapper {
-        height: 640px;
-        border-radius: 6px;
+        height: 72vh;
+        min-height: 480px;
+        max-height: 700px;
+        border-radius: 8px;
     }
     .ms-menu-bar {
+        padding: 4px 8px;
+        font-size: 0.72rem;
         overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ms-menu-bar::-webkit-scrollbar {
+        display: none;
+    }
+    .ms-logo {
+        font-size: 0.78rem;
+        padding-right: 6px;
+        margin-right: 4px;
+    }
+    .ms-engine-status {
+        display: none !important;
     }
     .ms-ribbon-toolbar {
+        padding: 5px 8px;
         gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ms-ribbon-toolbar::-webkit-scrollbar {
+        display: none;
+    }
+    .ms-tool-btn {
+        height: 28px;
+        padding: 0 6px;
+        font-size: 0.72rem;
     }
     .ms-tool-btn span {
         display: none;
     }
+    .ms-sim-btn {
+        height: 28px;
+        padding: 0 10px;
+        font-size: 0.74rem;
+    }
+    .ms-sim-clock {
+        padding: 2px 6px;
+        font-size: 0.68rem;
+    }
+    .ms-module-select {
+        max-width: 160px;
+        font-size: 0.72rem;
+        padding: 3px 6px;
+    }
     .ms-instruments-bar {
-        width: 44px;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: auto;
+        height: auto;
+        flex-direction: row;
+        background: rgba(15, 23, 42, 0.88);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 20px;
+        padding: 3px 5px;
+        gap: 5px;
+        z-index: 30;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     }
     .ms-inst-btn {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 0.72rem;
+        background: rgba(30, 41, 59, 0.8);
     }
-    .ms-modules-bar {
-        flex-direction: column;
-        align-items: stretch;
+    .ms-inst-label {
+        display: none !important;
+    }
+    .ms-canvas-guidance {
+        display: none !important;
+    }
+    .ms-canvas-zoom-toolbar {
+        bottom: 8px;
+        right: 8px;
+        padding: 2px 4px;
+    }
+    .ms-zoom-btn {
+        min-width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+    }
+    .ms-comp-quick-actions, .ms-wire-quick-actions {
+        padding: 2px 4px;
+        gap: 4px;
+    }
+    .ms-quick-btn {
+        padding: 3px 6px;
+        font-size: 0.68rem;
+    }
+}
+
+/* Small Smartphone Viewport (max-width: 480px) */
+@media (max-width: 480px) {
+    .ms-workbench-wrapper {
+        height: 68vh;
+        min-height: 440px;
+    }
+    .ms-module-select {
+        max-width: 125px;
+    }
+    .ms-canvas-add-btn span {
+        display: none;
+    }
+    .ms-canvas-add-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        padding: 0;
+        justify-content: center;
     }
 }
 
