@@ -487,9 +487,9 @@ require_once __DIR__ . '/include/navbar.php';
                 <div class="ms-canvas-toast" id="msCanvasToast" style="display: none;"></div>
 
                 <!-- On-Screen Guidance Floating Badge -->
-                <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(15, 23, 42, 0.88); border: 1px solid #334155; border-radius: 6px; padding: 6px 12px; font-size: 0.74rem; color: #94a3b8; pointer-events: none; z-index: 5;">
+                <div class="ms-canvas-guidance">
                     <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> 
-                    <strong>Quick Controls:</strong> Click red pins to wire &middot; Drag components &middot; Press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#cbd5e1;">R</kbd> to rotate &middot; Press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#cbd5e1;">Del</kbd> to remove &middot; Double-click, tap or press <kbd style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color:#38bdf8;">Enter</kbd> to edit value
+                    <strong>Quick Controls:</strong> Click red pins to wire &middot; Drag components &middot; Press <kbd>R</kbd> to rotate &middot; Press <kbd>Del</kbd> to remove &middot; Double-click or press <kbd>Enter</kbd> to edit value
                 </div>
             </div>
 
@@ -709,39 +709,41 @@ require_once __DIR__ . '/include/navbar.php';
          ==================================================================== -->
     <div class="ms-curriculum-container">
         
-        <div style="border-bottom: 2px solid var(--accent); padding-bottom: 0.6rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="border-bottom: 2px solid var(--accent); padding-bottom: 0.8rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
             <div>
-                <h2 style="font-size: 1.6rem; margin: 0;">
+                <h2 style="font-size: 1.6rem; margin: 0; color: var(--heading-color, var(--text-color)); font-weight: 800; letter-spacing: -0.02em;">
                     <i class="fa-solid fa-graduation-cap" style="color: var(--accent);"></i> 
                     Electronics Curriculum &amp; Experimental Physics Modules
                 </h2>
-                <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">
-                    Launch pre-built circuits into the simulator with one click to observe and test the theoretical principles.
+                <p style="margin: 0.25rem 0 0 0; color: var(--text-muted); font-size: 0.95rem;">
+                    Launch pre-built circuits into the circuit simulator with one click to observe and test the theoretical principles.
                 </p>
             </div>
-            <span class="badge badge-cyan" style="font-size: 0.8rem;">7 Core Modules &middot; 21 Interactive Circuits</span>
+            <span class="badge badge-cyan" style="font-size: 0.82rem; padding: 6px 14px; border-radius: 9999px; font-weight: 700; letter-spacing: 0.04em;">7 Core Modules &middot; 21 Interactive Circuits</span>
         </div>
 
         <div class="ms-curriculum-grid">
             
             <!-- Module 1: Circuits and Network (DC) -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">Module 1 &middot; DC Circuits</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">Circuits and Network (DC) (4)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod1"><i class="fa-solid fa-bolt"></i> Module 1 &middot; DC Circuits</span>
+                <h3>Circuits and Network (DC) (4)</h3>
+                <p>
                     Discrete active &amp; passive components, ideal constant voltage/current sources, Kirchhoff's laws (KCL, KVL), Thevenin's and Norton's theorem, Superposition theorem, and Maximum power transfer theorem ($R_L = R_{th}$).
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ V_{th} = V_{oc}, \quad R_{th} = \frac{V_{oc}}{I_{sc}}, \quad P_{max} = \frac{V_{th}^2}{4 R_{th}} $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ V_{th} = V_{oc}, \quad R_{th} = \frac{V_{oc}}{I_{sc}}, \quad P_{max} = \frac{V_{th}^2}{4 R_{th}} $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod1_thevenin_norton">
                         <i class="fa-solid fa-play"></i> Thevenin Equivalent
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod1_max_power" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod1_max_power">
                         <i class="fa-solid fa-bolt"></i> Max Power Transfer
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod1_superposition" style="background: #334155;">
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod1_superposition">
                         <i class="fa-solid fa-layer-group"></i> Superposition
                     </button>
                 </div>
@@ -749,22 +751,24 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Module 2: Semiconductor Diodes and Applications -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">Module 2 &middot; Semiconductor Diodes</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">Semiconductor Diodes &amp; Applications (9)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod2"><i class="fa-solid fa-microchip"></i> Module 2 &middot; Semiconductor Diodes</span>
+                <h3>Semiconductor Diodes &amp; Applications (9)</h3>
+                <p>
                     PN junction fabrication, barrier potential, static/dynamic resistance, half-wave &amp; full-wave bridge rectifiers, Ripple Factor ($\gamma$), Rectification efficiency ($\eta$), L &amp; C smoothing filters, clipping &amp; clamping circuits, LEDs.
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ \gamma = \frac{1}{4\sqrt{3} f C R_L}, \quad \eta_{bridge} = 81.2\%, \quad I = I_s\left(e^{\frac{qV}{\eta k_B T}} - 1\right) $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ \gamma = \frac{1}{4\sqrt{3} f C R_L}, \quad \eta_{bridge} = 81.2\%, \quad I = I_s\left(e^{\frac{qV}{\eta k_B T}} - 1\right) $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod2_bridge_rectifier">
                         <i class="fa-solid fa-play"></i> Bridge Rectifier + Filter
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod2_halfwave_rectifier" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod2_halfwave_rectifier">
                         <i class="fa-solid fa-wave-square"></i> Half-Wave Rectifier
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod2_clipper_clamper" style="background: #334155;">
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod2_clipper_clamper">
                         <i class="fa-solid fa-scissors"></i> Clipper &amp; Clamper
                     </button>
                 </div>
@@ -772,19 +776,21 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Module 3: Bipolar Junction Transistors and Biasing -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">Module 3 &middot; BJT Biasing</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">BJT Transistors &amp; Biasing (10)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod3"><i class="fa-solid fa-diagram-project"></i> Module 3 &middot; BJT Biasing</span>
+                <h3>BJT Transistors &amp; Biasing (10)</h3>
+                <p>
                     NPN &amp; PNP configurations (CB, CE, CC), active, cut-off and saturation regions, DC load line &amp; Q-point, stability factors, fixed bias vs voltage divider bias (self-bias), 2-port hybrid $h$-parameter equivalent circuit.
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ I_C = \beta I_B + I_{CEO}, \quad V_{CE} = V_{CC} - I_C R_C, \quad S = \frac{1 + \beta}{1 + \beta \frac{R_E}{R_B + R_E}} $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ I_C = \beta I_B + I_{CEO}, \quad V_{CE} = V_{CC} - I_C R_C, \quad S = \frac{1 + \beta}{1 + \beta \frac{R_E}{R_B + R_E}} $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod3_voltage_divider_bias">
                         <i class="fa-solid fa-play"></i> Voltage Divider Bias
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod3_ce_characteristics" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod3_ce_characteristics">
                         <i class="fa-solid fa-chart-line"></i> CE Characteristics &amp; Q-Point
                     </button>
                 </div>
@@ -792,19 +798,21 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Module 4: Field Effect Transistors (FET / MOSFET) -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">Module 4 &middot; FET &amp; MOSFET</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">Field Effect Transistors (3)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod4"><i class="fa-solid fa-atom"></i> Module 4 &middot; FET &amp; MOSFET</span>
+                <h3>Field Effect Transistors (3)</h3>
+                <p>
                     JFET and MOSFET (both depletion and enhancement mode MISFET), pinch-off voltage ($V_p$), drain saturation current ($I_{DSS}$), threshold voltage ($V_{th}$), transconductance $g_m$, and short channel switching characteristics.
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ I_D = I_{DSS}\left(1 - \frac{V_{GS}}{V_P}\right)^2, \quad g_m = \frac{2 I_{DSS}}{|V_P|}\left(1 - \frac{V_{GS}}{V_P}\right) $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ I_D = I_{DSS}\left(1 - \frac{V_{GS}}{V_P}\right)^2, \quad g_m = \frac{2 I_{DSS}}{|V_P|}\left(1 - \frac{V_{GS}}{V_P}\right) $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod4_jfet_characteristics">
                         <i class="fa-solid fa-play"></i> JFET Drain &amp; Transfer
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod4_mosfet_switch" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod4_mosfet_switch">
                         <i class="fa-solid fa-toggle-on"></i> MOSFET Electronic Switch
                     </button>
                 </div>
@@ -812,19 +820,21 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Module 5: Regulated Power Supplies -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">Module 5 &middot; Voltage Regulation</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">Regulated Power Supply (3)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod5"><i class="fa-solid fa-plug-circle-bolt"></i> Module 5 &middot; Voltage Regulation</span>
+                <h3>Regulated Power Supply (3)</h3>
+                <p>
                     Load regulation and line regulation, Zener diode as shunt regulator, limitations of Zener circuits, error feedback amplifiers, and series regulated power supply using a pass transistor assisted by a Zener voltage reference.
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ \text{Line Reg} = \frac{\Delta V_{out}}{\Delta V_{in}}, \quad \text{Load Reg} = \frac{V_{NL} - V_{FL}}{V_{FL}} \times 100\% $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ \text{Line Reg} = \frac{\Delta V_{out}}{\Delta V_{in}}, \quad \text{Load Reg} = \frac{V_{NL} - V_{FL}}{V_{FL}} \times 100\% $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod5_zener_regulator">
                         <i class="fa-solid fa-play"></i> Zener Voltage Regulator
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod5_series_pass_regulator" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod5_series_pass_regulator">
                         <i class="fa-solid fa-shield-halved"></i> Series Pass Regulator
                     </button>
                 </div>
@@ -832,19 +842,21 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Module 6: Amplifiers & Frequency Response -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">Module 6 &middot; Amplifiers</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">Amplifiers &amp; Frequency Response (5)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod6"><i class="fa-solid fa-chart-area"></i> Module 6 &middot; Amplifiers</span>
+                <h3>Amplifiers &amp; Frequency Response (5)</h3>
+                <p>
                     Common Emitter (CE), Common Base (CB) and Emitter Follower buffer circuits, dynamic load line analysis, Class A, B and C amplifier classification, and midband frequency response with low and high cut-off frequencies ($f_L, f_H$).
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ A_v = -\frac{h_{fe} R_L'}{h_{ie}}, \quad f_L = \frac{1}{2\pi (R_{in} + R_s) C_1}, \quad BW = f_H - f_L $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ A_v = -\frac{h_{fe} R_L'}{h_{ie}}, \quad f_L = \frac{1}{2\pi (R_{in} + R_s) C_1}, \quad BW = f_H - f_L $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod6_ce_amplifier">
                         <i class="fa-solid fa-play"></i> Single-Stage CE Amplifier
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod6_emitter_follower" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod6_emitter_follower">
                         <i class="fa-solid fa-arrows-split-up-and-left"></i> Emitter Follower Buffer
                     </button>
                 </div>
@@ -852,25 +864,27 @@ require_once __DIR__ . '/include/navbar.php';
 
             <!-- Module 7: Feedback Amplifiers and OPAMP -->
             <article class="ms-module-card">
-                <span class="ms-module-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">Module 7 &middot; OP-AMP &amp; Feedback</span>
-                <h3 style="font-size: 1.15rem; margin-top: 0.4rem; margin-bottom: 0.4rem;">Feedback Amplifiers &amp; OPAMP (8)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem;">
+                <span class="ms-module-badge badge-mod7"><i class="fa-solid fa-sliders"></i> Module 7 &middot; OP-AMP &amp; Feedback</span>
+                <h3>Feedback Amplifiers &amp; OPAMP (8)</h3>
+                <p>
                     Positive and negative feedback topologies (Voltage series, current series, voltage shunt, current shunt), Gain stabilization, IC 741 characteristics, inverting, non-inverting, summing adder, integrator, differentiator, and comparator.
                 </p>
-                <div class="katex-display" style="font-size: 0.86rem; margin: 0.4rem 0;">
-                    $$ A_f = \frac{A}{1 + A\beta}, \quad V_{out(inv)} = -\frac{R_f}{R_1} V_{in}, \quad V_{out(int)} = -\frac{1}{R C}\int V_{in} dt $$
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ A_f = \frac{A}{1 + A\beta}, \quad V_{out(inv)} = -\frac{R_f}{R_1} V_{in}, \quad V_{out(int)} = -\frac{1}{R C}\int V_{in} dt $$
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_inverting">
                         <i class="fa-solid fa-play"></i> Inverting Amplifier
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_noninverting" style="background: #0284c7;">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_noninverting">
                         <i class="fa-solid fa-plus-minus"></i> Non-Inverting Amplifier
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_integrator" style="background: #334155;">
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod7_opamp_integrator">
                         <i class="fa-solid fa-chart-area"></i> Op-Amp Integrator
                     </button>
-                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_comparator" style="background: #475569;">
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod7_opamp_comparator">
                         <i class="fa-solid fa-scale-balanced"></i> Voltage Comparator
                     </button>
                 </div>

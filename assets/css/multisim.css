@@ -28,6 +28,25 @@
     --ms-accent-glow: rgba(2, 132, 199, 0.4);
     --ms-danger: #ef4444;
     --ms-success: #22c55e;
+
+    /* High-Contrast Curriculum Cards & Guidance (Dark Default) */
+    --ms-card-bg: #111827;
+    --ms-card-border: rgba(148, 163, 184, 0.16);
+    --ms-card-hover-border: rgba(56, 189, 248, 0.55);
+    --ms-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    --ms-card-hover-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.65), 0 0 18px rgba(56, 189, 248, 0.18);
+    --ms-card-title: #f8fafc;
+    --ms-card-desc: #cbd5e1;
+    --ms-formula-bg: rgba(15, 23, 42, 0.72);
+    --ms-formula-border: rgba(255, 255, 255, 0.09);
+    --ms-formula-text: #f8fafc;
+    --ms-btn-secondary-bg: #1e293b;
+    --ms-btn-secondary-text: #f1f5f9;
+    --ms-btn-secondary-border: rgba(255, 255, 255, 0.14);
+    --ms-btn-secondary-hover: #334155;
+    --ms-guide-bg: rgba(15, 23, 42, 0.94);
+    --ms-guide-text: #f8fafc;
+    --ms-guide-border: rgba(56, 189, 248, 0.35);
 }
 
 [data-theme="light"] {
@@ -41,6 +60,25 @@
     --ms-wire-color: #0284c7;
     --ms-comp-stroke: #0f172a;
     --ms-comp-fill: #ffffff;
+
+    /* High-Contrast Curriculum Cards & Guidance (Light Theme) */
+    --ms-card-bg: #ffffff;
+    --ms-card-border: #e2e8f0;
+    --ms-card-hover-border: #0284c7;
+    --ms-card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    --ms-card-hover-shadow: 0 14px 30px -4px rgba(2, 132, 199, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+    --ms-card-title: #0f172a;
+    --ms-card-desc: #334155;
+    --ms-formula-bg: #f8fafc;
+    --ms-formula-border: #e2e8f0;
+    --ms-formula-text: #0f172a;
+    --ms-btn-secondary-bg: #f1f5f9;
+    --ms-btn-secondary-text: #0f172a;
+    --ms-btn-secondary-border: #cbd5e1;
+    --ms-btn-secondary-hover: #e2e8f0;
+    --ms-guide-bg: #ffffff;
+    --ms-guide-text: #0f172a;
+    --ms-guide-border: #cbd5e1;
 }
 
 /* Base Workbench Container */
@@ -1311,62 +1349,233 @@
     }
 }
 
-/* Bottom Syllabus Curriculum Accordions */
+/* Bottom Syllabus Curriculum Cards & Formula Containers */
 .ms-curriculum-container {
-    margin-top: 2rem;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
 }
 
 .ms-curriculum-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 1.25rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.25rem;
 }
 
 .ms-module-card {
-    background: var(--bg-card, #1e293b);
-    border: 1px solid var(--card-border, #334155);
-    border-radius: 10px;
-    padding: 1.25rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    transition: transform 0.2s, border-color 0.2s;
+    background: var(--ms-card-bg);
+    border: 1px solid var(--ms-card-border);
+    border-radius: 12px;
+    padding: 1.4rem 1.45rem;
+    box-shadow: var(--ms-card-shadow);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-color 0.25s ease;
+}
+
+.ms-module-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background 0.25s ease;
 }
 
 .ms-module-card:hover {
-    transform: translateY(-3px);
-    border-color: #0284c7;
+    transform: translateY(-4px);
+    border-color: var(--ms-card-hover-border);
+    box-shadow: var(--ms-card-hover-shadow);
 }
 
+.ms-module-card:hover::before {
+    background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.ms-module-card h3 {
+    color: var(--ms-card-title) !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    margin: 0.6rem 0 0.4rem 0 !important;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+}
+
+.ms-module-card p {
+    color: var(--ms-card-desc) !important;
+    font-size: 0.86rem !important;
+    line-height: 1.55 !important;
+    margin-bottom: 0.85rem !important;
+    flex-grow: 1;
+}
+
+/* Mathematical Equation Box with High Contrast & Subtle Scrollbar */
+.ms-formula-box {
+    background: var(--ms-formula-bg);
+    border: 1px solid var(--ms-formula-border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    margin: 0.4rem 0 1rem 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ms-formula-box::-webkit-scrollbar {
+    height: 5px;
+}
+
+.ms-formula-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ms-formula-box::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 4px;
+}
+
+.ms-formula-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+}
+
+.ms-module-card .katex,
+.ms-formula-box .katex,
+.ms-formula-box .katex-display .katex {
+    color: var(--ms-formula-text) !important;
+    font-size: 0.92rem;
+}
+
+.ms-formula-box .katex-display {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    text-align: center;
+}
+
+/* Adaptive Module Badges */
 .ms-module-badge {
-    display: inline-block;
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
     font-size: 0.72rem;
     font-weight: 700;
-    border-radius: 4px;
+    border-radius: 9999px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 6px;
+    width: fit-content;
+    border: 1px solid transparent;
+}
+
+.ms-module-badge.badge-mod1 { background: rgba(2, 132, 199, 0.12); color: #0284c7; border-color: rgba(2, 132, 199, 0.28); }
+.ms-module-badge.badge-mod2 { background: rgba(16, 185, 129, 0.12); color: #059669; border-color: rgba(16, 185, 129, 0.28); }
+.ms-module-badge.badge-mod3 { background: rgba(217, 119, 6, 0.12); color: #d97706; border-color: rgba(217, 119, 6, 0.28); }
+.ms-module-badge.badge-mod4 { background: rgba(147, 51, 234, 0.12); color: #9333ea; border-color: rgba(147, 51, 234, 0.28); }
+.ms-module-badge.badge-mod5 { background: rgba(225, 29, 72, 0.12); color: #e11d48; border-color: rgba(225, 29, 72, 0.28); }
+.ms-module-badge.badge-mod6 { background: rgba(14, 165, 233, 0.12); color: #0284c7; border-color: rgba(14, 165, 233, 0.28); }
+.ms-module-badge.badge-mod7 { background: rgba(13, 148, 136, 0.12); color: #0d9488; border-color: rgba(13, 148, 136, 0.28); }
+
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod1 { background: rgba(56, 189, 248, 0.16); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod2 { background: rgba(34, 197, 94, 0.16); color: #4ade80; border-color: rgba(34, 197, 94, 0.3); }
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod3 { background: rgba(245, 158, 11, 0.16); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod4 { background: rgba(168, 85, 247, 0.16); color: #c084fc; border-color: rgba(168, 85, 247, 0.3); }
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod5 { background: rgba(244, 63, 94, 0.16); color: #fb7185; border-color: rgba(244, 63, 94, 0.3); }
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod6 { background: rgba(56, 189, 248, 0.16); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+:root:not([data-theme="light"]) .ms-module-badge.badge-mod7 { background: rgba(45, 212, 191, 0.16); color: #2dd4bf; border-color: rgba(45, 212, 191, 0.3); }
+
+/* Launch Actions / Buttons */
+.ms-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 0.5rem;
 }
 
 .ms-module-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: 10px;
-    padding: 6px 14px;
+    padding: 7px 14px;
     border-radius: 6px;
-    background: #0284c7;
-    color: white;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #ffffff !important;
     font-size: 0.8rem;
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    border: none;
-    transition: background 0.15s;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    transition: all 0.15s ease;
 }
 
 .ms-module-btn:hover {
-    background: #0369a1;
+    background: linear-gradient(135deg, #0369a1, #075985);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.38);
+    color: #ffffff !important;
+}
+
+.ms-module-btn.btn-secondary {
+    background: var(--ms-btn-secondary-bg);
+    color: var(--ms-btn-secondary-text) !important;
+    border: 1px solid var(--ms-btn-secondary-border);
+    box-shadow: none;
+}
+
+.ms-module-btn.btn-secondary:hover {
+    background: var(--ms-btn-secondary-hover);
+    border-color: #0284c7;
+    color: var(--ms-btn-secondary-text) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Floating On-Canvas Guidance Bar */
+.ms-canvas-guidance {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    background: var(--ms-guide-bg);
+    border: 1px solid var(--ms-guide-border);
+    color: var(--ms-guide-text);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.76rem;
+    line-height: 1.4;
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 32px);
+    flex-wrap: wrap;
+}
+
+.ms-canvas-guidance strong {
+    color: var(--ms-guide-text);
+    font-weight: 700;
+}
+
+.ms-canvas-guidance kbd {
+    background: rgba(148, 163, 184, 0.22);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    font-family: monospace;
+    color: inherit;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 /* Mobile Compatibility */
