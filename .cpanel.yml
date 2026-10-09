@@ -1,7 +1,6 @@
 ---
 deployment:
   tasks:
+    - export DEPLOYPATH=/home/python4p/public_html/
     - export DEPLOYPATH_V2=/home/python4p/v2.python4physics.in/
-    - export DEPLOYPATH_APEX=/home/python4p/public_html/
-    - /bin/cp -R * $DEPLOYPATH_V2
-    - /bin/cp -R * $DEPLOYPATH_APEX
+    - /bin/cp -R * $DEPLOYPATH_V2 2>/dev/null || true
