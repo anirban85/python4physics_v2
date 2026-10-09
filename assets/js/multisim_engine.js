@@ -1175,9 +1175,11 @@
             }
 
             // Update virtual instruments with true physical node measurements
-            if (this.cro && this.cro.isOpen) {
+            if (this.cro) {
                 this.cro.recordSample(this.simTime);
-                this.cro.updateDisplay();
+                if (this.cro.isOpen) {
+                    this.cro.updateDisplay();
+                }
             }
 
             if (this.dmm && this.dmm.isOpen) {
@@ -1431,21 +1433,38 @@
                         const nc = this.pinToNode[`${comp.id}:c`] || 0;
                         const ne = this.pinToNode[`${comp.id}:e`] || 0;
                         const vb = this.nodeVoltages[nb] || 0.0;
-                        const ve = this.nodeVoltages[ne] || 0.0;
                         const vc = this.nodeVoltages[nc] || 0.0;
+                        const ve = this.nodeVoltages[ne] || 0.0;
                         const vbe = vb - ve;
-                        const beta = p.beta || 150;
+                        const vce = vc - ve;
+                        const beta = p.beta || 120;
+                        const rpi = 2500.0;
+                        const gpi = 1.0 / rpi;
 
-                        if (vbe > 0.65) {
-                            // Forward active / saturation
-                            const rpi = 1000.0;
-                            const ib = (vbe - 0.7) / rpi;
-                            stampConductance(nb, ne, 1.0 / rpi);
-                            stampCurrentSource(nb, ne, -0.7 / rpi);
+                        // Smooth continuous turn-on characteristic (eliminates step chatter)
+                        const turnOn = Math.max(0.0, Math.min(1.0, (vbe - 0.55) / 0.12));
 
-                            // Collector Current
-                            const ic = Math.max(0, Math.min(beta * ib, (vc - ve - 0.2) / 10.0));
-                            stampCurrentSource(nc, ne, ic);
+                        if (turnOn > 0.01) {
+                            const effGpi = gpi * turnOn;
+                            stampConductance(nb, ne, effGpi);
+                            const iEqB = 0.65 * effGpi;
+                            stampCurrentSource(nb, ne, -iEqB);
+
+                            const satFactor = Math.max(0.0, Math.min(1.0, (vce - 0.15) / 0.25));
+                            const gm = Math.min(0.06, beta * effGpi) * satFactor;
+
+                            if (gm > 1e-6) {
+                                if (ne > 0) {
+                                    if (nb > 0) A[ne - 1][nb - 1] -= gm;
+                                    A[ne - 1][ne - 1] += gm;
+                                }
+                                if (nc > 0) {
+                                    if (nb > 0) A[nc - 1][nb - 1] += gm;
+                                    if (ne > 0) A[nc - 1][ne - 1] -= gm;
+                                }
+                                const iEqC = 0.65 * gm;
+                                stampCurrentSource(nc, ne, -iEqC);
+                            }
                         } else {
                             stampConductance(nb, ne, 1e-7);
                             stampConductance(nc, ne, 1e-7);
@@ -1551,25 +1570,20 @@
                     if (nn > 0) { A[nn - 1][row] -= 1; A[row][nn - 1] -= 1; }
                     Z[row] = vVal;
                 } else if (src.type === 'opamp_out') {
-                    // Operational Amplifier Output Equation
+                    // Operational Amplifier Output Equation: Vnon - Vinv - Vout / Aol = 0
                     const op = src.refComp;
                     const nOut = this.pinToNode[`${op.id}:out`] || 0;
                     const nInv = this.pinToNode[`${op.id}:inv`] || 0;
                     const nNon = this.pinToNode[`${op.id}:non`] || 0;
-
-                    const vInv = this.nodeVoltages[nInv] || 0.0;
-                    const vNon = this.nodeVoltages[nNon] || 0.0;
                     const aol = op.props.aol || 100000;
-                    const vDiff = vNon - vInv;
 
-                    // Clamped saturation limits ±14V
-                    const vTarget = Math.max(-14.0, Math.min(14.0, aol * vDiff));
-
+                    if (nNon > 0) A[row][nNon - 1] += 1;
+                    if (nInv > 0) A[row][nInv - 1] -= 1;
                     if (nOut > 0) {
-                        A[nOut - 1][row] += 1;
-                        A[row][nOut - 1] += 1;
-                        Z[row] = vTarget;
+                        A[row][nOut - 1] -= 1.0 / aol;
+                        A[nOut - 1][row] += 1; // Current injected into output node
                     }
+                    Z[row] = 0.0;
                 }
             });
 
@@ -1581,6 +1595,27 @@
             for (let i = 1; i <= N; i++) {
                 this.nodeVoltages[i] = x ? x[i - 1] : 0.0;
             }
+
+            // Saturation clamping for Op-Amps (±14.0V)
+            this.components.filter(c => c.type === 'opamp').forEach(op => {
+                const nOut = this.pinToNode[`${op.id}:out`];
+                if (nOut && this.nodeVoltages[nOut] !== undefined) {
+                    if (this.nodeVoltages[nOut] > 14.0) this.nodeVoltages[nOut] = 14.0;
+                    else if (this.nodeVoltages[nOut] < -14.0) this.nodeVoltages[nOut] = -14.0;
+                }
+            });
+
+            // Physical saturation clamping for BJT NPN (Vc cannot drop below Ve + 0.2V)
+            this.components.filter(c => c.type === 'bjt_npn').forEach(bjt => {
+                const nc = this.pinToNode[`${bjt.id}:c`];
+                const ne = this.pinToNode[`${bjt.id}:e`];
+                if (nc && this.nodeVoltages[nc] !== undefined) {
+                    const ve = (ne && this.nodeVoltages[ne] !== undefined) ? this.nodeVoltages[ne] : 0.0;
+                    if (this.nodeVoltages[nc] < ve + 0.2) {
+                        this.nodeVoltages[nc] = ve + 0.2;
+                    }
+                }
+            });
 
             // Update states for Capacitors & Inductors
             this.components.forEach(comp => {
@@ -1778,6 +1813,9 @@
             this.render();
             // Start simulation automatically for live preview
             this.startSimulation();
+            if (this.cro) {
+                this.cro.calibratePreset(presetName);
+            }
         }
 
         // --- Module 1: Thevenin Equivalent Circuit ---
@@ -1791,15 +1829,19 @@
             rl.label = 'RL';
             const vm = this.addComponent('voltmeter', 640, 220);
             vm.rotation = 90;
+            const cro = this.addComponent('cro_tap', 740, 180);
             const gnd = this.addComponent('ground', 380, 340);
 
             this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: r2.id, toPin: '1' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: rl.id, toPin: '1' });
             this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: r2.id, toPin: '2' });
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: rl.id, toPin: '2' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: vm.id, toPin: 'n' });
+            this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -1813,14 +1855,18 @@
             rl.label = 'R_Load (Var)';
             const vm = this.addComponent('voltmeter', 680, 220);
             vm.rotation = 90;
+            const cro = this.addComponent('cro_tap', 780, 180);
             const gnd = this.addComponent('ground', 380, 340);
 
             this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: rth.id, toPin: '1' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: rth.id, fromPin: '2', toComp: am.id, toPin: 'p' });
             this.wires.push({ fromComp: am.id, fromPin: 'n', toComp: rl.id, toPin: '1' });
             this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: rl.id, toPin: '2' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: vm.id, toPin: 'n' });
+            this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -1833,14 +1879,18 @@
             const r2 = this.addComponent('resistor', 500, 140, { resistance: 1000 });
             const v2 = this.addComponent('dc_source', 620, 220, { voltage: 6 });
             const vm = this.addComponent('voltmeter', 380, 100);
+            const cro = this.addComponent('cro_tap', 740, 180);
             const gnd = this.addComponent('ground', 380, 340);
 
             this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: r3.id, toPin: '1' });
             this.wires.push({ fromComp: r3.id, fromPin: '1', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: r3.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: v2.id, toPin: 'p' });
             this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: r3.id, toPin: '2' });
             this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: v2.id, toPin: 'n' });
+            this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -1854,14 +1904,18 @@
             d1.rotation = 90;
             const vm = this.addComponent('voltmeter', 740, 220);
             vm.rotation = 90;
+            const cro = this.addComponent('cro_tap', 840, 180);
             const gnd = this.addComponent('ground', 400, 340);
 
             this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: pot.id, toPin: '1' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: pot.id, fromPin: 'w', toComp: rlimit.id, toPin: '1' });
             this.wires.push({ fromComp: rlimit.id, fromPin: '2', toComp: am.id, toPin: 'p' });
             this.wires.push({ fromComp: am.id, fromPin: 'n', toComp: d1.id, toPin: 'a' });
             this.wires.push({ fromComp: d1.id, fromPin: 'a', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: d1.id, fromPin: 'a', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: vm.id, toPin: 'n' });
+            this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: v1.id, toPin: 'n' });
             this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
@@ -1896,10 +1950,12 @@
         setupBridgeRectifierCircuit() {
             const vac = this.addComponent('ac_source', 140, 220, { amplitude: 12, frequency: 50 });
             const d1 = this.addComponent('diode', 300, 140);
-            const d2 = this.addComponent('diode', 300, 220);
-            const d3 = this.addComponent('diode', 420, 140);
-            const d4 = this.addComponent('diode', 420, 220);
-            const c1 = this.addComponent('capacitor', 540, 220, { capacitance: 0.00047 }); // 470uF
+            const d2 = this.addComponent('diode', 300, 260);
+            const d3 = this.addComponent('diode', 440, 140);
+            const d4 = this.addComponent('diode', 440, 260);
+            const sw = this.addComponent('switch_spst', 540, 140);
+            sw.label = 'SW_Filter';
+            const c1 = this.addComponent('capacitor', 540, 240, { capacitance: 0.0001 }); // 100uF
             c1.rotation = 90;
             const rl = this.addComponent('resistor', 660, 220, { resistance: 1000 });
             rl.rotation = 90;
@@ -1907,12 +1963,25 @@
             const cro = this.addComponent('cro_tap', 780, 180);
             const gnd = this.addComponent('ground', 540, 340);
 
+            // Channel A across AC source
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+
+            // AC source to Bridge
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: d1.id, toPin: 'a' });
-            this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: c1.id, toPin: '1' });
-            this.wires.push({ fromComp: c1.id, fromPin: '1', toComp: rl.id, toPin: '1' });
-            this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: d3.id, toPin: 'k' });
             this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: d2.id, toPin: 'a' });
+            this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: d4.id, toPin: 'k' });
+
+            // Positive DC rail (cathodes of D1 and D2 to RL, switch, and Ch B)
+            this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: d2.id, toPin: 'k' });
+            this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: sw.id, toPin: '1' });
+            this.wires.push({ fromComp: sw.id, fromPin: '2', toComp: c1.id, toPin: '1' });
+            this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: rl.id, toPin: '1' });
+            this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
+
+            // Negative DC rail (anodes of D3 and D4 to RL ground and Ch Gnd)
+            this.wires.push({ fromComp: d3.id, fromPin: 'a', toComp: d4.id, toPin: 'a' });
+            this.wires.push({ fromComp: d3.id, fromPin: 'a', toComp: rl.id, toPin: '2' });
             this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: rl.id, toPin: '2' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
@@ -1935,6 +2004,7 @@
             this.wires.push({ fromComp: d1.id, fromPin: 'a', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: d1.id, fromPin: 'k', toComp: vref.id, toPin: 'p' });
             this.wires.push({ fromComp: vref.id, fromPin: 'n', toComp: vac.id, toPin: 'n' });
+            this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -1952,18 +2022,22 @@
             re.rotation = 90;
             const ce = this.addComponent('capacitor', 500, 310, { capacitance: 0.0001 });
             ce.rotation = 90;
+            const cro = this.addComponent('cro_tap', 620, 180);
             const gnd = this.addComponent('ground', 340, 380);
 
             this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
             this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: r2.id, toPin: '1' });
             this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
             this.wires.push({ fromComp: rc.id, fromPin: '2', toComp: q1.id, toPin: 'c' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: re.id, toPin: '1' });
             this.wires.push({ fromComp: re.id, fromPin: '1', toComp: ce.id, toPin: '1' });
             this.wires.push({ fromComp: re.id, fromPin: '2', toComp: ce.id, toPin: '2' });
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: re.id, toPin: '2' });
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: vcc.id, toPin: 'n' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -1976,16 +2050,20 @@
             const vcc = this.addComponent('dc_source', 600, 220, { voltage: 10 });
             const vm = this.addComponent('voltmeter', 480, 260);
             vm.rotation = 90;
+            const cro = this.addComponent('cro_tap', 700, 180);
             const gnd = this.addComponent('ground', 380, 340);
 
             this.wires.push({ fromComp: vbb.id, fromPin: 'p', toComp: rb.id, toPin: '1' });
             this.wires.push({ fromComp: rb.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
             this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: am_c.id, toPin: 'p' });
             this.wires.push({ fromComp: am_c.id, fromPin: 'n', toComp: vcc.id, toPin: 'p' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: vm.id, toPin: 'n' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: vbb.id, toPin: 'n' });
             this.wires.push({ fromComp: vbb.id, fromPin: 'n', toComp: vcc.id, toPin: 'n' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -1996,13 +2074,17 @@
             const j1 = this.addComponent('jfet_n', 300, 200);
             const am_d = this.addComponent('ammeter', 420, 140);
             const vdd = this.addComponent('dc_source', 540, 220, { voltage: 12 });
+            const cro = this.addComponent('cro_tap', 660, 180);
             const gnd = this.addComponent('ground', 300, 320);
 
             this.wires.push({ fromComp: vgg.id, fromPin: 'p', toComp: j1.id, toPin: 'g' });
             this.wires.push({ fromComp: j1.id, fromPin: 'd', toComp: am_d.id, toPin: 'p' });
             this.wires.push({ fromComp: am_d.id, fromPin: 'n', toComp: vdd.id, toPin: 'p' });
+            this.wires.push({ fromComp: vdd.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: j1.id, fromPin: 'd', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: j1.id, fromPin: 's', toComp: vdd.id, toPin: 'n' });
             this.wires.push({ fromComp: j1.id, fromPin: 's', toComp: vgg.id, toPin: 'n' });
+            this.wires.push({ fromComp: j1.id, fromPin: 's', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: j1.id, fromPin: 's', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -2016,15 +2098,19 @@
             const led = this.addComponent('led', 440, 240, { color: '#22c55e' });
             led.rotation = 90;
             const vdd = this.addComponent('dc_source', 560, 220, { voltage: 12 });
+            const cro = this.addComponent('cro_tap', 680, 180);
             const gnd = this.addComponent('ground', 360, 340);
 
             this.wires.push({ fromComp: vgate.id, fromPin: 'p', toComp: sw.id, toPin: '1' });
+            this.wires.push({ fromComp: vgate.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: sw.id, fromPin: '2', toComp: m1.id, toPin: 'g' });
             this.wires.push({ fromComp: vdd.id, fromPin: 'p', toComp: rload.id, toPin: '1' });
             this.wires.push({ fromComp: rload.id, fromPin: '2', toComp: led.id, toPin: 'a' });
             this.wires.push({ fromComp: led.id, fromPin: 'k', toComp: m1.id, toPin: 'd' });
+            this.wires.push({ fromComp: m1.id, fromPin: 'd', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: m1.id, fromPin: 's', toComp: vdd.id, toPin: 'n' });
             this.wires.push({ fromComp: vdd.id, fromPin: 'n', toComp: vgate.id, toPin: 'n' });
+            this.wires.push({ fromComp: vdd.id, fromPin: 'n', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: vdd.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -2040,15 +2126,19 @@
             rl.label = 'RL';
             const vm = this.addComponent('voltmeter', 660, 220);
             vm.rotation = 90;
+            const cro = this.addComponent('cro_tap', 760, 180);
             const gnd = this.addComponent('ground', 420, 340);
 
             this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: rs.id, toPin: '1' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: rs.id, fromPin: '2', toComp: dz.id, toPin: 'k' });
             this.wires.push({ fromComp: dz.id, fromPin: 'k', toComp: rl.id, toPin: '1' });
             this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: dz.id, toPin: 'a' });
             this.wires.push({ fromComp: dz.id, fromPin: 'a', toComp: rl.id, toPin: '2' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: vm.id, toPin: 'n' });
+            this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -2064,24 +2154,28 @@
             rl.rotation = 90;
             const vm = this.addComponent('voltmeter', 600, 220);
             vm.rotation = 90;
+            const cro = this.addComponent('cro_tap', 720, 180);
             const gnd = this.addComponent('ground', 320, 340);
 
             this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: q1.id, toPin: 'c' });
             this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: rb.id, toPin: '1' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: rb.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
             this.wires.push({ fromComp: q1.id, fromPin: 'b', toComp: dz.id, toPin: 'k' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: rl.id, toPin: '1' });
             this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: dz.id, fromPin: 'a', toComp: rl.id, toPin: '2' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: vm.id, toPin: 'n' });
             this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: dz.id, toPin: 'a' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
         }
 
         // --- Module 6: Single-Stage CE AC Amplifier ---
         setupCEAmplifierCircuit() {
             const vac = this.addComponent('ac_source', 100, 220, { amplitude: 0.1, frequency: 1000 });
-            const c_in = this.addComponent('capacitor', 200, 160, { capacitance: 0.00001 });
+            const c_in = this.addComponent('capacitor', 200, 160, { capacitance: 0.000001 });
             const r1 = this.addComponent('resistor', 300, 100, { resistance: 47000 });
             r1.rotation = 90;
             const r2 = this.addComponent('resistor', 300, 240, { resistance: 10000 });
@@ -2091,9 +2185,9 @@
             rc.rotation = 90;
             const re = this.addComponent('resistor', 420, 280, { resistance: 1000 });
             re.rotation = 90;
-            const ce = this.addComponent('capacitor', 490, 280, { capacitance: 0.0001 });
+            const ce = this.addComponent('capacitor', 490, 280, { capacitance: 0.0000022 });
             ce.rotation = 90;
-            const c_out = this.addComponent('capacitor', 540, 140, { capacitance: 0.00001 });
+            const c_out = this.addComponent('capacitor', 540, 140, { capacitance: 0.000001 });
             const rl = this.addComponent('resistor', 640, 220, { resistance: 10000 });
             rl.rotation = 90;
             const cro = this.addComponent('cro_tap', 740, 160);
@@ -2117,6 +2211,7 @@
             this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: re.id, toPin: '2' });
             this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: re.id, toPin: '2' });
             this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: re.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
@@ -2125,27 +2220,36 @@
         setupEmitterFollowerCircuit() {
             const vac = this.addComponent('ac_source', 120, 220, { amplitude: 2, frequency: 1000 });
             const c_in = this.addComponent('capacitor', 240, 180, { capacitance: 0.00001 });
-            const q1 = this.addComponent('bjt_npn', 360, 180);
-            const re = this.addComponent('resistor', 420, 260, { resistance: 2200 });
+            const r1 = this.addComponent('resistor', 320, 100, { resistance: 47000 });
+            r1.rotation = 90;
+            const r2 = this.addComponent('resistor', 320, 260, { resistance: 47000 });
+            r2.rotation = 90;
+            const q1 = this.addComponent('bjt_npn', 400, 180);
+            const re = this.addComponent('resistor', 440, 260, { resistance: 2200 });
             re.rotation = 90;
-            const c_out = this.addComponent('capacitor', 520, 200, { capacitance: 0.00001 });
-            const rl = this.addComponent('resistor', 620, 240, { resistance: 4700 });
+            const c_out = this.addComponent('capacitor', 540, 200, { capacitance: 0.00001 });
+            const rl = this.addComponent('resistor', 640, 240, { resistance: 4700 });
             rl.rotation = 90;
-            const cro = this.addComponent('cro_tap', 720, 180);
-            const vcc = this.addComponent('dc_source', 360, 80, { voltage: 12 });
-            const gnd = this.addComponent('ground', 360, 360);
+            const cro = this.addComponent('cro_tap', 740, 180);
+            const vcc = this.addComponent('dc_source', 400, 40, { voltage: 12 });
+            const gnd = this.addComponent('ground', 400, 360);
 
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: c_in.id, toPin: '1' });
             this.wires.push({ fromComp: vac.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: c_in.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: r2.id, fromPin: '1', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
             this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: q1.id, toPin: 'c' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: re.id, toPin: '1' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: c_out.id, toPin: '1' });
             this.wires.push({ fromComp: c_out.id, fromPin: '2', toComp: rl.id, toPin: '1' });
             this.wires.push({ fromComp: rl.id, fromPin: '1', toComp: cro.id, toPin: 'chB' });
-            this.wires.push({ fromComp: re.id, fromPin: '2', toComp: rl.id, toPin: '2' });
-            this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: re.id, toPin: '2' });
+            this.wires.push({ fromComp: vac.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: re.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: rl.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
 
@@ -2248,58 +2352,383 @@
 
             this.chA_enabled = true;
             this.chB_enabled = true;
-            this.chA_voltsDiv = 2.0; // 2 V/div
-            this.chB_voltsDiv = 2.0; // 2 V/div
-            this.timeDiv = 0.002;    // 2 ms/div
-            this.chA_yPos = 0;       // divisions
-            this.chB_yPos = 0;       // divisions
+            this.chA_voltsDiv = 5.0; // 5 V/div default
+            this.chB_voltsDiv = 5.0; // 5 V/div default
+            this.timeDiv = 0.005;    // 5 ms/div default
+            this.chA_yPos = 1.0;      // +1.0 div offset (upper screen)
+            this.chB_yPos = -1.5;     // -1.5 div offset (lower screen)
             this.mode = 'YT';        // 'YT' or 'XY'
 
             // Real Rolling History Buffer
             this.historyBuffer = []; // [ { t, vA, vB } ]
-            this.maxHistory = 1200;
+            this.maxHistory = 1500;
 
             this.bindControls();
+            this.syncControlsUI();
         }
 
         bindControls() {
             const closeBtn = document.getElementById('msCroCloseBtn');
             if (closeBtn) closeBtn.onclick = () => this.hide();
 
+            const autosetBtn = document.getElementById('msCroAutosetBtn');
+            if (autosetBtn) autosetBtn.onclick = () => this.autoset();
+
             const timeSel = document.getElementById('msCroTimeDiv');
-            if (timeSel) timeSel.onchange = e => { this.timeDiv = parseFloat(e.target.value); };
+            if (timeSel) {
+                timeSel.onchange = e => {
+                    this.timeDiv = parseFloat(e.target.value);
+                    this.updateDisplay();
+                };
+            }
 
             const vA = document.getElementById('msCroVoltsA');
-            if (vA) vA.onchange = e => { this.chA_voltsDiv = parseFloat(e.target.value); };
+            if (vA) {
+                vA.onchange = e => {
+                    this.chA_voltsDiv = parseFloat(e.target.value);
+                    this.updateDisplay();
+                };
+            }
 
             const vB = document.getElementById('msCroVoltsB');
-            if (vB) vB.onchange = e => { this.chB_voltsDiv = parseFloat(e.target.value); };
+            if (vB) {
+                vB.onchange = e => {
+                    this.chB_voltsDiv = parseFloat(e.target.value);
+                    this.updateDisplay();
+                };
+            }
+
+            // Channel A Y-Position Steppers (+ is Up, - is Down)
+            const posADown = document.getElementById('msCroPosADown');
+            if (posADown) {
+                posADown.onclick = () => {
+                    this.chA_yPos = Math.max(-3.5, Math.round((this.chA_yPos - 0.5) * 10) / 10);
+                    this.syncControlsUI();
+                    this.updateDisplay();
+                };
+            }
+            const posAUp = document.getElementById('msCroPosAUp');
+            if (posAUp) {
+                posAUp.onclick = () => {
+                    this.chA_yPos = Math.min(3.5, Math.round((this.chA_yPos + 0.5) * 10) / 10);
+                    this.syncControlsUI();
+                    this.updateDisplay();
+                };
+            }
+
+            // Channel B Y-Position Steppers (+ is Up, - is Down)
+            const posBDown = document.getElementById('msCroPosBDown');
+            if (posBDown) {
+                posBDown.onclick = () => {
+                    this.chB_yPos = Math.max(-3.5, Math.round((this.chB_yPos - 0.5) * 10) / 10);
+                    this.syncControlsUI();
+                    this.updateDisplay();
+                };
+            }
+            const posBUp = document.getElementById('msCroPosBUp');
+            if (posBUp) {
+                posBUp.onclick = () => {
+                    this.chB_yPos = Math.min(3.5, Math.round((this.chB_yPos + 0.5) * 10) / 10);
+                    this.syncControlsUI();
+                    this.updateDisplay();
+                };
+            }
 
             const togA = document.getElementById('msCroToggleA');
-            if (togA) togA.onclick = () => {
-                this.chA_enabled = !this.chA_enabled;
-                togA.classList.toggle('active', this.chA_enabled);
-            };
+            if (togA) {
+                togA.onclick = () => {
+                    this.chA_enabled = !this.chA_enabled;
+                    this.syncControlsUI();
+                    this.updateDisplay();
+                };
+            }
 
             const togB = document.getElementById('msCroToggleB');
-            if (togB) togB.onclick = () => {
-                this.chB_enabled = !this.chB_enabled;
-                togB.classList.toggle('active', this.chB_enabled);
-            };
+            if (togB) {
+                togB.onclick = () => {
+                    this.chB_enabled = !this.chB_enabled;
+                    this.syncControlsUI();
+                    this.updateDisplay();
+                };
+            }
 
             const modeBtn = document.getElementById('msCroModeBtn');
             if (modeBtn) {
                 modeBtn.onclick = () => {
                     this.mode = this.mode === 'YT' ? 'XY' : 'YT';
                     modeBtn.innerText = this.mode === 'YT' ? 'Mode: Y-T (Dual Sweep)' : 'Mode: X-Y (Lissajous)';
+                    this.updateDisplay();
                 };
             }
+        }
+
+        syncControlsUI() {
+            const timeSel = document.getElementById('msCroTimeDiv');
+            if (timeSel && timeSel.options && timeSel.options.length > 0) {
+                let closestVal = timeSel.options[0].value;
+                let minDiff = Infinity;
+                for (let i = 0; i < timeSel.options.length; i++) {
+                    const diff = Math.abs(parseFloat(timeSel.options[i].value) - this.timeDiv);
+                    if (diff < minDiff) { minDiff = diff; closestVal = timeSel.options[i].value; }
+                }
+                timeSel.value = closestVal;
+            }
+
+            const vA = document.getElementById('msCroVoltsA');
+            if (vA && vA.options && vA.options.length > 0) {
+                let closestVal = vA.options[0].value;
+                let minDiff = Infinity;
+                for (let i = 0; i < vA.options.length; i++) {
+                    const diff = Math.abs(parseFloat(vA.options[i].value) - this.chA_voltsDiv);
+                    if (diff < minDiff) { minDiff = diff; closestVal = vA.options[i].value; }
+                }
+                vA.value = closestVal;
+            }
+
+            const vB = document.getElementById('msCroVoltsB');
+            if (vB && vB.options && vB.options.length > 0) {
+                let closestVal = vB.options[0].value;
+                let minDiff = Infinity;
+                for (let i = 0; i < vB.options.length; i++) {
+                    const diff = Math.abs(parseFloat(vB.options[i].value) - this.chB_voltsDiv);
+                    if (diff < minDiff) { minDiff = diff; closestVal = vB.options[i].value; }
+                }
+                vB.value = closestVal;
+            }
+
+            const posADisp = document.getElementById('msCroPosADisp');
+            if (posADisp) {
+                posADisp.innerText = (this.chA_yPos >= 0 ? '+' : '') + this.chA_yPos.toFixed(1) + ' div';
+            }
+
+            const posBDisp = document.getElementById('msCroPosBDisp');
+            if (posBDisp) {
+                posBDisp.innerText = (this.chB_yPos >= 0 ? '+' : '') + this.chB_yPos.toFixed(1) + ' div';
+            }
+
+            const togA = document.getElementById('msCroToggleA');
+            if (togA) togA.classList.toggle('active', this.chA_enabled);
+
+            const togB = document.getElementById('msCroToggleB');
+            if (togB) togB.classList.toggle('active', this.chB_enabled);
+        }
+
+        calibratePreset(presetName) {
+            this.chA_enabled = true;
+            this.chB_enabled = true;
+
+            switch (presetName) {
+                // --- Module 1: DC Circuits & Network Theorems ---
+                case 'mod1_thevenin_norton':
+                case 'mod1_superposition':
+                case 'mod1_max_power':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -2.0;
+                    break;
+
+                // --- Module 2: Semiconductor Diodes & Rectifiers ---
+                case 'mod2_bridge_rectifier':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod2_halfwave_rectifier':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod2_pn_diode':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 0.5;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -2.0;
+                    break;
+
+                case 'mod2_clipper_clamper':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.2;
+                    this.chB_yPos = -1.2;
+                    break;
+
+                // --- Module 3: BJT Transistors & Biasing ---
+                case 'mod3_voltage_divider_bias':
+                case 'mod3_ce_characteristics':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -2.0;
+                    break;
+
+                // --- Module 4: FET & MOSFET ---
+                case 'mod4_jfet_characteristics':
+                case 'mod4_mosfet_switch':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                // --- Module 5: Regulated Power Supplies ---
+                case 'mod5_zener_regulator':
+                case 'mod5_series_pass_regulator':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -2.0;
+                    break;
+
+                // --- Module 6: Amplifiers & Frequency Response ---
+                case 'mod6_ce_amplifier':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 0.1;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.0;
+                    break;
+
+                case 'mod6_emitter_follower':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 1.0;
+                    this.chB_voltsDiv = 1.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                // --- Module 7: Op-Amp (IC 741) & Feedback ---
+                case 'mod7_opamp_inverting':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 1.0;
+                    this.chB_voltsDiv = 1.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod7_opamp_noninverting':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 1.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod7_opamp_integrator':
+                    this.timeDiv = 0.001;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod7_opamp_comparator':
+                    this.timeDiv = 0.002;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 10.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.0;
+                    break;
+
+                default:
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+            }
+
+            this.syncControlsUI();
+            this.updateDisplay();
+        }
+
+        autoset() {
+            if (this.historyBuffer.length < 5) return;
+
+            const recent = this.historyBuffer.slice(-Math.min(300, this.historyBuffer.length));
+            let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
+
+            recent.forEach(s => {
+                if (s.vA < minA) minA = s.vA;
+                if (s.vA > maxA) maxA = s.vA;
+                if (s.vB < minB) minB = s.vB;
+                if (s.vB > maxB) maxB = s.vB;
+            });
+
+            const spanA = maxA - minA;
+            const spanB = maxB - minB;
+            const meanA = (maxA + minA) / 2;
+            const meanB = (maxB + minB) / 2;
+
+            const standardVdivs = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20];
+            const pickVdiv = (span, mean) => {
+                const targetDivs = 3.5;
+                const needed = Math.max(span / targetDivs, Math.abs(mean) / 3.0);
+                for (let v of standardVdivs) {
+                    if (v >= needed) return v;
+                }
+                return 20.0;
+            };
+
+            this.chA_voltsDiv = pickVdiv(spanA, meanA);
+            this.chB_voltsDiv = pickVdiv(spanB, meanB);
+
+            // Channel separation for dual trace
+            if (this.chA_enabled && this.chB_enabled) {
+                // If AC signal centered near 0
+                if (spanA > 0.1 && Math.abs(meanA) < spanA * 0.5) {
+                    this.chA_yPos = 1.5;
+                } else {
+                    this.chA_yPos = Math.max(-3.0, Math.min(3.0, -(meanA / this.chA_voltsDiv) + 1.0));
+                }
+
+                if (spanB > 0.1 && Math.abs(meanB) < spanB * 0.5) {
+                    this.chB_yPos = -1.5;
+                } else {
+                    this.chB_yPos = Math.max(-3.0, Math.min(3.0, -(meanB / this.chB_voltsDiv) - 1.5));
+                }
+            } else {
+                this.chA_yPos = -(meanA / this.chA_voltsDiv);
+                this.chB_yPos = -(meanB / this.chB_voltsDiv);
+            }
+
+            // Estimate period for timebase
+            const acComp = this.wb.components.find(c => c.type === 'ac_source');
+            let freq = acComp && acComp.props.frequency ? acComp.props.frequency : 50;
+
+            const standardTdivs = [0.00005, 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05];
+            const period = 1.0 / freq;
+            const targetTdiv = (2.5 * period) / 10.0; // Display ~2.5 full periods across 10 divs
+
+            let bestT = standardTdivs[0];
+            let minDiff = Infinity;
+            for (let t of standardTdivs) {
+                const diff = Math.abs(t - targetTdiv);
+                if (diff < minDiff) { minDiff = diff; bestT = t; }
+            }
+            this.timeDiv = bestT;
+
+            this.syncControlsUI();
+            this.updateDisplay();
         }
 
         show() {
             if (this.windowEl) {
                 this.windowEl.classList.add('active');
                 this.isOpen = true;
+                this.syncControlsUI();
                 this.drawGrid();
             }
         }
@@ -2317,7 +2746,6 @@
         }
 
         recordSample(simTime) {
-            // Find active CRO tap or default probing nodes
             let vA = 0.0;
             let vB = 0.0;
 
@@ -2331,10 +2759,30 @@
                 if (nA !== undefined) vA = (this.wb.nodeVoltages[nA] || 0.0) - vG;
                 if (nB !== undefined) vB = (this.wb.nodeVoltages[nB] || 0.0) - vG;
             } else {
-                // Probes default: Node 1 (Input) and Node 2 (Output)
-                vA = this.wb.nodeVoltages[1] || 0.0;
-                vB = this.wb.nodeVoltages[2] || 0.0;
+                // Fallback auto-discovery for custom schematics without cro_tap
+                const voltKeys = Object.keys(this.wb.nodeVoltages).filter(k => k !== '0');
+                if (voltKeys.length > 0) {
+                    const src = this.wb.components.find(c => c.type === 'ac_source' || c.type === 'dc_source');
+                    if (src) {
+                        const nSrc = this.wb.pinToNode[`${src.id}:p`];
+                        if (nSrc !== undefined) vA = this.wb.nodeVoltages[nSrc] || 0.0;
+                    } else {
+                        vA = this.wb.nodeVoltages[voltKeys[0]] || 0.0;
+                    }
+
+                    const load = this.wb.components.find(c => c.label === 'RL' || c.label === 'R_Load' || c.type === 'opamp');
+                    if (load) {
+                        const nLoad = load.type === 'opamp' ? this.wb.pinToNode[`${load.id}:out`] : this.wb.pinToNode[`${load.id}:1`];
+                        if (nLoad !== undefined) vB = this.wb.nodeVoltages[nLoad] || 0.0;
+                    } else if (voltKeys.length > 1) {
+                        vB = this.wb.nodeVoltages[voltKeys[voltKeys.length - 1]] || 0.0;
+                    }
+                }
             }
+
+            // Sanitize values
+            if (isNaN(vA) || !isFinite(vA)) vA = 0.0;
+            if (isNaN(vB) || !isFinite(vB)) vB = 0.0;
 
             this.historyBuffer.push({ t: simTime, vA, vB });
             if (this.historyBuffer.length > this.maxHistory) {
@@ -2396,6 +2844,36 @@
                 this.ctx.lineTo(w / 2 + 3, ty);
                 this.ctx.stroke();
             }
+
+            // Tektronix Ground Reference Markers on Left Edge
+            const midY = h / 2;
+            if (this.chA_enabled) {
+                const gndAY = Math.min(Math.max(midY - this.chA_yPos * dy, 6), h - 6);
+                this.ctx.fillStyle = '#fbbf24';
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, gndAY - 5);
+                this.ctx.lineTo(8, gndAY);
+                this.ctx.lineTo(0, gndAY + 5);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.font = 'bold 8px monospace';
+                this.ctx.fillStyle = '#fbbf24';
+                this.ctx.fillText('1', 10, gndAY + 3);
+            }
+
+            if (this.chB_enabled) {
+                const gndBY = Math.min(Math.max(midY - this.chB_yPos * dy, 6), h - 6);
+                this.ctx.fillStyle = '#38bdf8';
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, gndBY - 5);
+                this.ctx.lineTo(8, gndBY);
+                this.ctx.lineTo(0, gndBY + 5);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.font = 'bold 8px monospace';
+                this.ctx.fillStyle = '#38bdf8';
+                this.ctx.fillText('2', 10, gndBY + 3);
+            }
         }
 
         updateDisplay() {
@@ -2415,6 +2893,9 @@
             const visible = this.historyBuffer.filter(s => s.t >= startTime);
             if (visible.length < 2) return;
 
+            let overRangeA = false;
+            let overRangeB = false;
+
             if (this.mode === 'YT') {
                 // --- Channel A (Yellow Trace) ---
                 if (this.chA_enabled) {
@@ -2426,7 +2907,10 @@
 
                     visible.forEach((s, idx) => {
                         const px = ((s.t - startTime) / windowTime) * w;
-                        const py = midY - (s.vA / this.chA_voltsDiv) * dy - this.chA_yPos * dy;
+                        const rawPy = midY - (s.vA / this.chA_voltsDiv) * dy - this.chA_yPos * dy;
+                        if (rawPy < 4 || rawPy > h - 4) overRangeA = true;
+                        const py = Math.min(Math.max(rawPy, 4), h - 4);
+
                         if (idx === 0) this.ctx.moveTo(px, py);
                         else this.ctx.lineTo(px, py);
                     });
@@ -2444,12 +2928,27 @@
 
                     visible.forEach((s, idx) => {
                         const px = ((s.t - startTime) / windowTime) * w;
-                        const py = midY - (s.vB / this.chB_voltsDiv) * dy - this.chB_yPos * dy;
+                        const rawPy = midY - (s.vB / this.chB_voltsDiv) * dy - this.chB_yPos * dy;
+                        if (rawPy < 4 || rawPy > h - 4) overRangeB = true;
+                        const py = Math.min(Math.max(rawPy, 4), h - 4);
+
                         if (idx === 0) this.ctx.moveTo(px, py);
                         else this.ctx.lineTo(px, py);
                     });
                     this.ctx.stroke();
                     this.ctx.shadowBlur = 0;
+                }
+
+                // Over-Range / Clipping Screen Badges
+                if (overRangeA) {
+                    this.ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
+                    this.ctx.font = 'bold 9px monospace';
+                    this.ctx.fillText('▲ CH A CLIPPED (Adjust V/Div or Y-Pos)', 20, 16);
+                }
+                if (overRangeB) {
+                    this.ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+                    this.ctx.font = 'bold 9px monospace';
+                    this.ctx.fillText('▲ CH B CLIPPED (Adjust V/Div or Y-Pos)', 20, overRangeA ? 28 : 16);
                 }
             } else {
                 // --- X-Y Mode (Lissajous Figure) ---
@@ -2463,8 +2962,8 @@
                 this.ctx.beginPath();
 
                 visible.forEach((s, idx) => {
-                    const px = midX + (s.vA / this.chA_voltsDiv) * dx;
-                    const py = midY - (s.vB / this.chB_voltsDiv) * dy;
+                    const px = Math.min(Math.max(midX + (s.vA / this.chA_voltsDiv) * dx, 4), w - 4);
+                    const py = Math.min(Math.max(midY - (s.vB / this.chB_voltsDiv) * dy, 4), h - 4);
                     if (idx === 0) this.ctx.moveTo(px, py);
                     else this.ctx.lineTo(px, py);
                 });
@@ -2474,15 +2973,11 @@
 
             // Calculate True Telemetry
             let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
-            let sumSqA = 0, sumSqB = 0;
-
             visible.forEach(s => {
                 if (s.vA < minA) minA = s.vA;
                 if (s.vA > maxA) maxA = s.vA;
                 if (s.vB < minB) minB = s.vB;
                 if (s.vB > maxB) maxB = s.vB;
-                sumSqA += s.vA * s.vA;
-                sumSqB += s.vB * s.vB;
             });
 
             const vppA = maxA > minA ? (maxA - minA) : 0;
@@ -2676,6 +3171,7 @@
     // 9. APP LAUNCHER
     // ========================================================================
     document.addEventListener('DOMContentLoaded', function () {
+        window.CircuitWorkbench = CircuitWorkbench;
         window.MultisimApp = new CircuitWorkbench();
     });
 

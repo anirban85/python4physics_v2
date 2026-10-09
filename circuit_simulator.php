@@ -444,9 +444,14 @@ require_once __DIR__ . '/include/navbar.php';
 
                 <!-- Control Console -->
                 <div class="ms-cro-controls">
+                    <!-- Autoset Button -->
+                    <button type="button" class="ms-cro-autoset-btn" id="msCroAutosetBtn" title="Auto-calibrate Timebase, Volts/Div, and Y-Offsets for both channels">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> AUTOSET (Dual Channels)
+                    </button>
+
                     <!-- Timebase -->
                     <div class="ms-cro-section">
-                        <div class="ms-cro-sec-title">Timebase</div>
+                        <div class="ms-cro-sec-title">Timebase (Horizontal)</div>
                         <div class="ms-cro-knob-row">
                             <span class="ms-cro-label">Time / Div:</span>
                             <select id="msCroTimeDiv" class="ms-cro-select">
@@ -454,10 +459,11 @@ require_once __DIR__ . '/include/navbar.php';
                                 <option value="0.0001">100 µs</option>
                                 <option value="0.0005">500 µs</option>
                                 <option value="0.001">1 ms</option>
-                                <option value="0.002" selected>2 ms</option>
-                                <option value="0.005">5 ms</option>
+                                <option value="0.002">2 ms</option>
+                                <option value="0.005" selected>5 ms</option>
                                 <option value="0.01">10 ms</option>
                                 <option value="0.02">20 ms</option>
+                                <option value="0.05">50 ms</option>
                             </select>
                         </div>
                     </div>
@@ -469,12 +475,22 @@ require_once __DIR__ . '/include/navbar.php';
                             <span class="ms-cro-label">Volts / Div:</span>
                             <select id="msCroVoltsA" class="ms-cro-select">
                                 <option value="0.1">100 mV</option>
+                                <option value="0.2">200 mV</option>
                                 <option value="0.5">500 mV</option>
                                 <option value="1">1 V</option>
-                                <option value="2" selected>2 V</option>
-                                <option value="5">5 V</option>
+                                <option value="2">2 V</option>
+                                <option value="5" selected>5 V</option>
                                 <option value="10">10 V</option>
+                                <option value="20">20 V</option>
                             </select>
+                        </div>
+                        <div class="ms-cro-knob-row">
+                            <span class="ms-cro-label">Y-Pos:</span>
+                            <div class="ms-cro-pos-stepper">
+                                <button type="button" class="ms-cro-pos-btn" id="msCroPosADown" title="Shift Down">-</button>
+                                <span class="ms-cro-pos-val" id="msCroPosADisp">+1.0 div</span>
+                                <button type="button" class="ms-cro-pos-btn" id="msCroPosAUp" title="Shift Up">+</button>
+                            </div>
                         </div>
                         <button type="button" class="ms-tool-btn active" id="msCroToggleA" style="width: 100%; justify-content: center; margin-top: 4px;">
                             <i class="fa-solid fa-eye"></i> Channel A Active
@@ -488,12 +504,22 @@ require_once __DIR__ . '/include/navbar.php';
                             <span class="ms-cro-label">Volts / Div:</span>
                             <select id="msCroVoltsB" class="ms-cro-select">
                                 <option value="0.1">100 mV</option>
+                                <option value="0.2">200 mV</option>
                                 <option value="0.5">500 mV</option>
                                 <option value="1">1 V</option>
-                                <option value="2" selected>2 V</option>
-                                <option value="5">5 V</option>
+                                <option value="2">2 V</option>
+                                <option value="5" selected>5 V</option>
                                 <option value="10">10 V</option>
+                                <option value="20">20 V</option>
                             </select>
+                        </div>
+                        <div class="ms-cro-knob-row">
+                            <span class="ms-cro-label">Y-Pos:</span>
+                            <div class="ms-cro-pos-stepper">
+                                <button type="button" class="ms-cro-pos-btn" id="msCroPosBDown" title="Shift Down">-</button>
+                                <span class="ms-cro-pos-val" id="msCroPosBDisp">-1.5 div</span>
+                                <button type="button" class="ms-cro-pos-btn" id="msCroPosBUp" title="Shift Up">+</button>
+                            </div>
                         </div>
                         <button type="button" class="ms-tool-btn active" id="msCroToggleB" style="width: 100%; justify-content: center; margin-top: 4px;">
                             <i class="fa-solid fa-eye"></i> Channel B Active
@@ -507,10 +533,10 @@ require_once __DIR__ . '/include/navbar.php';
 
                     <!-- Waveform Telemetry -->
                     <div class="ms-cro-telemetry">
-                        <div>Ch A Vp-p: <span id="msCroVppA" style="color: #fbbf24;">20.0 V</span></div>
-                        <div>Ch A Freq: <span id="msCroFreqA" style="color: #fbbf24;">50 Hz</span></div>
-                        <div>Ch B Vp-p: <span id="msCroVppB" style="color: #38bdf8;">17.2 V</span></div>
-                        <div>Ch B Freq: <span id="msCroFreqB" style="color: #38bdf8;">100 Hz</span></div>
+                        <div>Ch A Vp-p: <span id="msCroVppA" style="color: #fbbf24;">--</span></div>
+                        <div>Ch A Freq: <span id="msCroFreqA" style="color: #fbbf24;">--</span></div>
+                        <div>Ch B Vp-p: <span id="msCroVppB" style="color: #38bdf8;">--</span></div>
+                        <div>Ch B Freq: <span id="msCroFreqB" style="color: #38bdf8;">--</span></div>
                     </div>
                 </div>
             </div>
