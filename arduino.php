@@ -194,9 +194,9 @@ require_once __DIR__ . '/include/navbar.php';
                 </button>
 
                 <div class="tc-divider-v"></div>
-                <div class="tc-hint-tag" style="font-size: 0.72rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 4px;" title="Press Shift + Left Click on any component to select, move, rotate, or delete it">
-                    <i class="fa-solid fa-computer-mouse" style="color: #38bdf8;"></i>
-                    <span><strong>Shift+Click</strong>: Select Component / Wire (Move / Delete)</span>
+                <div class="tc-hint-tag" id="tcHintTag" style="font-size: 0.72rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 4px;" title="Click any component to edit value, rotate or delete. Click any terminal pin or breadboard hole to connect wires.">
+                    <i class="fa-solid fa-arrow-pointer" style="color: #38bdf8;"></i>
+                    <span><strong>Click</strong> to Select & Edit · <strong>Click Pin</strong> to Wire</span>
                 </div>
             </div>
 

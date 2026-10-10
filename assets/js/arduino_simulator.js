@@ -1789,6 +1789,7 @@ void loop() {
         el.onmouseleave = () => onTerminalLeave(id);
 
         el.onmousedown = (e) => {
+            if (e.button !== 0) return;
             if (e.shiftKey) {
                 e.stopPropagation();
                 const comp = getComponentForTerminal(id) || getComponentAt(x, y);
@@ -1803,28 +1804,33 @@ void loop() {
         };
 
         el.onclick = (e) => {
+            e.stopPropagation();
             if (e.shiftKey) {
-                e.stopPropagation();
                 const comp = getComponentForTerminal(id) || getComponentAt(x, y);
                 if (comp) {
                     selectComponent(comp.id);
                     return;
                 }
             }
-            e.stopPropagation();
+            // If clicking a component terminal while idle, also select the parent component for immediate editing/inspection
+            const parentComp = getComponentForTerminal(id);
+            if (parentComp && !state.drawingWire) {
+                selectComponent(parentComp.id);
+            }
             onTerminalClick(id);
         };
 
         el.ontouchstart = (e) => {
-            const comp = getComponentForTerminal(id) || (id.startsWith('bb-') ? getComponentAt(x, y) : null);
-            if (comp && !state.drawingWire) {
+            if (state.drawingWire) {
+                e.stopPropagation();
+                e.preventDefault();
+                onTerminalClick(id);
+                return;
+            }
+            const comp = getComponentForTerminal(id);
+            if (comp) {
                 e.stopPropagation();
                 selectComponent(comp.id);
-                const compEl = document.getElementById(comp.id);
-                if (compEl && compEl._startDrag && e.touches.length === 1) {
-                    compEl._startDrag(e.touches[0].clientX, e.touches[0].clientY);
-                }
-                return;
             }
             e.stopPropagation();
             e.preventDefault();
@@ -1910,7 +1916,7 @@ void loop() {
 
     function findSnapTerminal(stageX, stageY, ignoreId = null) {
         let closest = null;
-        let minDist = 28; // Magnetic snap radius in stage pixels
+        let minDist = 32; // Magnetic snap radius in stage pixels for effortless wire snapping
         for (const id in terminals) {
             if (id === ignoreId) continue;
             const t = terminals[id];
@@ -2303,6 +2309,24 @@ void loop() {
     // ==========================================
     // 9. BREADBOARD HOLE SNAPPING ENGINE
     // ==========================================
+    function getRotatedTerminalOffset(compType, offset, rotation = 0) {
+        const lib = COMPONENT_LIBRARY[compType];
+        const w = lib ? lib.width : 50;
+        const h = lib ? lib.height : 50;
+        const rot = ((rotation || 0) % 360 + 360) % 360;
+        if (rot === 0) return { dx: offset.dx, dy: offset.dy };
+
+        const relX = offset.dx - w / 2;
+        const relY = offset.dy - h / 2;
+        const rad = (rot * Math.PI) / 180;
+        const rotX = relX * Math.cos(rad) - relY * Math.sin(rad);
+        const rotY = relX * Math.sin(rad) + relY * Math.cos(rad);
+        return {
+            dx: Math.round((w / 2 + rotX) * 10) / 10,
+            dy: Math.round((h / 2 + rotY) * 10) / 10
+        };
+    }
+
     function findNearestBreadboardHole(rawX, rawY) {
         // Breadboard bounds
         const bbLeft = LAYOUT.bbX;
@@ -2335,7 +2359,8 @@ void loop() {
         const lib = COMPONENT_LIBRARY[comp.type];
         if (!lib || !lib.terminalOffsets || lib.terminalOffsets.length === 0) return;
 
-        const pin1 = lib.terminalOffsets[0];
+        const pin1Raw = lib.terminalOffsets[0];
+        const pin1 = getRotatedTerminalOffset(comp.type, pin1Raw, comp.rotation);
         const primaryLeadX = x + pin1.dx;
         const primaryLeadY = y + pin1.dy;
 
@@ -2349,8 +2374,9 @@ void loop() {
         const snapDy = nearest.y - primaryLeadY;
 
         lib.terminalOffsets.forEach(t => {
-            const hx = x + t.dx + snapDx;
-            const hy = y + t.dy + snapDy;
+            const rotT = getRotatedTerminalOffset(comp.type, t, comp.rotation);
+            const hx = x + rotT.dx + snapDx;
+            const hy = y + rotT.dy + snapDy;
             const halo = document.createElement('div');
             halo.className = 'tc-snap-hole-halo';
             halo.style.left = `${hx}px`;
@@ -2366,8 +2392,9 @@ void loop() {
         const lib = COMPONENT_LIBRARY[type];
         if (!lib) return null;
 
-        // Snapping check if landing on breadboard
-        const pin1 = lib.terminalOffsets ? lib.terminalOffsets[0] : { dx: 0, dy: 0 };
+        // Snapping check if landing on breadboard with rotation support
+        const pin1Raw = lib.terminalOffsets ? lib.terminalOffsets[0] : { dx: 0, dy: 0 };
+        const pin1 = getRotatedTerminalOffset(type, pin1Raw, rotation);
         const hole = findNearestBreadboardHole(x + pin1.dx, y + pin1.dy);
         let finalX = x;
         let finalY = y;
@@ -2419,11 +2446,21 @@ void loop() {
         el.style.left = `${comp.x}px`;
         el.style.top = `${comp.y}px`;
         el.style.transform = `rotate(${comp.rotation}deg)`;
-        el.style.zIndex = state.selectedItem?.id === comp.id ? '50' : '30';
+        el.style.zIndex = state.selectedItem?.id === comp.id ? '60' : '40';
         el.innerHTML = getComponentSVG(comp);
 
         el.onclick = (e) => {
             e.stopPropagation();
+            if (state.drawingWire) {
+                const rect = document.getElementById('tcCanvasStage').getBoundingClientRect();
+                const stageX = (e.clientX - rect.left) / state.zoom;
+                const stageY = (e.clientY - rect.top) / state.zoom;
+                const snapTerm = findSnapTerminal(stageX, stageY, state.drawingWire.from);
+                if (snapTerm) {
+                    onTerminalClick(snapTerm.id);
+                    return;
+                }
+            }
             selectComponent(comp.id);
         };
 
@@ -2793,8 +2830,9 @@ void loop() {
 
         lib.terminalOffsets.forEach(t => {
             const termId = `${comp.id}_${t.id}`;
-            const posX = comp.x + t.dx;
-            const posY = comp.y + t.dy;
+            const rotOffset = getRotatedTerminalOffset(comp.type, t, comp.rotation);
+            const posX = Math.round((comp.x + rotOffset.dx) * 10) / 10;
+            const posY = Math.round((comp.y + rotOffset.dy) * 10) / 10;
             registerTerminal(termId, `${comp.props.name} ${t.label}`, posX, posY);
         });
     }
@@ -2844,7 +2882,8 @@ void loop() {
                 if (moved) {
                     // Check snap to breadboard
                     const lib = COMPONENT_LIBRARY[comp.type];
-                    const pin1 = lib?.terminalOffsets ? lib.terminalOffsets[0] : { dx: 0, dy: 0 };
+                    const pin1Raw = lib?.terminalOffsets ? lib.terminalOffsets[0] : { dx: 0, dy: 0 };
+                    const pin1 = getRotatedTerminalOffset(comp.type, pin1Raw, comp.rotation);
                     const hole = findNearestBreadboardHole(comp.x + pin1.dx, comp.y + pin1.dy);
 
                     if (hole) {
@@ -3917,7 +3956,7 @@ void loop() {
         const el = document.getElementById(id);
         if (el) {
             el.classList.add('selected');
-            el.style.zIndex = '50';
+            el.style.zIndex = '60';
         }
         const comp = state.components.find(c => c.id === id);
         if (comp) {
@@ -3940,7 +3979,7 @@ void loop() {
         state.selectedItem = null;
         document.querySelectorAll('.tc-placed-component').forEach(el => {
             el.classList.remove('selected');
-            el.style.zIndex = '30';
+            el.style.zIndex = '40';
         });
         document.querySelectorAll('.tc-terminal-pin.selected-parent').forEach(t => t.classList.remove('selected-parent'));
         removeFloatingActionBar();
@@ -4037,12 +4076,57 @@ void loop() {
         const lib = COMPONENT_LIBRARY[comp.type];
         title.textContent = `${lib ? lib.name : comp.type} — ${comp.props.name}`;
 
-        const inspectX = Math.max(20, Math.min(comp.x - 70, 750));
-        const inspectY = Math.max(20, Math.min(comp.y - 140, 280));
+        // Intelligently place inspector beside the component so it does NOT obscure it
+        const compW = lib ? lib.width : 50;
+        let inspectX = comp.x + compW + 24;
+        if (inspectX > 760) {
+            inspectX = Math.max(20, comp.x - 290);
+        }
+        let inspectY = Math.max(15, Math.min(comp.y - 20, 240));
 
         pop.style.left = `${inspectX}px`;
         pop.style.top = `${inspectY}px`;
         pop.style.display = 'block';
+
+        if (!pop._dragBound) {
+            pop._dragBound = true;
+            pop.addEventListener('mousedown', (e) => e.stopPropagation());
+            pop.addEventListener('click', (e) => e.stopPropagation());
+
+            const titleBar = pop.querySelector('.tc-inspector-title');
+            if (titleBar) {
+                let isDraggingPop = false;
+                let startPopX = 0, startPopY = 0, origLeft = 0, origTop = 0;
+
+                titleBar.addEventListener('mousedown', (e) => {
+                    if (e.target.id === 'tcCloseInspectorBtn') return;
+                    isDraggingPop = true;
+                    startPopX = e.clientX;
+                    startPopY = e.clientY;
+                    origLeft = parseFloat(pop.style.left) || 20;
+                    origTop = parseFloat(pop.style.top) || 20;
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    function onPopMove(moveE) {
+                        if (!isDraggingPop) return;
+                        const dx = (moveE.clientX - startPopX) / state.zoom;
+                        const dy = (moveE.clientY - startPopY) / state.zoom;
+                        pop.style.left = `${Math.round(origLeft + dx)}px`;
+                        pop.style.top = `${Math.round(origTop + dy)}px`;
+                    }
+
+                    function onPopUp() {
+                        isDraggingPop = false;
+                        window.removeEventListener('mousemove', onPopMove);
+                        window.removeEventListener('mouseup', onPopUp);
+                    }
+
+                    window.addEventListener('mousemove', onPopMove);
+                    window.addEventListener('mouseup', onPopUp);
+                });
+            }
+        }
 
         let html = '';
         if (comp.type === 'led') {
@@ -6789,6 +6873,14 @@ void loop() {
                     onTerminalClick(state.snapTarget);
                 }
             });
+
+            stage.addEventListener('contextmenu', (e) => {
+                if (state.drawingWire) {
+                    e.preventDefault();
+                    cancelWireDrawing();
+                    showToast('Wire drawing cancelled');
+                }
+            });
         }
 
         document.getElementById('tcClearSerialBtn')?.addEventListener('click', () => {
@@ -6893,7 +6985,11 @@ void loop() {
         const wireCount = state.wires.length;
         let selText = 'None';
 
-        if (state.selectedItem) {
+        if (state.drawingWire) {
+            const startTerm = terminals[state.drawingWire.from];
+            const startName = startTerm ? startTerm.name : 'Pin';
+            selText = `Wiring: ${startName} ➔ (Click target pin/hole to connect · Esc to cancel)`;
+        } else if (state.selectedItem) {
             if (state.selectedItem.type === 'wire') {
                 const w = state.wires.find(ww => ww.id === state.selectedItem.id);
                 selText = w ? `Wire (${w.color}) — [Del] to delete` : 'Wire';
@@ -6902,7 +6998,7 @@ void loop() {
                 selText = c ? `${c.props.name} (${c.type.toUpperCase()}) — [Del] to delete, [R] to rotate` : 'Component';
             }
         } else {
-            selText = 'None (Shift+Click to Select & Drag)';
+            selText = 'None (Click component to Select & Edit · Click pin to Wire)';
         }
 
         const projTitle = presets[state.currentPreset]?.title || state.currentPreset;
