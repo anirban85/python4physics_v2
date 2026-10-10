@@ -223,6 +223,7 @@
             this.selectedItem = null;
             this.activeWireDraft = null;
             this.isDragging = false;
+            this.isPaletteDragging = false;
             this.dragOffset = { x: 0, y: 0 };
             this.dragItem = null;
 
@@ -2999,24 +3000,96 @@
         bindPaletteButtons() {
             const self = this;
             const cards = document.querySelectorAll('.ms-comp-card');
-            cards.forEach(card => {
-                card.addEventListener('click', () => {
-                    const type = card.getAttribute('data-type');
-                    // Add near current view center
-                    const cx = Math.round((self.view.x + self.view.width / 2) / 20) * 20;
-                    const cy = Math.round((self.view.y + self.view.height / 2) / 20) * 20;
-                    self.addComponent(type, cx, cy);
 
-                    // On mobile, automatically close drawer after picking component
-                    if (window.innerWidth <= 768) {
-                        const drawer = document.getElementById('msComponentDrawer');
-                        const backdrop = document.getElementById('msDrawerBackdrop');
-                        if (drawer) drawer.classList.remove('open');
-                        if (backdrop) backdrop.classList.remove('active');
-                        self.showToast('Component added to circuit canvas.');
-                    }
+            // Drag-and-drop state from component palette
+            let activePointerId = null;
+            let isPointerDown = false;
+            let isPaletteDragging = false;
+            let startClientX = 0;
+            let startClientY = 0;
+            let cardType = null;
+            let cardName = '';
+            let cardSvg = '';
+            let currentCard = null;
+
+            cards.forEach(card => {
+                card.setAttribute('draggable', 'false');
+                const svg = card.querySelector('svg');
+                if (svg) svg.setAttribute('draggable', 'false');
+
+                card.addEventListener('pointerdown', (e) => {
+                    // Only primary pointer button (left mouse click or single touch)
+                    if (e.button !== undefined && e.button !== 0) return;
+
+                    isPointerDown = true;
+                    isPaletteDragging = false;
+                    activePointerId = e.pointerId;
+                    startClientX = e.clientX;
+                    startClientY = e.clientY;
+                    cardType = card.getAttribute('data-type');
+                    cardName = card.querySelector('.ms-comp-name')?.innerText || cardType;
+                    cardSvg = card.querySelector('.ms-comp-icon-preview svg')?.outerHTML || '';
+                    currentCard = card;
                 });
             });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!isPointerDown) return;
+                if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
+
+                const dx = e.clientX - startClientX;
+                const dy = e.clientY - startClientY;
+                const dist = Math.hypot(dx, dy);
+
+                if (!isPaletteDragging) {
+                    const threshold = (e.pointerType === 'touch') ? 10 : 4;
+                    if (dist > threshold) {
+                        isPaletteDragging = true;
+                        if (currentCard) currentCard.classList.add('is-dragging');
+                        self.createPaletteDragGhost(cardType, cardName, cardSvg);
+                        if (window.innerWidth <= 992) {
+                            const drawer = document.getElementById('msComponentDrawer');
+                            if (drawer) drawer.classList.add('ms-drawer-dragging');
+                        }
+                    }
+                }
+
+                if (isPaletteDragging) {
+                    if (e.cancelable) e.preventDefault();
+                    self.updatePaletteDragGhost(e, cardType);
+                }
+            }, { passive: false });
+
+            const onDragEnd = (e) => {
+                if (!isPointerDown) return;
+                if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
+
+                if (isPaletteDragging) {
+                    // User dragged component -> place at dropped position if over canvas
+                    self.finishPaletteDrag(e, cardType, cardName);
+                } else {
+                    // User merely clicked without dragging -> prompt them to drag to place
+                    if (currentCard) {
+                        currentCard.classList.add('ms-drag-prompt');
+                        setTimeout(() => currentCard.classList.remove('ms-drag-prompt'), 400);
+                    }
+                    self.showToast('Click and drag component into desired position on the canvas.');
+                }
+
+                // Reset drag state
+                if (currentCard) currentCard.classList.remove('is-dragging');
+                isPointerDown = false;
+                isPaletteDragging = false;
+                activePointerId = null;
+                currentCard = null;
+                const drawer = document.getElementById('msComponentDrawer');
+                if (drawer) drawer.classList.remove('ms-drawer-dragging');
+                self.removePaletteDragGhost();
+                self.removeDropPreview();
+            };
+
+            window.addEventListener('pointerup', onDragEnd);
+            window.addEventListener('pointercancel', onDragEnd);
 
             const searchInput = document.getElementById('msCompSearch');
             const clearBtn = document.getElementById('msCompSearchClear');
@@ -3090,6 +3163,144 @@
             }
 
             applyFilter();
+        }
+
+        // ====================================================================
+        // PALETTE DRAG-TO-PLACE INTERACTION ENGINE
+        // ====================================================================
+        createPaletteDragGhost(type, name, iconSvg) {
+            this.removePaletteDragGhost();
+            const ghost = document.createElement('div');
+            ghost.id = 'msPaletteDragGhost';
+            ghost.className = 'ms-palette-drag-ghost';
+            ghost.innerHTML = `
+                <div class="ghost-icon">${iconSvg}</div>
+                <div class="ghost-info">
+                    <span class="ghost-name">${name}</span>
+                    <span class="ghost-coords"><i class="fa-solid fa-arrow-right"></i> Drag onto canvas</span>
+                </div>
+            `;
+            document.body.appendChild(ghost);
+        }
+
+        updatePaletteDragGhost(e, type) {
+            const ghost = document.getElementById('msPaletteDragGhost');
+            if (ghost) {
+                ghost.style.left = e.clientX + 'px';
+                ghost.style.top = e.clientY + 'px';
+            }
+
+            const canvasRect = this.container.getBoundingClientRect();
+            const isOverCanvas = (
+                e.clientX >= canvasRect.left &&
+                e.clientX <= canvasRect.right &&
+                e.clientY >= canvasRect.top &&
+                e.clientY <= canvasRect.bottom
+            );
+
+            if (isOverCanvas) {
+                const coords = this.getCanvasCoords(e);
+                const snapX = Math.round(coords.x / 20) * 20;
+                const snapY = Math.round(coords.y / 20) * 20;
+
+                if (ghost) {
+                    ghost.classList.add('is-over-canvas');
+                    const coordsEl = ghost.querySelector('.ghost-coords');
+                    if (coordsEl) {
+                        coordsEl.innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> Grid: (${snapX}, ${snapY}) &bull; Drop to place`;
+                    }
+                }
+                this.container.classList.add('ms-drop-target');
+                this.updateDropPreview(type, snapX, snapY);
+            } else {
+                if (ghost) {
+                    ghost.classList.remove('is-over-canvas');
+                    const coordsEl = ghost.querySelector('.ghost-coords');
+                    if (coordsEl) {
+                        coordsEl.innerHTML = `<i class="fa-solid fa-arrow-right"></i> Drag onto canvas`;
+                    }
+                }
+                this.container.classList.remove('ms-drop-target');
+                this.removeDropPreview();
+            }
+        }
+
+        removePaletteDragGhost() {
+            const ghost = document.getElementById('msPaletteDragGhost');
+            if (ghost) ghost.remove();
+        }
+
+        updateDropPreview(type, snapX, snapY) {
+            let previewGroup = document.getElementById('msCanvasDropPreview');
+            if (!previewGroup) {
+                previewGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                previewGroup.id = 'msCanvasDropPreview';
+                previewGroup.setAttribute('style', 'pointer-events: none; opacity: 0.88;');
+                this.svg.appendChild(previewGroup);
+            }
+            const def = COMP_TYPES[type] || { width: 40, height: 40, prefix: 'U', defaults: {} };
+            const w = def.width || 40;
+            const h = def.height || 40;
+
+            const mockComp = {
+                id: 'preview',
+                type: type,
+                label: def.prefix ? `${def.prefix}?` : 'NEW',
+                x: snapX,
+                y: snapY,
+                rotation: 0,
+                props: Object.assign({}, def.defaults)
+            };
+
+            const symbolSvg = this.drawComponentSVG(mockComp);
+
+            previewGroup.innerHTML = `
+                <!-- Dropzone Halo & Grid Targeting -->
+                <rect x="${snapX - w / 2 - 14}" y="${snapY - h / 2 - 14}" width="${w + 28}" height="${h + 28}" rx="8"
+                      fill="rgba(16, 185, 129, 0.12)" stroke="#10b981" stroke-width="2" stroke-dasharray="6,4"/>
+                <line x1="${snapX - w / 2 - 25}" y1="${snapY}" x2="${snapX + w / 2 + 25}" y2="${snapY}" stroke="rgba(52, 211, 153, 0.55)" stroke-width="1.2" stroke-dasharray="4,4"/>
+                <line x1="${snapX}" y1="${snapY - h / 2 - 25}" x2="${snapX}" y2="${snapY + h / 2 + 25}" stroke="rgba(52, 211, 153, 0.55)" stroke-width="1.2" stroke-dasharray="4,4"/>
+                <circle cx="${snapX}" cy="${snapY}" r="3" fill="#10b981"/>
+                <rect x="${snapX - 45}" y="${snapY - h / 2 - 32}" width="90" height="18" rx="4" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                <text x="${snapX}" y="${snapY - h / 2 - 19}" text-anchor="middle" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="bold">${snapX}, ${snapY}</text>
+                ${symbolSvg}
+            `;
+        }
+
+        removeDropPreview() {
+            const previewGroup = document.getElementById('msCanvasDropPreview');
+            if (previewGroup) previewGroup.remove();
+            if (this.container) this.container.classList.remove('ms-drop-target');
+        }
+
+        finishPaletteDrag(e, type, name) {
+            const canvasRect = this.container.getBoundingClientRect();
+            const isOverCanvas = (
+                e.clientX >= canvasRect.left &&
+                e.clientX <= canvasRect.right &&
+                e.clientY >= canvasRect.top &&
+                e.clientY <= canvasRect.bottom
+            );
+
+            if (isOverCanvas) {
+                const coords = this.getCanvasCoords(e);
+                const snapX = Math.round(coords.x / 20) * 20;
+                const snapY = Math.round(coords.y / 20) * 20;
+
+                const newComp = this.addComponent(type, snapX, snapY);
+                this.render();
+                this.showToast(`Placed ${name} at (${snapX}, ${snapY})`);
+
+                // On mobile devices, automatically close the off-canvas drawer
+                if (window.innerWidth <= 768) {
+                    const drawer = document.getElementById('msComponentDrawer');
+                    const backdrop = document.getElementById('msDrawerBackdrop');
+                    if (drawer) drawer.classList.remove('open');
+                    if (backdrop) backdrop.classList.remove('active');
+                }
+            } else {
+                this.showToast('Placement cancelled: drop component inside the schematic canvas.');
+            }
         }
 
         validatePaletteFilter() {
@@ -3813,7 +4024,7 @@
                 am.liveRead = (i_mA >= 0 ? '+' : '') + (Math.abs(i_mA) < 1000 ? i_mA.toFixed(1) + ' mA' : (i_mA / 1000).toFixed(2) + ' A');
             });
 
-            if (!this.isDragging) {
+            if (!this.isDragging && !this.isPaletteDragging) {
                 this.render();
             }
         }

@@ -527,13 +527,17 @@
     border-radius: 6px;
     padding: 6px 4px;
     text-align: center;
-    cursor: pointer;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
     transition: all 0.15s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 58px;
+    position: relative;
 }
 
 .ms-comp-card:hover {
@@ -541,6 +545,115 @@
     background: #1e293b;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.ms-comp-card:active {
+    cursor: grabbing;
+}
+
+.ms-comp-card.is-dragging {
+    opacity: 0.35;
+    border-color: #38bdf8;
+    background: #0c4a6e;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+    transform: scale(0.95);
+}
+
+.ms-comp-card.ms-drag-prompt {
+    animation: msCardShake 0.38s ease;
+    border-color: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+@keyframes msCardShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+}
+
+/* Canvas Dropzone Targeting */
+.ms-canvas-container.ms-drop-target {
+    box-shadow: inset 0 0 0 2px #10b981, 0 0 24px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Floating Drag Proxy / Ghost Element */
+.ms-palette-drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 2px solid #38bdf8;
+    border-radius: 10px;
+    padding: 8px 14px;
+    box-shadow: 0 12px 32px rgba(2, 132, 199, 0.5), 0 0 20px rgba(56, 189, 248, 0.35);
+    backdrop-filter: blur(10px);
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    cursor: grabbing;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ms-palette-drag-ghost.is-over-canvas {
+    border-color: #10b981;
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.45), 0 0 20px rgba(52, 211, 153, 0.35);
+}
+
+.ms-palette-drag-ghost .ghost-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e293b;
+    border-radius: 6px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    flex-shrink: 0;
+}
+
+.ms-palette-drag-ghost .ghost-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: #38bdf8;
+    stroke-width: 2;
+    fill: none;
+}
+
+.ms-palette-drag-ghost .ghost-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    white-space: nowrap;
+}
+
+.ms-palette-drag-ghost .ghost-name {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 0.78rem;
+}
+
+.ms-palette-drag-ghost .ghost-coords {
+    font-size: 0.68rem;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ms-palette-drag-ghost.is-over-canvas .ghost-coords {
+    color: #34d399;
+}
+
+/* Semi-transparent drawer during mobile drag */
+.ms-component-drawer.ms-drawer-dragging {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
 }
 
 .ms-comp-icon-preview {

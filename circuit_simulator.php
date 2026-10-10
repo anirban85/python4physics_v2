@@ -285,7 +285,7 @@ require_once __DIR__ . '/include/navbar.php';
                         <i class="fa-solid fa-microchip"></i> Components
                     </span>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 0.68rem; color: #64748b;" class="ms-desktop-only">Click to Add</span>
+                        <span style="font-size: 0.68rem; color: #38bdf8; font-weight: 500;" class="ms-desktop-only"><i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to Place</span>
                         <button type="button" class="ms-drawer-close-btn" id="msDrawerCloseBtn" title="Close Palette">&times;</button>
                     </div>
                 </div>
