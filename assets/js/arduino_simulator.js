@@ -2938,27 +2938,168 @@ void loop() {
     // 11. DRAG & DROP PALETTE & CATEGORIES
     // ==========================================
     function bindDragAndDrop() {
-        document.querySelectorAll('.tc-component-card').forEach(card => {
-            // Desktop HTML5 dragstart
-            card.addEventListener('dragstart', (e) => {
-                const type = card.getAttribute('data-component-type');
-                if (type === 'arduino' || type === 'breadboard' || !COMPONENT_LIBRARY[type]) {
-                    e.preventDefault();
+        const cards = document.querySelectorAll('.tc-component-card');
+        const container = document.getElementById('tcCanvasContainer');
+        const stage = document.getElementById('tcCanvasStage');
+
+        let isPointerDown = false;
+        let isPaletteDragging = false;
+        let activePointerId = null;
+        let startClientX = 0;
+        let startClientY = 0;
+        let cardType = null;
+        let cardName = '';
+        let cardSvg = '';
+        let currentCard = null;
+        let ghostEl = null;
+
+        function createGhost(type, name, svgHtml) {
+            removeGhost();
+            ghostEl = document.createElement('div');
+            ghostEl.className = 'tc-drag-ghost';
+            ghostEl.innerHTML = `
+                <div style="width: 48px; height: 38px; display: flex; align-items: center; justify-content: center;">${svgHtml}</div>
+                <span>${name}</span>
+            `;
+            document.body.appendChild(ghostEl);
+        }
+
+        function updateGhost(clientX, clientY) {
+            if (ghostEl) {
+                ghostEl.style.left = `${clientX}px`;
+                ghostEl.style.top = `${clientY}px`;
+            }
+
+            if (stage && container) {
+                const cRect = container.getBoundingClientRect();
+                if (clientX >= cRect.left && clientX <= cRect.right && clientY >= cRect.top && clientY <= cRect.bottom) {
+                    const sRect = stage.getBoundingClientRect();
+                    const stageX = (clientX - sRect.left) / state.zoom;
+                    const stageY = (clientY - sRect.top) / state.zoom;
+                    const dummyComp = { type: cardType };
+                    highlightSnapCandidates(dummyComp, stageX - 20, stageY - 20);
                     return;
                 }
-                state.dragType = type;
-                e.dataTransfer.setData('text/plain', type);
-            });
+            }
+            document.querySelectorAll('.tc-snap-hole-halo').forEach(h => h.remove());
+        }
 
-            // Mobile & Desktop Click/Tap to place directly on breadboard
-            card.addEventListener('click', (e) => {
+        function removeGhost() {
+            if (ghostEl) {
+                ghostEl.remove();
+                ghostEl = null;
+            }
+            document.querySelectorAll('.tc-snap-hole-halo').forEach(h => h.remove());
+        }
+
+        cards.forEach(card => {
+            card.setAttribute('draggable', 'false');
+            const svg = card.querySelector('svg');
+            if (svg) svg.setAttribute('draggable', 'false');
+
+            card.addEventListener('pointerdown', (e) => {
+                if (e.button !== undefined && e.button !== 0) return;
                 if (card.classList.contains('tc-starter-card')) return;
+
                 const type = card.getAttribute('data-component-type');
                 if (!type || type === 'arduino' || type === 'breadboard' || !COMPONENT_LIBRARY[type]) return;
 
-                const targetX = LAYOUT.bbX + 110 + (state.components.length % 6) * 35;
-                const targetY = LAYOUT.bbY + 70 + (state.components.length % 4) * 25;
-                const comp = placeComponent(type, targetX, targetY);
+                isPointerDown = true;
+                isPaletteDragging = false;
+                activePointerId = e.pointerId;
+                startClientX = e.clientX;
+                startClientY = e.clientY;
+                cardType = type;
+                cardName = card.querySelector('.tc-component-card-name')?.textContent || COMPONENT_LIBRARY[type]?.name || type;
+                cardSvg = card.querySelector('.tc-component-card-icon svg')?.outerHTML || '';
+                currentCard = card;
+            });
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isPointerDown) return;
+            if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
+
+            const dist = Math.hypot(e.clientX - startClientX, e.clientY - startClientY);
+            if (!isPaletteDragging) {
+                const threshold = (e.pointerType === 'touch') ? 10 : 4;
+                if (dist > threshold) {
+                    isPaletteDragging = true;
+                    if (currentCard) currentCard.classList.add('dragging');
+                    createGhost(cardType, cardName, cardSvg);
+                }
+            }
+
+            if (isPaletteDragging) {
+                if (e.cancelable) e.preventDefault();
+                updateGhost(e.clientX, e.clientY);
+            }
+        }, { passive: false });
+
+        const onDragEnd = (e) => {
+            if (!isPointerDown) return;
+            if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
+
+            if (isPaletteDragging) {
+                if (container && stage && cardType && COMPONENT_LIBRARY[cardType]) {
+                    const cRect = container.getBoundingClientRect();
+                    const clientX = e.clientX;
+                    const clientY = e.clientY;
+
+                    if (clientX >= cRect.left && clientX <= cRect.right && clientY >= cRect.top && clientY <= cRect.bottom) {
+                        const sRect = stage.getBoundingClientRect();
+                        const rawX = (clientX - sRect.left) / state.zoom - 20;
+                        const rawY = (clientY - sRect.top) / state.zoom - 20;
+
+                        const comp = placeComponent(cardType, rawX, rawY);
+                        if (comp) {
+                            pushUndo({
+                                type: 'placeComponent',
+                                undo: () => { deleteComponent(comp.id); },
+                                redo: () => { placeComponent(comp.type, comp.x, comp.y, comp.rotation, comp.props, comp.id); }
+                            });
+                            selectComponent(comp.id);
+                            triggerCircuitSolve();
+                            updateInteractivePhysicsWidgets();
+                            showToast(`Placed ${COMPONENT_LIBRARY[cardType].name} at desired position`);
+                        }
+                    }
+                }
+            } else {
+                if (currentCard && !currentCard.classList.contains('tc-starter-card')) {
+                    currentCard.classList.add('tc-drag-prompt');
+                    setTimeout(() => currentCard.classList.remove('tc-drag-prompt'), 400);
+                    showToast('Click and drag component onto canvas into desired position.');
+                }
+            }
+
+            if (currentCard) currentCard.classList.remove('dragging');
+            isPointerDown = false;
+            isPaletteDragging = false;
+            activePointerId = null;
+            currentCard = null;
+            removeGhost();
+        };
+
+        window.addEventListener('pointerup', onDragEnd);
+        window.addEventListener('pointercancel', onDragEnd);
+
+        if (container) {
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const type = state.dragType || e.dataTransfer.getData('text/plain');
+                if (!type || !COMPONENT_LIBRARY[type]) return;
+
+                const sRect = stage.getBoundingClientRect();
+                const rawX = (e.clientX - sRect.left) / state.zoom - 20;
+                const rawY = (e.clientY - sRect.top) / state.zoom - 20;
+
+                const comp = placeComponent(type, rawX, rawY);
                 if (comp) {
                     pushUndo({
                         type: 'placeComponent',
@@ -2968,42 +3109,10 @@ void loop() {
                     selectComponent(comp.id);
                     triggerCircuitSolve();
                     updateInteractivePhysicsWidgets();
-                    showToast(`Added ${COMPONENT_LIBRARY[type].name} to Breadboard`);
                 }
+                state.dragType = null;
             });
-        });
-
-        const container = document.getElementById('tcCanvasContainer');
-        if (!container) return;
-
-        container.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
-        });
-
-        container.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const type = state.dragType || e.dataTransfer.getData('text/plain');
-            if (!type || !COMPONENT_LIBRARY[type]) return;
-
-            const stage = document.getElementById('tcCanvasStage');
-            const rect = stage.getBoundingClientRect();
-            const rawX = (e.clientX - rect.left) / state.zoom - 20;
-            const rawY = (e.clientY - rect.top) / state.zoom - 20;
-
-            const comp = placeComponent(type, rawX, rawY);
-            if (comp) {
-                pushUndo({
-                    type: 'placeComponent',
-                    undo: () => { deleteComponent(comp.id); },
-                    redo: () => { placeComponent(comp.type, comp.x, comp.y, comp.rotation, comp.props, comp.id); }
-                });
-                selectComponent(comp.id);
-                triggerCircuitSolve();
-                updateInteractivePhysicsWidgets();
-            }
-            state.dragType = null;
-        });
+        }
 
         // Category Filter
         document.getElementById('tcCompCategory')?.addEventListener('change', function () {
@@ -6724,11 +6833,9 @@ void loop() {
                 fitToViewport();
             });
 
+            // Wheel scroll disabled for canvas zoom - zoom only via + and - buttons
             container.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.05 : 0.05;
-                setZoom(state.zoom + delta);
-                updateStatusBar();
             }, { passive: false });
         }
 

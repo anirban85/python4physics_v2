@@ -754,6 +754,9 @@ require_once __DIR__ . '/include/navbar.php';
                             <i class="fa-solid fa-magnifying-glass" style="color: var(--tc-text-muted); font-size: 0.8rem;"></i>
                             <input type="text" id="tcSearchInput" class="tc-search-input" placeholder="Search components...">
                         </div>
+                        <div style="font-size: 0.72rem; color: #38bdf8; font-weight: 600; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(56, 189, 248, 0.08); padding: 4px 8px; border-radius: 5px; border: 1px dashed rgba(56, 189, 248, 0.35);">
+                            <i class="fa-solid fa-hand-pointer"></i> <span>Drag &amp; Drop onto Canvas</span>
+                        </div>
                     </div>
 
                     <!-- 2-Column Components Grid -->

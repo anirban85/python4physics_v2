@@ -1615,11 +1615,9 @@
                 self.onPointerUp(e);
             });
 
-            // Container Wheel Zoom (Standard CAD navigation)
+            // Wheel scroll disabled for canvas zoom - zoom in/out only via + or - click
             this.container.addEventListener('wheel', e => {
                 e.preventDefault();
-                const factor = e.deltaY > 0 ? 1.12 : 0.88;
-                self.zoom(factor, e.clientX, e.clientY);
             }, { passive: false });
 
             // Mobile Touch Events (Pinch-Zoom, 1-Finger Pan, Wire/Comp Drag)
