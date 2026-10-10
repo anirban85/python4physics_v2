@@ -1754,8 +1754,8 @@ void loop() {
         return null;
     }
 
-    function registerTerminal(id, name, x, y) {
-        terminals[id] = { id, name, x, y };
+    function registerTerminal(id, name, x, y, pinLabel) {
+        terminals[id] = { id, name, x, y, pinLabel };
 
         const container = document.getElementById('tcTerminalsContainer');
         if (!container) return;
@@ -1769,6 +1769,13 @@ void loop() {
             el.className = `tc-terminal tc-terminal-pin ${isBb ? 'tc-bb-pin' : isArd ? 'tc-ard-pin' : 'tc-comp-pin'}`;
             el.setAttribute('data-terminal-id', id);
 
+            if (!isBb && !isArd && pinLabel) {
+                const tag = document.createElement('span');
+                tag.className = 'tc-comp-pin-tag';
+                tag.textContent = pinLabel.split(' ')[0];
+                el.appendChild(tag);
+            }
+
             const tooltip = document.createElement('div');
             tooltip.className = 'tc-pin-tooltip';
             tooltip.textContent = name;
@@ -1779,6 +1786,15 @@ void loop() {
             const tooltip = el.querySelector('.tc-pin-tooltip');
             if (tooltip && tooltip.textContent !== name) {
                 tooltip.textContent = name;
+            }
+            if (pinLabel && !id.startsWith('bb-') && !id.startsWith('ard-')) {
+                let tag = el.querySelector('.tc-comp-pin-tag');
+                if (!tag) {
+                    tag = document.createElement('span');
+                    tag.className = 'tc-comp-pin-tag';
+                    el.appendChild(tag);
+                }
+                tag.textContent = pinLabel.split(' ')[0];
             }
         }
 
@@ -1973,6 +1989,7 @@ void loop() {
             };
 
             pulseTerminal(terminalId);
+            document.getElementById('tcCanvasStage')?.classList.add('tc-wiring-mode');
 
             const rubber = document.getElementById('tcRubberbandWire');
             if (rubber) {
@@ -2021,6 +2038,7 @@ void loop() {
     function cancelWireDrawing() {
         state.drawingWire = null;
         state.snapTarget = null;
+        document.getElementById('tcCanvasStage')?.classList.remove('tc-wiring-mode');
         document.querySelectorAll('.tc-terminal.snap-candidate').forEach(el => el.classList.remove('snap-candidate'));
         highlightBreadboardBus(null, false);
         const rubber = document.getElementById('tcRubberbandWire');
@@ -2464,6 +2482,13 @@ void loop() {
             selectComponent(comp.id);
         };
 
+        el.onmouseenter = () => {
+            document.querySelectorAll(`[id^="term-${comp.id}_"]`).forEach(t => t.classList.add('hovered-parent'));
+        };
+        el.onmouseleave = () => {
+            document.querySelectorAll(`[id^="term-${comp.id}_"]`).forEach(t => t.classList.remove('hovered-parent'));
+        };
+
         bindComponentLiveControls(el, comp);
         makeComponentDraggable(el, comp);
     }
@@ -2833,7 +2858,11 @@ void loop() {
             const rotOffset = getRotatedTerminalOffset(comp.type, t, comp.rotation);
             const posX = Math.round((comp.x + rotOffset.dx) * 10) / 10;
             const posY = Math.round((comp.y + rotOffset.dy) * 10) / 10;
-            registerTerminal(termId, `${comp.props.name} ${t.label}`, posX, posY);
+            registerTerminal(termId, `${comp.props.name} ${t.label}`, posX, posY, t.label);
+            if (state.selectedItem && state.selectedItem.id === comp.id) {
+                const el = document.getElementById(`term-${termId}`);
+                if (el) el.classList.add('selected-parent');
+            }
         });
     }
 

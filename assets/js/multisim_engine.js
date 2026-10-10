@@ -1313,10 +1313,27 @@
             // Terminal pins with large touch-friendly hitboxes
             let pinsSvg = '';
             def.pins.forEach(pin => {
+                const isDraftSource = this.activeWireDraft && 
+                    this.activeWireDraft.fromComp === comp.id && 
+                    this.activeWireDraft.fromPin === pin.id;
+                const pinLabel = pin.label || (pin.id === '1' ? '1' : pin.id === '2' ? '2' : pin.id);
+                
+                // Offset pin label slightly away from symbol interior
+                let lx = pin.x;
+                let ly = pin.y;
+                if (Math.abs(pin.x) >= Math.abs(pin.y)) {
+                    lx += (pin.x > 0 ? 11 : -11);
+                    ly += 3;
+                } else {
+                    ly += (pin.y > 0 ? 12 : -8);
+                }
+
                 pinsSvg += `
-                    <g class="ms-pin-wrapper" data-comp-id="${comp.id}" data-pin-id="${pin.id}">
-                        <circle class="ms-pin-hitbox" data-comp-id="${comp.id}" data-pin-id="${pin.id}" cx="${pin.x}" cy="${pin.y}" r="12"/>
-                        <circle class="ms-terminal-pin" data-comp-id="${comp.id}" data-pin-id="${pin.id}" cx="${pin.x}" cy="${pin.y}" r="4.5"/>
+                    <g class="ms-pin-wrapper ${isDraftSource ? 'draft-source' : ''}" data-comp-id="${comp.id}" data-pin-id="${pin.id}">
+                        <circle class="ms-pin-hitbox" data-comp-id="${comp.id}" data-pin-id="${pin.id}" cx="${pin.x}" cy="${pin.y}" r="14"/>
+                        <circle class="ms-terminal-pin-ring" cx="${pin.x}" cy="${pin.y}" r="6.5"/>
+                        <circle class="ms-terminal-pin ${isDraftSource ? 'source-active' : ''}" data-comp-id="${comp.id}" data-pin-id="${pin.id}" cx="${pin.x}" cy="${pin.y}" r="4.5"/>
+                        <text class="ms-pin-badge" x="${lx}" y="${ly}" text-anchor="middle">${pinLabel}</text>
                     </g>
                 `;
             });
@@ -1364,6 +1381,12 @@
 
         render() {
             if (!this.svg) return;
+
+            if (this.activeWireDraft) {
+                this.svg.classList.add('ms-wiring-mode');
+            } else {
+                this.svg.classList.remove('ms-wiring-mode');
+            }
 
             let html = '';
 
