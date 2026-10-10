@@ -2494,24 +2494,68 @@ void loop() {
     }
 
     function bindComponentLiveControls(el, comp) {
-        // 1. Tactile Pushbutton - Press & Release
+        // 1. Tactile Pushbutton - Easy Press ON/OFF (Click to toggle or Press & Hold)
         if (comp.type === 'pushbutton') {
             const cap = el.querySelector(`#${comp.id}_cap`);
+            let downTime = 0;
+            let didLongPress = false;
+
+            function doToggle(e) {
+                if (e) e.stopPropagation();
+                comp.props.pressed = !comp.props.pressed;
+                updatePushButtonVisuals(comp);
+                triggerCircuitSolve();
+                playPlugSound();
+                showToast(`Button ${comp.props.name}: ${comp.props.pressed ? 'PRESSED (ON)' : 'RELEASED (OFF)'}`);
+            }
+
             if (cap) {
                 cap.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0) return;
                     e.stopPropagation();
-                    comp.props.pressed = true;
-                    cap.classList.add('tc-btn-active-cap');
-                    triggerCircuitSolve();
+                    downTime = Date.now();
+                    didLongPress = false;
+
+                    // If held down for more than 280ms, activate momentary press
+                    setTimeout(() => {
+                        if (downTime > 0 && !comp.props.pressed) {
+                            didLongPress = true;
+                            comp.props.pressed = true;
+                            updatePushButtonVisuals(comp);
+                            triggerCircuitSolve();
+                        }
+                    }, 280);
                 });
-                const onRelease = () => {
-                    if (comp.props.pressed) {
-                        comp.props.pressed = false;
-                        cap.classList.remove('tc-btn-active-cap');
-                        triggerCircuitSolve();
+
+                const onGlobalMouseUp = (e) => {
+                    if (downTime > 0) {
+                        const elapsed = Date.now() - downTime;
+                        downTime = 0;
+                        if (elapsed > 280 && didLongPress) {
+                            comp.props.pressed = false;
+                            updatePushButtonVisuals(comp);
+                            triggerCircuitSolve();
+                            playPlugSound();
+                            showToast(`Button ${comp.props.name}: Released (OFF)`);
+                        }
                     }
                 };
-                window.addEventListener('mouseup', onRelease);
+                window.addEventListener('mouseup', onGlobalMouseUp);
+
+                // Quick click simply toggles ON or OFF!
+                cap.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!didLongPress) {
+                        doToggle(e);
+                    }
+                    didLongPress = false;
+                });
+
+                // Touch support
+                cap.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                    doToggle(e);
+                }, { passive: true });
             }
         }
 
@@ -2659,12 +2703,24 @@ void loop() {
                 </div>`;
 
             case 'pushbutton':
-                return `<div style="width:44px;height:44px;position:relative;background:linear-gradient(to bottom,#e2e8f0,#cbd5e1);border-radius:5px;border:1.5px solid #94a3b8;box-shadow:0 2px 5px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
-                    <div id="${comp.id}_cap" class="${comp.props.pressed ? 'tc-btn-active-cap' : ''}" style="width:20px;height:20px;border-radius:50%;background:#334155;box-shadow:0 2px 4px rgba(0,0,0,0.4);cursor:pointer;transition:transform 0.08s, background 0.08s;" title="Click & hold to press button"></div>
-                    <div style="position:absolute;left:7px;top:-4px;width:3px;height:6px;background:#94a3b8;"></div>
-                    <div style="position:absolute;right:7px;top:-4px;width:3px;height:6px;background:#94a3b8;"></div>
-                    <div style="position:absolute;left:7px;bottom:-4px;width:3px;height:6px;background:#94a3b8;"></div>
-                    <div style="position:absolute;right:7px;bottom:-4px;width:3px;height:6px;background:#94a3b8;"></div>
+                const isBtnPressed = comp.props.pressed === true;
+                return `<div class="tc-pushbutton-housing" style="width:44px;height:44px;position:relative;background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 50%,#cbd5e1 100%);border-radius:6px;border:1.5px solid #94a3b8;box-shadow:0 3px 6px rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;">
+                    <!-- Outer Bezel Ring -->
+                    <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(to bottom,#334155,#0f172a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 3px rgba(0,0,0,0.7);">
+                        <!-- Tactile Button Cap with LED Indicator -->
+                        <div id="${comp.id}_cap" class="tc-pushbutton-cap ${isBtnPressed ? 'tc-btn-active-cap' : ''}" title="Click to press ON / OFF (or press & hold)">
+                            <div class="tc-btn-center-led" style="width:7px;height:7px;border-radius:50%;background:${isBtnPressed ? '#4ade80' : 'rgba(255,255,255,0.3)'};box-shadow:${isBtnPressed ? '0 0 6px #22c55e' : 'none'};pointer-events:none;"></div>
+                        </div>
+                    </div>
+                    <!-- Metal Terminal Legs at corners -->
+                    <div style="position:absolute;left:7px;top:-4px;width:3px;height:6px;background:#94a3b8;border-radius:1px;"></div>
+                    <div style="position:absolute;right:7px;top:-4px;width:3px;height:6px;background:#94a3b8;border-radius:1px;"></div>
+                    <div style="position:absolute;left:7px;bottom:-4px;width:3px;height:6px;background:#94a3b8;border-radius:1px;"></div>
+                    <div style="position:absolute;right:7px;bottom:-4px;width:3px;height:6px;background:#94a3b8;border-radius:1px;"></div>
+                    <!-- Mini ON/OFF Status Pill -->
+                    <div id="${comp.id}_status" style="position:absolute;bottom:2px;right:3px;font-size:0.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;padding:1px 3px;border-radius:3px;pointer-events:none;color:${isBtnPressed ? '#15803d' : '#64748b'};background:${isBtnPressed ? 'rgba(34,197,94,0.22)' : 'rgba(0,0,0,0.18)'};border:1px solid ${isBtnPressed ? '#22c55e' : 'transparent'};">
+                        ${isBtnPressed ? 'ON' : 'OFF'}
+                    </div>
                 </div>`;
 
             case 'potentiometer':
@@ -3926,8 +3982,16 @@ void loop() {
         bar.style.top = `${comp.y - 36}px`;
         bar.style.display = 'flex';
 
+        const isBtn = comp.type === 'pushbutton';
+        const isPressed = comp.props.pressed === true;
+
         bar.innerHTML = `
             <span class="tc-float-label"><i class="fa-solid fa-microchip"></i> ${compLabel}</span>
+            ${isBtn ? `
+            <button type="button" class="tc-float-btn tc-float-toggle-btn ${isPressed ? 'btn-active' : ''}" style="${isPressed ? 'background:#10b981;color:#fff;' : 'background:#334155;color:#e2e8f0;'}" title="Click to Toggle Pushbutton ON / OFF">
+                <i class="fa-solid fa-power-off"></i> ${isPressed ? 'Button: ON' : 'Button: OFF'}
+            </button>
+            ` : ''}
             <button type="button" class="tc-float-btn tc-float-edit" title="Edit Component Values (Inspector)">
                 <i class="fa-solid fa-pen-to-square"></i> Edit
             </button>
@@ -3941,6 +4005,17 @@ void loop() {
                 <i class="fa-solid fa-xmark"></i>
             </button>
         `;
+
+        if (isBtn) {
+            bar.querySelector('.tc-float-toggle-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                comp.props.pressed = !comp.props.pressed;
+                updatePushButtonVisuals(comp);
+                triggerCircuitSolve();
+                playPlugSound();
+                showToast(`Button ${comp.props.name}: ${comp.props.pressed ? 'PRESSED (ON)' : 'RELEASED (OFF)'}`);
+            });
+        }
 
         bar.querySelector('.tc-float-edit')?.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -3971,6 +4046,50 @@ void loop() {
         if (bar && state.selectedItem?.id === comp.id) {
             bar.style.left = `${comp.x}px`;
             bar.style.top = `${comp.y - 36}px`;
+
+            const toggleBtn = bar.querySelector('.tc-float-toggle-btn');
+            if (toggleBtn && comp.type === 'pushbutton') {
+                const isPressed = comp.props.pressed === true;
+                toggleBtn.className = `tc-float-btn tc-float-toggle-btn ${isPressed ? 'btn-active' : ''}`;
+                toggleBtn.style.background = isPressed ? '#10b981' : '#334155';
+                toggleBtn.style.color = isPressed ? '#ffffff' : '#e2e8f0';
+                toggleBtn.innerHTML = `<i class="fa-solid fa-power-off"></i> ${isPressed ? 'Button: ON' : 'Button: OFF'}`;
+            }
+        }
+    }
+
+    function updatePushButtonVisuals(comp) {
+        const el = document.getElementById(comp.id);
+        const isPressed = comp.props.pressed === true;
+        if (el) {
+            const cap = el.querySelector(`#${comp.id}_cap`);
+            const led = el.querySelector('.tc-btn-center-led');
+            const status = el.querySelector(`#${comp.id}_status`);
+
+            if (cap) {
+                if (isPressed) cap.classList.add('tc-btn-active-cap');
+                else cap.classList.remove('tc-btn-active-cap');
+            }
+            if (led) {
+                led.style.background = isPressed ? '#4ade80' : 'rgba(255,255,255,0.3)';
+                led.style.boxShadow = isPressed ? '0 0 6px #22c55e' : 'none';
+            }
+            if (status) {
+                status.textContent = isPressed ? 'ON' : 'OFF';
+                status.style.color = isPressed ? '#15803d' : '#64748b';
+                status.style.background = isPressed ? 'rgba(34,197,94,0.22)' : 'rgba(0,0,0,0.18)';
+                status.style.borderColor = isPressed ? '#22c55e' : 'transparent';
+            }
+        }
+
+        if (state.selectedItem?.id === comp.id) {
+            updateFloatingActionBar(comp);
+            const inspBtn = document.getElementById('tcBtnToggle');
+            if (inspBtn) {
+                inspBtn.textContent = isPressed ? 'Pressed (Closed)' : 'Normal (Open)';
+                inspBtn.style.background = isPressed ? '#10b981' : '#334155';
+                inspBtn.style.color = '#ffffff';
+            }
         }
     }
 
@@ -4652,13 +4771,10 @@ void loop() {
         // Buttons & Switches
         document.getElementById('tcBtnToggle')?.addEventListener('click', function () {
             comp.props.pressed = !comp.props.pressed;
-            this.textContent = comp.props.pressed ? 'Pressed (Closed)' : 'Normal (Open)';
-            const cap = document.getElementById(`${comp.id}_cap`);
-            if (cap) {
-                if (comp.props.pressed) cap.classList.add('tc-btn-active-cap');
-                else cap.classList.remove('tc-btn-active-cap');
-            }
+            updatePushButtonVisuals(comp);
             triggerCircuitSolve();
+            playPlugSound();
+            showToast(`Button ${comp.props.name}: ${comp.props.pressed ? 'PRESSED (ON)' : 'RELEASED (OFF)'}`);
         });
 
         document.getElementById('tcSwitchToggle')?.addEventListener('click', function () {
@@ -6703,6 +6819,19 @@ void loop() {
             if (e.key === 'Escape') cancelWireDrawing();
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
             if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+            if (e.key === ' ' || e.code === 'Space') {
+                if (state.selectedItem?.type === 'component') {
+                    const comp = state.components.find(c => c.id === state.selectedItem.id);
+                    if (comp && comp.type === 'pushbutton') {
+                        e.preventDefault();
+                        comp.props.pressed = !comp.props.pressed;
+                        updatePushButtonVisuals(comp);
+                        triggerCircuitSolve();
+                        playPlugSound();
+                        showToast(`Button ${comp.props.name}: ${comp.props.pressed ? 'PRESSED (ON)' : 'RELEASED (OFF)'}`);
+                    }
+                }
+            }
         });
 
         const colorBtn = document.getElementById('tcWireColorBtn');
