@@ -301,19 +301,19 @@
             name: '7-Segment Display',
             category: 'actuators',
             defaultProps: { name: 'DISP', digit: 0, segments: { a:1, b:1, c:1, d:1, e:1, f:1, g:0, dp:0 } },
-            width: 60,
+            width: 85,
             height: 85,
             terminalOffsets: [
-                { id: 'g', label: 'Seg G', dx: 8.5, dy: 10 },
-                { id: 'f', label: 'Seg F', dx: 17, dy: 10 },
-                { id: 'com1', label: 'Common (GND)', dx: 25.5, dy: 10 },
-                { id: 'a', label: 'Seg A', dx: 34, dy: 10 },
-                { id: 'b', label: 'Seg B', dx: 42.5, dy: 10 },
-                { id: 'e', label: 'Seg E', dx: 8.5, dy: 75 },
-                { id: 'd', label: 'Seg D', dx: 17, dy: 75 },
-                { id: 'com2', label: 'Common (GND)', dx: 25.5, dy: 75 },
-                { id: 'c', label: 'Seg C', dx: 34, dy: 75 },
-                { id: 'dp', label: 'Decimal Point', dx: 42.5, dy: 75 }
+                { id: 'a', label: 'Seg A', dx: 8.5, dy: 15 },
+                { id: 'b', label: 'Seg B', dx: 25.5, dy: 15 },
+                { id: 'c', label: 'Seg C', dx: 42.5, dy: 15 },
+                { id: 'd', label: 'Seg D', dx: 59.5, dy: 15 },
+                { id: 'e', label: 'Seg E', dx: 76.5, dy: 15 },
+                { id: 'f', label: 'Seg F', dx: 8.5, dy: 83 },
+                { id: 'g', label: 'Seg G', dx: 25.5, dy: 83 },
+                { id: 'com1', label: 'Common (GND)', dx: 42.5, dy: 83 },
+                { id: 'dp', label: 'Decimal Point', dx: 59.5, dy: 83 },
+                { id: 'com2', label: 'Common (GND)', dx: 76.5, dy: 83 }
             ]
         },
         dot_matrix: {
@@ -784,7 +784,7 @@ void loop() {
                 { from: 'ard-pin-6', to: 'bb-a17', color: '#0284c7', waypoints: [] },
                 { from: 'ard-pin-7', to: 'bb-f13', color: '#8b5cf6', waypoints: [] },
                 { from: 'ard-pin-8', to: 'bb-f14', color: '#ec4899', waypoints: [] },
-                { from: 'bb-a15', to: 'bb-bot-neg-15', color: '#0f172a', waypoints: [] },
+                { from: 'bb-g15', to: 'bb-bot-neg-15', color: '#0f172a', waypoints: [] },
                 { from: 'ard-pin-10', to: 'bb-d19', color: '#10b981', waypoints: [] },
                 { from: 'bb-g19', to: 'bb-bot-neg-19', color: '#0f172a', waypoints: [] },
                 { from: 'ard-pin-11', to: 'bb-d23', color: '#38bdf8', waypoints: [] },
@@ -942,6 +942,7 @@ void loop() {
                 { from: 'ard-pin-6', to: 'bb-a17', color: '#0284c7', waypoints: [] },
                 { from: 'ard-pin-7', to: 'bb-f13', color: '#8b5cf6', waypoints: [] },
                 { from: 'ard-pin-8', to: 'bb-f14', color: '#ec4899', waypoints: [] },
+                { from: 'bb-g15', to: 'bb-bot-neg-15', color: '#0f172a', waypoints: [] },
                 { from: 'ard-pin-10', to: 'bb-d19', color: '#10b981', waypoints: [] },
                 { from: 'bb-g19', to: 'bb-bot-neg-19', color: '#0f172a', waypoints: [] },
                 { from: 'ard-pin-11', to: 'bb-d23', color: '#38bdf8', waypoints: [] },
@@ -2670,6 +2671,29 @@ void loop() {
         triggerCircuitSolve();
     }
 
+    function digitToSegments(digit) {
+        const table = {
+            0: { a:1, b:1, c:1, d:1, e:1, f:1, g:0, dp:0 },
+            1: { a:0, b:1, c:1, d:0, e:0, f:0, g:0, dp:0 },
+            2: { a:1, b:1, c:0, d:1, e:1, f:0, g:1, dp:0 },
+            3: { a:1, b:1, c:1, d:1, e:0, f:0, g:1, dp:0 },
+            4: { a:0, b:1, c:1, d:0, e:0, f:1, g:1, dp:0 },
+            5: { a:1, b:0, c:1, d:1, e:0, f:1, g:1, dp:0 },
+            6: { a:1, b:0, c:1, d:1, e:1, f:1, g:1, dp:0 },
+            7: { a:1, b:1, c:1, d:0, e:0, f:0, g:0, dp:0 },
+            8: { a:1, b:1, c:1, d:1, e:1, f:1, g:1, dp:0 },
+            9: { a:1, b:1, c:1, d:1, e:0, f:1, g:1, dp:0 },
+            'A': { a:1, b:1, c:1, d:0, e:1, f:1, g:1, dp:0 },
+            'b': { a:0, b:0, c:1, d:1, e:1, f:1, g:1, dp:0 },
+            'C': { a:1, b:0, c:0, d:1, e:1, f:1, g:0, dp:0 },
+            'd': { a:0, b:1, c:1, d:1, e:1, f:0, g:1, dp:0 },
+            'E': { a:1, b:0, c:0, d:1, e:1, f:1, g:1, dp:0 },
+            'F': { a:1, b:0, c:0, d:0, e:1, f:1, g:1, dp:0 }
+        };
+        const key = typeof digit === 'number' ? digit : (String(digit).toUpperCase());
+        return table[key] || table[digit] || { a:0, b:0, c:0, d:0, e:0, f:0, g:0, dp:0 };
+    }
+
     function getComponentSVG(comp) {
         switch (comp.type) {
             case 'led':
@@ -2822,16 +2846,33 @@ void loop() {
                 </div>`;
 
             case 'seven_segment':
-                const seg = comp.props.segments || { a:1, b:1, c:1, d:1, e:1, f:1, g:0, dp:0 };
-                return `<div class="tc-seven-segment-display" style="width:60px;height:85px;position:relative;background:#090d16;border-radius:6px;border:2px solid #334155;padding:6px;box-sizing:border-box;">
-                    <div class="tc-seg ${seg.a ? 'lit' : ''}" style="top:12px;left:15px;width:30px;height:5px;"></div>
-                    <div class="tc-seg ${seg.b ? 'lit' : ''}" style="top:17px;left:42px;width:5px;height:24px;"></div>
-                    <div class="tc-seg ${seg.c ? 'lit' : ''}" style="top:44px;left:42px;width:5px;height:24px;"></div>
-                    <div class="tc-seg ${seg.d ? 'lit' : ''}" style="top:68px;left:15px;width:30px;height:5px;"></div>
-                    <div class="tc-seg ${seg.e ? 'lit' : ''}" style="top:44px;left:13px;width:5px;height:24px;"></div>
-                    <div class="tc-seg ${seg.f ? 'lit' : ''}" style="top:17px;left:13px;width:5px;height:24px;"></div>
-                    <div class="tc-seg ${seg.g ? 'lit' : ''}" style="top:40px;left:15px;width:30px;height:5px;"></div>
-                    <div class="tc-seg ${seg.dp ? 'lit' : ''}" style="bottom:12px;right:6px;width:6px;height:6px;border-radius:50%;"></div>
+                const seg = comp.props.segments || digitToSegments(comp.props.digit !== undefined ? comp.props.digit : 0);
+                return `<div class="tc-seven-segment-display" style="width:85px;height:85px;position:relative;background:#090d16;border-radius:6px;border:2px solid #334155;padding:4px;box-sizing:border-box;box-shadow:0 4px 10px rgba(0,0,0,0.4);user-select:none;">
+                    <!-- Top Pin Indicators -->
+                    <div style="position:absolute;top:2px;left:5.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg A (Pin 1)"></div>
+                    <div style="position:absolute;top:2px;left:22.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg B (Pin 2)"></div>
+                    <div style="position:absolute;top:2px;left:39.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg C (Pin 3)"></div>
+                    <div style="position:absolute;top:2px;left:56.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg D (Pin 4)"></div>
+                    <div style="position:absolute;top:2px;left:73.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg E (Pin 5)"></div>
+
+                    <!-- Inner Display Window -->
+                    <div style="position:absolute;top:10px;left:18px;width:49px;height:65px;background:#030712;border-radius:4px;border:1px solid #1e293b;">
+                        <div id="${comp.id}_seg_a" class="tc-seg tc-seg-a ${seg.a ? 'lit' : ''}" style="top:5px;left:10px;width:28px;height:5px;"></div>
+                        <div id="${comp.id}_seg_b" class="tc-seg tc-seg-b ${seg.b ? 'lit' : ''}" style="top:9px;left:35px;width:5px;height:22px;"></div>
+                        <div id="${comp.id}_seg_c" class="tc-seg tc-seg-c ${seg.c ? 'lit' : ''}" style="top:33px;left:35px;width:5px;height:22px;"></div>
+                        <div id="${comp.id}_seg_d" class="tc-seg tc-seg-d ${seg.d ? 'lit' : ''}" style="top:53px;left:10px;width:28px;height:5px;"></div>
+                        <div id="${comp.id}_seg_e" class="tc-seg tc-seg-e ${seg.e ? 'lit' : ''}" style="top:33px;left:8px;width:5px;height:22px;"></div>
+                        <div id="${comp.id}_seg_f" class="tc-seg tc-seg-f ${seg.f ? 'lit' : ''}" style="top:9px;left:8px;width:5px;height:22px;"></div>
+                        <div id="${comp.id}_seg_g" class="tc-seg tc-seg-g ${seg.g ? 'lit' : ''}" style="top:29px;left:10px;width:28px;height:5px;"></div>
+                        <div id="${comp.id}_seg_dp" class="tc-seg tc-seg-dp ${seg.dp ? 'lit' : ''}" style="bottom:6px;right:3px;width:5px;height:5px;border-radius:50%;"></div>
+                    </div>
+
+                    <!-- Bottom Pin Indicators -->
+                    <div style="position:absolute;bottom:2px;left:5.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg F (Pin 6)"></div>
+                    <div style="position:absolute;bottom:2px;left:22.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="Seg G (Pin 7)"></div>
+                    <div style="position:absolute;bottom:2px;left:39.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="COM Cathode (Pin 8)"></div>
+                    <div style="position:absolute;bottom:2px;left:56.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="DP (Pin 9)"></div>
+                    <div style="position:absolute;bottom:2px;left:73.5px;width:6px;height:6px;border-radius:50%;background:#94a3b8;border:1px solid #475569;" title="COM Cathode (Pin 10)"></div>
                 </div>`;
 
             case 'dot_matrix':
@@ -4763,6 +4804,7 @@ void loop() {
             chip.addEventListener('click', function () {
                 const digit = parseInt(this.getAttribute('data-digit'));
                 comp.props.digit = digit;
+                comp.props.segments = digitToSegments(digit);
                 renderComponentDOM(comp);
                 showToast(`7-Segment Display: ${digit}`);
             });
@@ -5149,6 +5191,89 @@ void loop() {
                 }
             } else if (bzBody) {
                 bzBody.querySelectorAll('.tc-buzzer-wave').forEach(w => w.remove());
+            }
+        });
+
+        // 10b. 7-Segment LED Displays (Common Cathode)
+        state.components.filter(c => c.type === 'seven_segment').forEach(disp => {
+            const segKeys = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'];
+            const segStates = {};
+
+            // Determine Common Cathode connection
+            const com1Root = find(`${disp.id}_com1`);
+            const com2Root = find(`${disp.id}_com2`);
+            const isCom5V = v5Roots.has(com1Root) || v5Roots.has(com2Root);
+            const isComGnd = gndRoots.has(com1Root) || gndRoots.has(com2Root) || (!isCom5V);
+
+            let anyTerminalActive = false;
+
+            segKeys.forEach(s => {
+                const sRoot = find(`${disp.id}_${s}`);
+                let sVolt = netVoltages[sRoot] || 0.0;
+
+                // Check through any series current-limiting resistors
+                state.components.filter(c => c.type === 'resistor').forEach(res => {
+                    const rt1 = find(`${res.id}_t1`);
+                    const rt2 = find(`${res.id}_t2`);
+                    if (rt1 === sRoot && netVoltages[rt2] !== undefined) sVolt = Math.max(sVolt, netVoltages[rt2]);
+                    if (rt2 === sRoot && netVoltages[rt1] !== undefined) sVolt = Math.max(sVolt, netVoltages[rt1]);
+                });
+
+                const isLit = state.isSimulating && isComGnd && (sVolt > 1.8);
+                segStates[s] = isLit ? 1 : 0;
+                if (isLit) anyTerminalActive = true;
+            });
+
+            // Fallback for simulation if pin connections aren't directly wired to each pin but Arduino firmware drives digital pins 2..8:
+            if (state.isSimulating && !anyTerminalActive) {
+                const p2 = state.hardwareValues.digitalPins[2] || 0;
+                const p3 = state.hardwareValues.digitalPins[3] || 0;
+                const p4 = state.hardwareValues.digitalPins[4] || 0;
+                const p5 = state.hardwareValues.digitalPins[5] || 0;
+                const p6 = state.hardwareValues.digitalPins[6] || 0;
+                const p7 = state.hardwareValues.digitalPins[7] || 0;
+                const p8 = state.hardwareValues.digitalPins[8] || 0;
+
+                const anyPinDriven = [2, 3, 4, 5, 6, 7, 8].some(p => state.hardwareValues.pinModes[p] === 1);
+                if (anyPinDriven) {
+                    segStates.a = p2;
+                    segStates.b = p3;
+                    segStates.c = p4;
+                    segStates.d = p5;
+                    segStates.e = p6;
+                    segStates.f = p7;
+                    segStates.g = p8;
+                    segStates.dp = 0;
+                }
+            }
+
+            // Update DOM element segments
+            segKeys.forEach(s => {
+                const segEl = document.getElementById(`${disp.id}_seg_${s}`);
+                if (segEl) {
+                    if (segStates[s]) segEl.classList.add('lit');
+                    else segEl.classList.remove('lit');
+                }
+            });
+
+            // Decode active segment pattern to digit
+            const segPattern = (segStates.a ? 1 : 0) |
+                               ((segStates.b ? 1 : 0) << 1) |
+                               ((segStates.c ? 1 : 0) << 2) |
+                               ((segStates.d ? 1 : 0) << 3) |
+                               ((segStates.e ? 1 : 0) << 4) |
+                               ((segStates.f ? 1 : 0) << 5) |
+                               ((segStates.g ? 1 : 0) << 6);
+
+            const patternToDigit = {
+                0x3F: 0, 0x06: 1, 0x5B: 2, 0x4F: 3, 0x66: 4,
+                0x6D: 5, 0x7D: 6, 0x07: 7, 0x7F: 8, 0x6F: 9,
+                0x77: 'A', 0x7C: 'b', 0x39: 'C', 0x5E: 'd', 0x79: 'E', 0x71: 'F'
+            };
+
+            disp.props.segments = segStates;
+            if (patternToDigit[segPattern] !== undefined) {
+                disp.props.digit = patternToDigit[segPattern];
             }
         });
 
@@ -5901,6 +6026,14 @@ void loop() {
         state.components.filter(c => c.type === 'dc_motor').forEach(comp => {
             const prop = document.getElementById(`${comp.id}_propeller`);
             if (prop) prop.classList.remove('spinning');
+        });
+
+        // Turn off 7-segment displays
+        state.components.filter(c => c.type === 'seven_segment').forEach(comp => {
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'].forEach(s => {
+                const segEl = document.getElementById(`${comp.id}_seg_${s}`);
+                if (segEl) segEl.classList.remove('lit');
+            });
         });
 
         updateCircuitWarning('', false);
@@ -7214,7 +7347,8 @@ void loop() {
     window.TinkercadClone = {
         state, presets, loadPreset, autoWirePreset, clearAllWires,
         startSimulation, stopSimulation, rebootMCU, placeComponent,
-        switchView, exportSchematicSvg, exportBomCsv, undo, redo, showToast
+        switchView, exportSchematicSvg, exportBomCsv, undo, redo, showToast,
+        triggerCircuitSolve
     };
     window.tcSimulator = window.TinkercadClone;
 

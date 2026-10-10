@@ -2717,7 +2717,7 @@
 
 /* 6. Seven Segment Display & Matrix Elements */
 .tc-seven-segment-display {
-    width: 60px;
+    width: 85px;
     height: 85px;
     background: #090d16;
     border: 2px solid #1e293b;
