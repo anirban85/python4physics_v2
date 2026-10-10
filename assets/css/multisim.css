@@ -1493,6 +1493,47 @@
     background: #334155;
     color: #ffffff;
 }
+.ms-quick-btn.view-output {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: #10b981;
+    color: #34d399;
+    font-weight: 700;
+}
+.ms-quick-btn.view-output:hover {
+    background: #10b981;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+.ms-quick-btn.view-output.cro {
+    background: rgba(245, 158, 11, 0.25);
+    border-color: #f59e0b;
+    color: #fbbf24;
+}
+.ms-quick-btn.view-output.cro:hover {
+    background: #f59e0b;
+    color: #0f172a;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+.ms-quick-btn.view-output.dmm {
+    background: rgba(74, 222, 128, 0.25);
+    border-color: #4ade80;
+    color: #4ade80;
+}
+.ms-quick-btn.view-output.dmm:hover {
+    background: #22c55e;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
+}
+.ms-quick-btn.view-output.xfg {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
+    color: #38bdf8;
+}
+.ms-quick-btn.view-output.xfg:hover {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
 .ms-quick-btn.edit {
     background: rgba(2, 132, 199, 0.25);
     border-color: #0284c7;

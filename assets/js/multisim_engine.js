@@ -445,10 +445,19 @@
         }
 
         bindQuickActions() {
+            const viewOutBtn = document.getElementById('msQuickBtnViewOutput');
             const editBtn = document.getElementById('msQuickBtnEdit');
             const rotBtn = document.getElementById('msQuickBtnRot');
             const delBtn = document.getElementById('msQuickBtnDel');
 
+            if (viewOutBtn) {
+                viewOutBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (this.selectedItem && this.selectedItem.id) {
+                        this.handleOutputDeviceClick(this.selectedItem);
+                    }
+                });
+            }
             if (editBtn) {
                 editBtn.addEventListener('click', e => {
                     e.stopPropagation();
@@ -473,6 +482,30 @@
 
         showQuickActions(comp) {
             if (!this.quickActionsEl || !comp) return;
+
+            const viewOutBtn = document.getElementById('msQuickBtnViewOutput');
+            if (viewOutBtn) {
+                if (this.isOutputDevice(comp)) {
+                    viewOutBtn.style.display = 'inline-flex';
+                    viewOutBtn.className = 'ms-quick-btn view-output';
+                    if (comp.type === 'cro_tap') {
+                        viewOutBtn.classList.add('cro');
+                        viewOutBtn.innerHTML = '<i class="fa-solid fa-chart-line"></i> <span>View CRO</span>';
+                    } else if (comp.type === 'voltmeter') {
+                        viewOutBtn.classList.add('dmm');
+                        viewOutBtn.innerHTML = '<i class="fa-solid fa-gauge-high"></i> <span>View DMM</span>';
+                    } else if (comp.type === 'ammeter') {
+                        viewOutBtn.classList.add('dmm');
+                        viewOutBtn.innerHTML = '<i class="fa-solid fa-gauge"></i> <span>View DMM</span>';
+                    } else if (comp.type === 'ac_source') {
+                        viewOutBtn.classList.add('xfg');
+                        viewOutBtn.innerHTML = '<i class="fa-solid fa-wave-square"></i> <span>View XFG</span>';
+                    }
+                } else {
+                    viewOutBtn.style.display = 'none';
+                }
+            }
+
             const pad = 36;
             const pt = this.svgPointToClient(comp.x, comp.y - pad);
             let x = pt.x;
@@ -948,9 +981,63 @@
             }, 2800);
         }
 
+        bringWindowToFront(winId) {
+            if (!this._maxWindowZ) this._maxWindowZ = 200;
+            this._maxWindowZ++;
+            const win = document.getElementById(winId);
+            if (win) {
+                win.style.zIndex = this._maxWindowZ;
+            }
+        }
+
+        isOutputDevice(comp) {
+            if (!comp) return false;
+            return ['cro_tap', 'voltmeter', 'ammeter', 'ac_source'].includes(comp.type);
+        }
+
+        handleOutputDeviceClick(comp) {
+            if (!comp) return;
+            const hasAc = this.components.some(c => c.type === 'ac_source');
+
+            if (comp.type === 'cro_tap') {
+                if (this.cro) {
+                    this.cro.activeTap = comp;
+                    this.cro.show();
+                    this.bringWindowToFront('msCroWindow');
+                    this.showToast(`CRO Output: Displaying waveform for ${comp.label || 'CRO TAP'}.`);
+                }
+            } else if (comp.type === 'voltmeter') {
+                if (this.dmm) {
+                    this.dmm.probeComponent = comp;
+                    this.dmm.setMode(hasAc ? 'V_AC' : 'V_DC');
+                    this.dmm.show();
+                    this.bringWindowToFront('msDmmWindow');
+                    this.showToast(`Voltmeter Output: ${comp.label || 'Voltmeter'} displayed on DMM (${hasAc ? 'AC RMS' : 'DC'}).`);
+                }
+            } else if (comp.type === 'ammeter') {
+                if (this.dmm) {
+                    this.dmm.probeComponent = comp;
+                    this.dmm.setMode(hasAc ? 'I_AC' : 'I_DC');
+                    this.dmm.show();
+                    this.bringWindowToFront('msDmmWindow');
+                    this.showToast(`Ammeter Output: ${comp.label || 'Ammeter'} displayed on DMM (${hasAc ? 'AC RMS' : 'DC'}).`);
+                }
+            } else if (comp.type === 'ac_source') {
+                if (this.xfg) {
+                    this.xfg.syncFromSource(comp);
+                    this.xfg.show();
+                    this.bringWindowToFront('msXfgWindow');
+                    this.showToast(`Signal Output: ${comp.label || 'AC Source'} opened in Function Generator.`);
+                }
+            }
+        }
+
         makeWindowsDraggable() {
             const windows = document.querySelectorAll('.ms-floating-window');
             windows.forEach(win => {
+                win.addEventListener('pointerdown', () => {
+                    this.bringWindowToFront(win.id);
+                });
                 const header = win.querySelector('.ms-window-header');
                 if (!header) return;
 
@@ -1651,12 +1738,18 @@
                     }
                 }
 
-                // 3. Double click on a component opens property modal
+                // 3. Double click on a component opens property modal or instrument output
                 const compGroup = e.target.closest('.ms-comp-group');
                 if (compGroup) {
                     const id = parseInt(compGroup.getAttribute('data-id'), 10);
                     const comp = self.components.find(c => c.id === id);
-                    if (comp) self.openPropertyModal(comp);
+                    if (comp) {
+                        if (self.isOutputDevice(comp)) {
+                            self.handleOutputDeviceClick(comp);
+                        } else {
+                            self.openPropertyModal(comp);
+                        }
+                    }
                 }
             });
 
@@ -1806,6 +1899,8 @@
                         x: coords.x - comp.x,
                         y: coords.y - comp.y
                     };
+                    this.dragStartCoords = { x: coords.x, y: coords.y };
+                    this.hasMovedDrag = false;
                     this.render();
                     return;
                 }
@@ -1862,6 +1957,13 @@
                     }
                     this.render();
                     return;
+                }
+
+                if (this.dragStartCoords) {
+                    const dist = Math.hypot(coords.x - this.dragStartCoords.x, coords.y - this.dragStartCoords.y);
+                    if (dist > 5) {
+                        this.hasMovedDrag = true;
+                    }
                 }
 
                 const rawX = coords.x - this.dragOffset.x;
@@ -1924,14 +2026,21 @@
         }
 
         onPointerUp() {
+            const wasClickWithoutDrag = !this.hasMovedDrag;
             this.isPanning = false;
             this.isPinching = false;
             this.pinchDist = null;
             this.isDragging = false;
             this.dragItem = null;
+            this.hasMovedDrag = false;
+
             if (this.selectedItem && this.selectedItem.id) {
                 this.showQuickActions(this.selectedItem);
                 this.hideWireQuickActions();
+
+                if (wasClickWithoutDrag && this.isOutputDevice(this.selectedItem)) {
+                    this.handleOutputDeviceClick(this.selectedItem);
+                }
             } else if (this.selectedItem && this.selectedItem.type === 'wire') {
                 this.hideQuickActions();
                 const wire = this.wires[this.selectedItem.index];
@@ -4681,6 +4790,7 @@
             // Real Rolling History Buffer
             this.historyBuffer = []; // [ { t, vA, vB } ]
             this.maxHistory = 1500;
+            this.activeTap = null;
 
             this.bindControls();
             this.syncControlsUI();
@@ -5047,6 +5157,14 @@
             if (this.windowEl) {
                 this.windowEl.classList.add('active');
                 this.isOpen = true;
+                this.wb.bringWindowToFront('msCroWindow');
+                const titleEl = document.getElementById('msCroWindowTitle');
+                if (titleEl) {
+                    const tapName = this.activeTap && this.wb.components.includes(this.activeTap)
+                        ? (this.activeTap.label || 'CRO TAP')
+                        : 'Dual-Trace Cathode Ray Oscilloscope (CRO)';
+                    titleEl.innerHTML = `<i class="fa-solid fa-chart-line" style="color: #fbbf24;"></i> Tektronix &middot; ${tapName}`;
+                }
                 this.syncControlsUI();
                 this.drawGrid();
             }
@@ -5068,7 +5186,10 @@
             let vA = 0.0;
             let vB = 0.0;
 
-            const croTap = this.wb.components.find(c => c.type === 'cro_tap');
+            let croTap = this.activeTap && this.wb.components.includes(this.activeTap) ? this.activeTap : null;
+            if (!croTap) {
+                croTap = this.wb.components.find(c => c.type === 'cro_tap');
+            }
             if (croTap) {
                 const nA = this.wb.pinToNode[`${croTap.id}:chA`];
                 const nB = this.wb.pinToNode[`${croTap.id}:chB`];
@@ -5331,7 +5452,10 @@
             this.windowEl = document.getElementById('msDmmWindow');
             this.displayEl = document.getElementById('msDmmValueDisplay');
             this.unitEl = document.getElementById('msDmmUnitDisplay');
+            this.probeNameEl = document.getElementById('msDmmProbeName');
+            this.probeLiveValEl = document.getElementById('msDmmProbeLiveVal');
             this.mode = 'V_DC';
+            this.probeComponent = null;
 
             this.bindControls();
         }
@@ -5351,10 +5475,24 @@
             });
         }
 
+        setMode(newMode) {
+            this.mode = newMode;
+            const modeBtns = document.querySelectorAll('.ms-dmm-mode-btn');
+            modeBtns.forEach(b => {
+                if (b.getAttribute('data-mode') === newMode) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+            this.updateReadout();
+        }
+
         show() {
             if (this.windowEl) {
                 this.windowEl.classList.add('active');
                 this.isOpen = true;
+                this.wb.bringWindowToFront('msDmmWindow');
                 this.updateReadout();
             }
         }
@@ -5374,20 +5512,59 @@
         updateReadout() {
             if (!this.displayEl || !this.unitEl) return;
 
-            // Probe primary load or active output node
-            let v = 0.0;
-            const vm = this.wb.components.find(c => c.type === 'voltmeter');
-            const am = this.wb.components.find(c => c.type === 'ammeter');
-
-            if (vm) {
-                const np = this.wb.pinToNode[`${vm.id}:p`] || 0;
-                const nn = this.wb.pinToNode[`${vm.id}:n`] || 0;
-                v = (this.wb.nodeVoltages[np] || 0.0) - (this.wb.nodeVoltages[nn] || 0.0);
-            } else {
-                v = this.wb.nodeVoltages[1] || 0.0;
+            // Probe targeted meter if available, else primary load
+            let target = this.probeComponent;
+            if (target && !this.wb.components.includes(target)) {
+                target = null;
+                this.probeComponent = null;
             }
 
-            const i_mA = am ? parseFloat(am.liveRead) || 0.0 : (v / 1000.0) * 1000.0;
+            let v = 0.0;
+            let i_mA = 0.0;
+            let targetLabel = 'Auto Probes (RL)';
+
+            if (target && target.type === 'voltmeter') {
+                targetLabel = target.label || 'Voltmeter';
+                const np = this.wb.pinToNode[`${target.id}:p`] || 0;
+                const nn = this.wb.pinToNode[`${target.id}:n`] || 0;
+                v = (this.wb.nodeVoltages[np] || 0.0) - (this.wb.nodeVoltages[nn] || 0.0);
+                i_mA = (v / 1000.0) * 1000.0;
+            } else if (target && target.type === 'ammeter') {
+                targetLabel = target.label || 'Ammeter';
+                const np = this.wb.pinToNode[`${target.id}:p`] || 0;
+                const nn = this.wb.pinToNode[`${target.id}:n`] || 0;
+                const vp = this.wb.nodeVoltages[np] || 0.0;
+                const vn = this.wb.nodeVoltages[nn] || 0.0;
+                v = vp - vn;
+                const iBranch = (vp - vn) / 0.001; // Rin = 1mΩ
+                i_mA = iBranch * 1000.0;
+            } else {
+                const vm = this.wb.components.find(c => c.type === 'voltmeter');
+                const am = this.wb.components.find(c => c.type === 'ammeter');
+                if (vm) {
+                    targetLabel = vm.label || 'Voltmeter';
+                    const np = this.wb.pinToNode[`${vm.id}:p`] || 0;
+                    const nn = this.wb.pinToNode[`${vm.id}:n`] || 0;
+                    v = (this.wb.nodeVoltages[np] || 0.0) - (this.wb.nodeVoltages[nn] || 0.0);
+                } else {
+                    v = this.wb.nodeVoltages[1] || 0.0;
+                }
+                i_mA = am ? parseFloat(am.liveRead) || 0.0 : (v / 1000.0) * 1000.0;
+            }
+
+            if (isNaN(v) || !isFinite(v)) v = 0.0;
+            if (isNaN(i_mA) || !isFinite(i_mA)) i_mA = 0.0;
+
+            if (this.probeNameEl) {
+                this.probeNameEl.innerText = targetLabel;
+            }
+            if (this.probeLiveValEl) {
+                if (this.mode.startsWith('I_')) {
+                    this.probeLiveValEl.innerText = (i_mA >= 0 ? '+' : '') + i_mA.toFixed(2) + ' mA';
+                } else {
+                    this.probeLiveValEl.innerText = (v >= 0 ? '+' : '') + v.toFixed(2) + ' V';
+                }
+            }
 
             switch (this.mode) {
                 case 'V_DC':
@@ -5428,6 +5605,7 @@
             this.windowEl = document.getElementById('msXfgWindow');
             this.frequency = 1000;
             this.amplitude = 5.0;
+            this.activeSource = null;
 
             this.bindControls();
         }
@@ -5457,10 +5635,42 @@
             }
         }
 
+        syncFromSource(comp) {
+            if (!comp) return;
+            this.activeSource = comp;
+            if (comp.props && comp.props.frequency !== undefined) {
+                this.frequency = comp.props.frequency;
+            }
+            if (comp.props && comp.props.amplitude !== undefined) {
+                this.amplitude = comp.props.amplitude;
+            }
+            const freqSlider = document.getElementById('msXfgFreqSlider');
+            const freqDisp = document.getElementById('msXfgFreqDisplay');
+            if (freqSlider && freqDisp) {
+                freqSlider.value = this.frequency;
+                freqDisp.innerText = this.frequency + ' Hz';
+            }
+            const ampSlider = document.getElementById('msXfgAmpSlider');
+            const ampDisp = document.getElementById('msXfgAmpDisplay');
+            if (ampSlider && ampDisp) {
+                ampSlider.value = this.amplitude;
+                ampDisp.innerText = this.amplitude.toFixed(1) + ' V';
+            }
+            const sourceNameEl = document.getElementById('msXfgSourceName');
+            if (sourceNameEl) {
+                sourceNameEl.innerText = comp.label || 'AC Source';
+            }
+        }
+
         show() {
             if (this.windowEl) {
                 this.windowEl.classList.add('active');
                 this.isOpen = true;
+                this.wb.bringWindowToFront('msXfgWindow');
+                const sourceNameEl = document.getElementById('msXfgSourceName');
+                if (sourceNameEl && this.activeSource && this.wb.components.includes(this.activeSource)) {
+                    sourceNameEl.innerText = this.activeSource.label || 'AC Source';
+                }
             }
         }
 
@@ -5477,7 +5687,9 @@
         }
 
         applyToSources() {
-            const acSrc = this.wb.components.find(c => c.type === 'ac_source');
+            const acSrc = this.activeSource && this.wb.components.includes(this.activeSource)
+                ? this.activeSource
+                : this.wb.components.find(c => c.type === 'ac_source');
             if (acSrc) {
                 acSrc.props.frequency = this.frequency;
                 acSrc.props.amplitude = this.amplitude;

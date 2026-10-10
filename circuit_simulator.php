@@ -506,6 +506,9 @@ require_once __DIR__ . '/include/navbar.php';
 
                 <!-- On-Canvas Floating Quick-Action Bar for Selected Component -->
                 <div class="ms-comp-quick-actions" id="msCompQuickActions" style="display: none;">
+                    <button type="button" class="ms-quick-btn view-output" id="msQuickBtnViewOutput" style="display: none;">
+                        <i class="fa-solid fa-chart-line"></i> <span>View Output</span>
+                    </button>
                     <button type="button" class="ms-quick-btn edit" id="msQuickBtnEdit" title="Edit Component Value (Enter)">
                         <i class="fa-solid fa-sliders"></i> <span>Edit Value</span>
                     </button>
@@ -568,7 +571,7 @@ require_once __DIR__ . '/include/navbar.php';
         <!-- 1. Dual-Channel Cathode Ray Oscilloscope (CRO) -->
         <div class="ms-floating-window ms-cro-window" id="msCroWindow">
             <div class="ms-window-header">
-                <span class="ms-window-title">
+                <span class="ms-window-title" id="msCroWindowTitle">
                     <i class="fa-solid fa-chart-line" style="color: #fbbf24;"></i>
                     Tektronix &middot; Dual-Trace Cathode Ray Oscilloscope (CRO)
                 </span>
@@ -690,6 +693,12 @@ require_once __DIR__ . '/include/navbar.php';
                 <button type="button" class="ms-window-close-btn" id="msDmmCloseBtn">&times;</button>
             </div>
             <div class="ms-dmm-body">
+                <!-- Live Probe Subtitle -->
+                <div class="ms-dmm-probe-target" id="msDmmProbeTarget" style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span><i class="fa-solid fa-crosshairs" style="color: #4ade80; margin-right: 4px;"></i>Probe: <strong id="msDmmProbeName" style="color: #f8fafc;">Auto Probes (RL)</strong></span>
+                    <span id="msDmmProbeLiveVal" style="color: #4ade80; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">0.000 V</span>
+                </div>
+
                 <!-- 4.5 Digit LCD Screen -->
                 <div class="ms-dmm-display">
                     <span class="ms-dmm-value" id="msDmmValueDisplay">0.000</span>
@@ -717,6 +726,11 @@ require_once __DIR__ . '/include/navbar.php';
                 <button type="button" class="ms-window-close-btn" id="msXfgCloseBtn">&times;</button>
             </div>
             <div class="ms-xfg-body">
+                <!-- Source Indicator -->
+                <div class="ms-xfg-source-target" id="msXfgSourceTarget" style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span><i class="fa-solid fa-bolt" style="color: #38bdf8; margin-right: 4px;"></i>Source: <strong id="msXfgSourceName" style="color: #f8fafc;">AC Source</strong></span>
+                </div>
+
                 <div class="ms-xfg-row">
                     <span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600;">Frequency:</span>
                     <span id="msXfgFreqDisplay" style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;">1000 Hz</span>
