@@ -21,7 +21,7 @@ require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
 $page_title = "Circuit Simulator - Virtual Electronics Laboratory & Schematic CAD";
-$page_description = "Interactive SPICE circuit simulator: build analog circuits, wire components, connect virtual CRO oscilloscope, digital multimeter, and analyze DC/AC transients across 7 electronics modules.";
+$page_description = "Interactive SPICE circuit simulator: build analog circuits, wire components, connect virtual CRO oscilloscope, digital multimeter, and analyze DC/AC transients across all 9 electronics modules.";
 $page_keywords = "circuit simulator, schematic cad, virtual electronics lab, spice simulation, oscilloscope CRO, multimeter DMM, opamp 741, bjt amplifier, bridge rectifier, zener regulator";
 
 require_once __DIR__ . '/include/header.php';
@@ -115,8 +115,9 @@ require_once __DIR__ . '/include/navbar.php';
         <p style="font-size: 1.02rem; line-height: 1.5; color: var(--text-muted); margin: 0;">
             A professional browser-based electronics CAD &amp; SPICE simulation environment. 
             Wire active and passive components on the engineering grid, probe nodes with a dual-trace CRO and digital multimeter, 
-            and execute real-time SPICE transient simulations across all 7 curriculum modules.
+            and execute real-time SPICE transient simulations across all 9 curriculum modules.
         </p>
+
     </div>
 
     <!-- ====================================================================

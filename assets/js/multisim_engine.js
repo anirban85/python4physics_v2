@@ -3802,27 +3802,30 @@
                     }
 
                     case 'capacitor': {
-                        // Companion Model: G_eq = C/dt, I_eq = G_eq * V_prev
+                        // Trapezoidal Companion Model (A-stable, zero numerical damping)
                         const n1 = this.pinToNode[`${comp.id}:1`] || 0;
                         const n2 = this.pinToNode[`${comp.id}:2`] || 0;
                         const cVal = p.capacitance || 0.0001;
-                        const gC = cVal / dt;
+                        const gC = (2.0 * cVal) / dt;
                         const vPrev = this.compStates[comp.id]?.v || 0.0;
-                        const iEq = gC * vPrev;
+                        const iPrev = this.compStates[comp.id]?.i || 0.0;
+                        const iEq = gC * vPrev + iPrev;
                         stampConductance(n1, n2, gC);
                         stampCurrentSource(n1, n2, -iEq);
                         break;
                     }
 
                     case 'inductor': {
-                        // Companion Model: G_eq = dt/L, I_eq = I_prev
+                        // Trapezoidal Companion Model
                         const n1 = this.pinToNode[`${comp.id}:1`] || 0;
                         const n2 = this.pinToNode[`${comp.id}:2`] || 0;
                         const lVal = p.inductance || 0.01;
-                        const gL = dt / lVal;
+                        const gL = dt / (2.0 * lVal);
+                        const vPrev = this.compStates[comp.id]?.v || 0.0;
                         const iPrev = this.compStates[comp.id]?.i || 0.0;
+                        const iEq = iPrev + gL * vPrev;
                         stampConductance(n1, n2, gL);
-                        stampCurrentSource(n1, n2, -iPrev);
+                        stampCurrentSource(n1, n2, -iEq);
                         break;
                     }
 
@@ -3886,22 +3889,29 @@
                         const vbe = vb - ve;
                         const vce = vc - ve;
                         const beta = p.beta || 120;
-                        const rpi = 2500.0;
-                        const gpi = 1.0 / rpi;
 
-                        // Smooth continuous turn-on characteristic (eliminates step chatter)
-                        const turnOn = Math.max(0.0, Math.min(1.0, (vbe - 0.55) / 0.12));
+                        // 1. Base-emitter junction with forward drop and reverse breakdown clamp
+                        if (vbe > 0.6) {
+                            const rbe = 500.0;
+                            const gbe = 1.0 / rbe;
+                            stampConductance(nb, ne, gbe);
+                            stampCurrentSource(nb, ne, -(0.65 * gbe));
+                        } else if (vbe < -6.0) {
+                            // Base-emitter zener breakdown prevents numerical divergence
+                            const gbrk = 1.0 / 50.0;
+                            stampConductance(nb, ne, gbrk);
+                            stampCurrentSource(nb, ne, -(-6.0 * gbrk));
+                        } else {
+                            stampConductance(nb, ne, 1e-7);
+                        }
 
+                        // 2. Collector-emitter conduction with physical saturation clamp
+                        const turnOn = Math.max(0.0, Math.min(1.0, (vbe - 0.58) / 0.10));
                         if (turnOn > 0.01) {
-                            const effGpi = gpi * turnOn;
-                            stampConductance(nb, ne, effGpi);
-                            const iEqB = 0.65 * effGpi;
-                            stampCurrentSource(nb, ne, -iEqB);
-
-                            const satFactor = Math.max(0.0, Math.min(1.0, (vce - 0.15) / 0.25));
-                            const gm = Math.min(0.06, beta * effGpi) * satFactor;
-
-                            if (gm > 1e-6) {
+                            // If Vce > 0.4V, transistor provides small-signal linear gain
+                            if (vce > 0.4) {
+                                const effGpi = (1.0 / 1500.0) * turnOn;
+                                const gm = Math.min(0.08, beta * effGpi);
                                 if (ne > 0) {
                                     if (nb > 0) A[ne - 1][nb - 1] -= gm;
                                     A[ne - 1][ne - 1] += gm;
@@ -3910,15 +3920,20 @@
                                     if (nb > 0) A[nc - 1][nb - 1] += gm;
                                     if (ne > 0) A[nc - 1][ne - 1] -= gm;
                                 }
-                                const iEqC = 0.65 * gm;
-                                stampCurrentSource(nc, ne, -iEqC);
+                                stampCurrentSource(nc, ne, -(0.65 * gm));
+                            } else {
+                                // Saturated switch (Vce clamped to ~0.2V)
+                                const ron = Math.max(15.0, 15.0 / turnOn);
+                                const gon = 1.0 / ron;
+                                stampConductance(nc, ne, gon);
+                                stampCurrentSource(nc, ne, -(0.20 * gon));
                             }
                         } else {
-                            stampConductance(nb, ne, 1e-7);
                             stampConductance(nc, ne, 1e-7);
                         }
                         break;
                     }
+
 
                     case 'jfet_n': {
                         const ng = this.pinToNode[`${comp.id}:g`] || 0;
@@ -4029,7 +4044,7 @@
                     const vInv = (nInv > 0 && this.nodeVoltages[nInv] !== undefined) ? this.nodeVoltages[nInv] : 0.0;
                     const vDiff = vNon - vInv;
 
-                    if (op.props.comparator || Math.abs(vDiff) > (vsat / aol * 2.5)) {
+                    if (op.props.comparator) {
                         // Saturated / switching mode (Comparator, Schmitt Trigger, Relaxation Osc)
                         const satVal = vDiff >= 0 ? vsat : -vsat;
                         if (nOut > 0) {
@@ -4038,11 +4053,15 @@
                         }
                         Z[row] = satVal;
                     } else {
-                        // Linear negative feedback mode
+                        // Linear feedback mode with soft saturation compression
+                        const vOutPrev = (nOut > 0 && this.nodeVoltages[nOut] !== undefined) ? this.nodeVoltages[nOut] : 0.0;
+                        const compRatio = Math.max(0.005, 1.0 - Math.pow(Math.min(1.0, Math.abs(vOutPrev) / vsat), 4));
+                        const effAol = Math.max(20.0, aol * compRatio);
+
                         if (nNon > 0) A[row][nNon - 1] += 1;
                         if (nInv > 0) A[row][nInv - 1] -= 1;
                         if (nOut > 0) {
-                            A[row][nOut - 1] -= 1.0 / aol;
+                            A[row][nOut - 1] -= 1.0 / effAol;
                             A[nOut - 1][row] += 1;
                         }
                         Z[row] = 0.0;
@@ -4053,11 +4072,15 @@
             // Solve System [A] [x] = [Z] via Gaussian Elimination with Partial Pivoting
             const x = this.solveGaussian(A, Z, totalVars);
 
-            // Record Node Voltages
+            // Record Node Voltages (bounded to physical circuit rails [-18V, +24V] to prevent numerical divergence)
             this.nodeVoltages[0] = 0.0;
             for (let i = 1; i <= N; i++) {
-                this.nodeVoltages[i] = x ? x[i - 1] : 0.0;
+                let val = x ? x[i - 1] : 0.0;
+                if (val > 24.0) val = 24.0;
+                else if (val < -18.0) val = -18.0;
+                this.nodeVoltages[i] = val;
             }
+
 
             // Saturation clamping for Op-Amps (±14.0V)
             this.components.filter(c => c.type === 'opamp').forEach(op => {
@@ -4068,25 +4091,18 @@
                 }
             });
 
-            // Physical saturation clamping for BJT NPN (Vc cannot drop below Ve + 0.2V)
-            this.components.filter(c => c.type === 'bjt_npn').forEach(bjt => {
-                const nc = this.pinToNode[`${bjt.id}:c`];
-                const ne = this.pinToNode[`${bjt.id}:e`];
-                if (nc && this.nodeVoltages[nc] !== undefined) {
-                    const ve = (ne && this.nodeVoltages[ne] !== undefined) ? this.nodeVoltages[ne] : 0.0;
-                    if (this.nodeVoltages[nc] < ve + 0.2) {
-                        this.nodeVoltages[nc] = ve + 0.2;
-                    }
-                }
-            });
-
-            // Update states for Capacitors & Inductors
+            // Update states for Capacitors & Inductors (Trapezoidal Rule)
             this.components.forEach(comp => {
                 if (comp.type === 'capacitor') {
                     const n1 = this.pinToNode[`${comp.id}:1`] || 0;
                     const n2 = this.pinToNode[`${comp.id}:2`] || 0;
                     const vNow = (this.nodeVoltages[n1] || 0.0) - (this.nodeVoltages[n2] || 0.0);
-                    this.compStates[comp.id] = { v: vNow };
+                    const cVal = comp.props.capacitance || 0.0001;
+                    const gC = (2.0 * cVal) / dt;
+                    const vPrev = this.compStates[comp.id]?.v || 0.0;
+                    const iPrev = this.compStates[comp.id]?.i || 0.0;
+                    const iNow = gC * (vNow - vPrev) - iPrev;
+                    this.compStates[comp.id] = { v: vNow, i: iNow };
                 } else if (comp.type === 'inductor') {
                     const n1 = this.pinToNode[`${comp.id}:1`] || 0;
                     const n2 = this.pinToNode[`${comp.id}:2`] || 0;
@@ -4094,9 +4110,10 @@
                     const lVal = comp.props.inductance || 0.01;
                     const prevI = this.compStates[comp.id]?.i || 0.0;
                     const iNow = prevI + (vNow * dt / lVal);
-                    this.compStates[comp.id] = { i: iNow };
+                    this.compStates[comp.id] = { i: iNow, v: vNow };
                 }
             });
+
         }
 
         solveGaussian(A, B, n) {
@@ -4395,7 +4412,10 @@
             this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: v2.id, toPin: 'n' });
             this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: cro.id, toPin: 'gnd' });
             this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: r3.id, fromPin: '1', toComp: vm.id, toPin: 'p' });
+            this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: vm.id, toPin: 'n' });
         }
+
 
         // --- Module 2: PN Diode Forward & Reverse Bias ---
         setupPNDiodeCircuit() {
@@ -5098,7 +5118,7 @@
             vcc.label = 'VCC (+10V)';
             const rc1 = this.addComponent('resistor', 240, 120, { resistance: 1000 });
             rc1.rotation = 90; rc1.label = 'RC1 (1k)';
-            const rc2 = this.addComponent('resistor', 480, 120, { resistance: 1000 });
+            const rc2 = this.addComponent('resistor', 480, 120, { resistance: 1050 }); // 5% component asymmetry for stable power-on state
             rc2.rotation = 90; rc2.label = 'RC2 (1k)';
 
             const q1 = this.addComponent('bjt_npn', 240, 240);
@@ -5147,19 +5167,19 @@
             this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: q2.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
-            this.wires.push({ fromComp: vcc.n, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
 
         // --- Module 9: RC Phase Shift Oscillator ---
         setupRCPhaseShiftOscillatorCircuit() {
             const u1 = this.addComponent('opamp', 380, 200);
-            const rf = this.addComponent('resistor', 380, 90, { resistance: 290000 });
-            rf.label = 'Rf (290k)';
+            const rf = this.addComponent('resistor', 380, 90, { resistance: 340000 });
+            rf.label = 'Rf (340k)';
             const rin = this.addComponent('resistor', 280, 160, { resistance: 10000 });
             rin.label = 'R (10k)';
 
-            // 3-stage RC ladder network
+            // 3-stage RC ladder network (R=10k, C=10nF => f0 = 1 / (2*pi*R*C*sqrt(6)) ~ 650 Hz)
             const c1 = this.addComponent('capacitor', 480, 140, { capacitance: 0.00000001 });
             c1.label = 'C1 (10nF)';
             const r1 = this.addComponent('resistor', 480, 260, { resistance: 10000 });
@@ -5198,12 +5218,15 @@
             this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: c3.id, fromPin: '2', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+
+            // Initial startup perturbation on timing capacitor
+            this.compStates[c1.id] = { v: 0.2, i: 0.0 };
         }
 
         // --- Module 9: Wien Bridge Oscillator ---
         setupWienBridgeOscillatorCircuit() {
             const u1 = this.addComponent('opamp', 380, 200);
-            const rf = this.addComponent('resistor', 380, 90, { resistance: 20000 });
+            const rf = this.addComponent('resistor', 380, 90, { resistance: 20000 }); // Theoretical exact gain = 1 + 20k/10k = 3.0
             rf.label = 'Rf (20k)';
             const r1 = this.addComponent('resistor', 280, 270, { resistance: 10000 });
             r1.rotation = 90; r1.label = 'R1 (10k)';
@@ -5238,11 +5261,15 @@
             this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chA' });
             this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+
+            // Initial startup perturbation on timing capacitor
+            this.compStates[cs.id] = { v: 0.2, i: 0.0 };
         }
 
         // --- Module 9: Op-Amp Relaxation Oscillator (Square Wave Generator) ---
         setupOpAmpRelaxationOscillatorCircuit() {
             const u1 = this.addComponent('opamp', 360, 200);
+            u1.props.comparator = true; // Op-Amp comparator mode for relaxation oscillator
             const rtiming = this.addComponent('resistor', 360, 80, { resistance: 10000 });
             rtiming.label = 'R (10k)';
             const ctiming = this.addComponent('capacitor', 260, 240, { capacitance: 0.000001 });
@@ -5270,7 +5297,11 @@
 
             this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chB' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+
+            // Initial startup perturbation on timing capacitor
+            this.compStates[ctiming.id] = { v: 0.1, i: 0.0 };
         }
+
     }
 
     // ========================================================================
