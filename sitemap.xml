@@ -5,19 +5,19 @@
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
     <url>
         <loc>https://python4physics.in/</loc>
-        <lastmod>2026-10-06</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.00</priority>
     </url>
     <url>
         <loc>https://python4physics.in/index.php</loc>
-        <lastmod>2026-10-06</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.00</priority>
     </url>
     <url>
         <loc>https://python4physics.in/circuit_simulator.php</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.98</priority>
     </url>
@@ -47,7 +47,7 @@
     </url>
     <url>
         <loc>https://python4physics.in/program/python/index.php</loc>
-        <lastmod>2026-10-01</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.95</priority>
     </url>
@@ -65,7 +65,7 @@
     </url>
     <url>
         <loc>https://python4physics.in/arduino.php</loc>
-        <lastmod>2026-10-02</lastmod>
+        <lastmod>2026-10-10</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.98</priority>
     </url>
@@ -107,61 +107,61 @@
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=newtons-laws</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.88</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=potential-wells</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.88</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=particle-dynamics</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.88</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=central-force</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=scattering</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=fluid-mechanics</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=mechanics</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=electrodynamics</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=quantum</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
         <loc>https://python4physics.in/assignments.php?category=thermo</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.80</priority>
     </url>
@@ -761,19 +761,49 @@
     </url>
     <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=1</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=2</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=3</loc>
-        <lastmod>2026-09-22</lastmod>
+        <lastmod>2026-10-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=4</loc>
+        <lastmod>2026-10-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=5</loc>
+        <lastmod>2026-10-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=6</loc>
+        <lastmod>2026-10-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=7</loc>
+        <lastmod>2026-10-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=8&amp;submenu_id=8</loc>
+        <lastmod>2026-10-11</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
@@ -796,12 +826,6 @@
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=9&amp;submenu_id=4</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=10&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -814,6 +838,18 @@
         <priority>0.80</priority>
     </url>
     <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=10&amp;submenu_id=3</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=10&amp;submenu_id=4</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=11&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -821,18 +857,6 @@
     </url>
     <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=11&amp;submenu_id=2</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=11&amp;submenu_id=3</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=11&amp;submenu_id=4</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
@@ -862,12 +886,6 @@
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=12&amp;submenu_id=5</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=13&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -880,6 +898,24 @@
         <priority>0.80</priority>
     </url>
     <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=13&amp;submenu_id=3</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=13&amp;submenu_id=4</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=13&amp;submenu_id=5</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=14&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -887,12 +923,6 @@
     </url>
     <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=14&amp;submenu_id=2</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=14&amp;submenu_id=3</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
@@ -934,12 +964,6 @@
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=16&amp;submenu_id=4</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=17&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -952,6 +976,18 @@
         <priority>0.80</priority>
     </url>
     <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=17&amp;submenu_id=3</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=17&amp;submenu_id=4</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -959,36 +995,6 @@
     </url>
     <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=2</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=3</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=4</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=5</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=6</loc>
-        <lastmod>2026-09-22</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.80</priority>
-    </url>
-    <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=18&amp;submenu_id=7</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
@@ -1024,6 +1030,18 @@
         <priority>0.80</priority>
     </url>
     <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=19&amp;submenu_id=6</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=19&amp;submenu_id=7</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
         <loc>https://python4physics.in/program/python/program.php?menu_id=20&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
@@ -1054,31 +1072,61 @@
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=20&amp;submenu_id=6</loc>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=1</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=20&amp;submenu_id=7</loc>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=2</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=20&amp;submenu_id=8</loc>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=3</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=20&amp;submenu_id=9</loc>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=4</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>
     </url>
     <url>
-        <loc>https://python4physics.in/program/python/program.php?menu_id=20&amp;submenu_id=10</loc>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=5</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=6</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=7</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=8</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=9</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://python4physics.in/program/python/program.php?menu_id=21&amp;submenu_id=10</loc>
         <lastmod>2026-09-22</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.80</priority>

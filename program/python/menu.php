@@ -8,19 +8,20 @@ $menu_titles = [
     '5' => 'Plotting in Python',
     '6' => 'Ordinary Differential Equation-1',
     '7' => 'Introduction to Numpy',
-    '8' => 'Solve Linear Equations',
-    '9' => 'Introduction to Scipy',
-    '10' => 'Interpolation',
-    '11' => 'Numerical Integration',
-    '12' => 'Ordinary Differential Equation-2',
-    '13' => 'Curve Fitting',
-    '14' => 'Special Functions',
-    '15' => 'Fourier Series',
-    '16' => 'Partial Differential Equations',
-    '17' => 'Shooting Method for Boundary Value Problem',
-    '18' => 'TISE Solution',
-    '19' => 'TDSE Solution',
-    '20' => 'Application in Statistical Mechanics'
+    '8' => 'Introduction to Pandas for Physics',
+    '9' => 'Solve Linear Equations',
+    '10' => 'Introduction to Scipy',
+    '11' => 'Interpolation',
+    '12' => 'Numerical Integration',
+    '13' => 'Ordinary Differential Equation-2',
+    '14' => 'Curve Fitting',
+    '15' => 'Special Functions',
+    '16' => 'Fourier Series',
+    '17' => 'Partial Differential Equations',
+    '18' => 'Shooting Method for Boundary Value Problem',
+    '19' => 'TISE Solution',
+    '20' => 'TDSE Solution',
+    '21' => 'Application in Statistical Mechanics'
 ];
 
 // Sub-menu items and their titles
@@ -91,58 +92,68 @@ $sub_menu_titles = [
         7 => 'Linear Algebra'
     ],
     '8' => [
+        1 => 'Pandas Series & Physical Quantities',
+        2 => 'DataFrames & Experimental Lab Data',
+        3 => 'File I/O with Experimental Datasets',
+        4 => 'Data Cleaning & Missing Experimental Data',
+        5 => 'Data Transformation, Filtering & Physical Slicing',
+        6 => 'Descriptive Statistics & Uncertainty Analysis',
+        7 => 'GroupBy Operations & Multi-Trial Experiments',
+        8 => 'Reshaping Data & Pivot Tables in Grid Measurements'
+    ],
+    '9' => [
         1 => 'Gauss Elimination',
         2 => 'Using numpy linalg module',
 		3 => 'Gauss-Seidel Method'
     ],
-    '9' => [
+    '10' => [
         1 => 'Integration',
         2 => 'Interpolation',
         3 => 'Linear Algebra',
         4 => 'Optimization'
     ],
-    '10' => [
+    '11' => [
         1 => 'Lagrange’s Interpolation',
         2 => 'Newton’s Forward and Backward Interpolation'
     ],
-    '11' => [
+    '12' => [
         1 => 'Trapezoidal Method',
         2 => 'Simpson’s 1/3rd Rule',
         3 => 'Gaussian Quadrature method',
         4 => 'Convolution of two Gaussian Functions'     
     ],
-    '12' => [
+    '13' => [
         1 => '1st Order ODE (RK2 Method)',
         2 => '2nd Order ODE (RK2 Method)',
         3 => '1st Order ODE (RK4 Method)',
         4 => '2nd Order ODE (RK4 Method)',
         5 => 'Solve ODE using scipy.integrate.odeint()'
     ],
-    '13' => [
+    '14' => [
         1 => 'Using Numpy',
         2 => 'Using Scipy.optimize'
     ],
-    '14' => [
+    '15' => [
         1 => 'Bessel Function',
         2 => 'Legendre Polynomial',
         3 => 'Hermite Polynomial'
     ],
-    '15' => [
+    '16' => [
         1 => 'Square Wave',
         2 => 'Triangular Wave',
         3 => 'Sawtooth Wave'
     ],
-    '16' => [
+    '17' => [
         1 => 'Heat Diffusion',
         2 => 'Laplace Equation',
         3 => 'Wave Equation',
         4 => 'Schrodinger Equation'
     ],
-    '17' => [
+    '18' => [
         1 => 'Example-1',
         2 => 'Example-2'
     ],
-    '18' => [
+    '19' => [
         1 => 'Shooting Method to Solve TISE',
         2 => 'Particle in 1D Potential Box',
         3 => 'Finite Square Well',
@@ -151,14 +162,14 @@ $sub_menu_titles = [
 		6 => 'Particle in 1D Potential Well (Solving Transcendental Equation)',
 		7 => 'TISE by Finite Difference Method'
     ],
-    '19' => [
+    '20' => [
         1 => 'Explicit Methods',
         2 => 'Implicit Methods',
         3 => 'Crank-Nicolson Methods',
         4 => 'Time Evaluation of WavePacket',
         5 => 'Barrier Penetration and Tunneling for an Initially Gaussian Wavepacket'
     ],
-    '20' => [
+    '21' => [
         1 => 'Study of Random Numbers and Time Series',
         2 => 'Generate Different Variate from Uniform Variate',
         3 => 'Coin Tossing Simulation',
@@ -246,70 +257,81 @@ $menu = [
         'numpy_matrix_operators' => 6,
         'linear_algebra' => 7
     ],
-    // Menu 8: Solve Linear Equations
+    // Menu 8: Introduction to Pandas for Physics
     '8' => [
+        'series_physical_quantities' => 1,
+        'dataframes_lab_data' => 2,
+        'file_io_datasets' => 3,
+        'data_cleaning_missing_data' => 4,
+        'data_transformation_filtering' => 5,
+        'descriptive_statistics_uncertainty' => 6,
+        'groupby_multi_trial_experiments' => 7,
+        'reshaping_pivot_tables' => 8
+    ],
+    // Menu 9: Solve Linear Equations
+    '9' => [
         'gauss_elimination' => 1,
         'numpy_linalg' => 2,
 		'gauss_seidal' => 3
     ],
-    // Menu 9: Introduction to Scipy
-    '9' => [
+    // Menu 10: Introduction to Scipy
+    '10' => [
         'integration' => 1,
         'interpolation' => 2,
         'linear_algebra' => 3,
         'optimization' => 4
     ],
-    // Menu 10: Interpolation
-    '10' => [
+    // Menu 11: Interpolation
+    '11' => [
         'lagrange_interpolation' => 1,
         'newton_interpolation' => 2
     ],
-    // Menu 11: Numerical Integration
-    '11' => [
+    // Menu 12: Numerical Integration
+    '12' => [
         'trapezoidal_method' => 1,
         'simpson_rule' => 2,
         'gaussian_quadrature' => 3,
         'convolution_of_two_gaussian_functions' => 4
     ],
-    // Menu 12: Ordinary Differential Equation-2
-    '12' => [
+    // Menu 13: Ordinary Differential Equation-2
+    '13' => [
         'rk2_1st_order' => 1,
         'rk2_2nd_order' => 2,
         'rk4_1st_order' => 3,
         'rk4_2nd_order' => 4,
         'scipy_odeint' => 5
     ],
-    // Menu 13: Curve Fitting
-    '13' => [
+    // Menu 14: Curve Fitting
+    '14' => [
         'numpy_curve_fitting' => 1,
         'scipy_optimize_curve_fitting' => 2
     ],
-    // Menu 14: Special Functions
-    '14' => [
+    // Menu 15: Special Functions
+    '15' => [
         'bessel_function' => 1,
         'legendre_polynomial' => 2,
         'hermite_polynomial' => 3
     ],
-    // Menu 15: Fourier Series
-    '15' => [
+    // Menu 16: Fourier Series
+    '16' => [
         'square_wave' => 1,
         'triangular_wave' => 2,
         'sawtooth_wave' => 3
     ],
-    // Menu 16: Partial Differential Equations
-    '16' => [
+    // Menu 17: Partial Differential Equations
+    '17' => [
         'heat_diffusion' => 1,
         'laplace_equation' => 2,
         'wave_equation' => 3,
         'Schrodinger_equation' => 4
     ],
-    // Menu 17: Shooting Method for Boundary Value Problem
-    '17' => [
+    // Menu 18: Shooting Method for Boundary Value Problem
+    '18' => [
         'example_1' => 1,
         'example_2' => 2
     ],
-    // Menu 18: TISE Solution
-    '18' => [
+    // Menu 19: TISE Solution
+    '19' => [
         'shooting_method_to_solve_TISE' => 1,
         'particle_in_1d_potential_box' => 2,
         'finite_square_well' => 3,
@@ -318,16 +340,16 @@ $menu = [
 		'particle_1d_potential_well_transcendental_equation' => 6,
 		'TISE_finite_difference_method' => 7
     ],
-    // Menu 19: TDSE Solution
-    '19' => [
+    // Menu 20: TDSE Solution
+    '20' => [
         'explicit_method' => 1,
         'implicit_method' => 2,
         'Crank-Nicolson_Methods' => 3,
         'wavepacket_time_evolution' => 4,
         'barrier_tunneling' => 5
     ],
-    // Menu 20: Application in Statistical Mechanics
-    '20' => [
+    // Menu 21: Application in Statistical Mechanics
+    '21' => [
         'random_numbers' => 1,
         'different_variate_from_uniform_variate' => 2,
         'coin_toss_simulation' => 3,
@@ -348,43 +370,18 @@ if (isset($_GET['menu_id']) && isset($_GET['submenu_id'])) {
 
     switch ($menu_id) {
         case '1': // Introduction to Python
-            // Add custom redirections if needed
-            break;
         case '2': // Iterable Data Type
-            // Add custom redirections if needed
-            break;
         case '3': // Basic Problems
-            // Add custom redirections if needed
-            break;
         case '4': // Matrix Operation
-            // Add custom redirections if needed
-            break;
         case '5': // Plotting in Python
-            // Add custom redirections if needed
-            break;
         case '6': // Ordinary Differential Equation-1
-            // Add custom redirections if needed
-            break;
         case '7': // Introduction to Numpy
-            // Add custom redirections if needed
-            break;
-        case '8': // Solve Linear Equations
-            // Add custom redirections if needed
-            break;
-        case '9': // Introduction to Scipy
-            // Add custom redirections if needed
-            break;
-        case '10': // Interpolation
-            //if ($submenu_id == '1') {
-               // header("Location: lag_interpolation.php");
-               // exit;
-            //} elseif ($submenu_id == '2') {
-             //   header("Location: newton_interpolation.php");
-            //    exit;
-            //}
+        case '8': // Introduction to Pandas for Physics
+        case '9': // Solve Linear Equations
+        case '10': // Introduction to Scipy
+        case '11': // Interpolation
             break;
         default:
-            // Default behavior if no match is found
             break;
     }
 }

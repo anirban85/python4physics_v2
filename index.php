@@ -379,7 +379,7 @@ plt.show()
                 <h3>3. Differential Equations & Dynamics</h3>
                 <p>Symplectic Euler, RK2, RK4 integrators, coupled nonlinear oscillators, shooting method for BVPs, and Fourier transformations.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=12&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=13&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
@@ -392,7 +392,7 @@ plt.show()
                 <h3>4. Quantum & Statistical Mechanics</h3>
                 <p>Finite-difference solvers for TISE/TDSE, potential barriers, quantum harmonic oscillators, and partition functions $Z = \sum e^{-\beta E_i}$.</p>
                 <div style="margin-top: 1.25rem;">
-                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=18&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
+                    <a href="<?php echo $siteurl; ?>program/python/program.php?menu_id=19&submenu_id=1" class="btn-modern btn-outline btn-sm">Explore Track &rarr;</a>
                 </div>
             </div>
 
@@ -424,12 +424,12 @@ plt.show()
         </div>
     </section>
 
-    <!-- Computational Physics Chapter Directory (20 Topics) -->
+    <!-- Computational Physics Chapter Directory (21 Topics) -->
     <section style="margin-bottom: 5rem;">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
             <div>
                 <span class="badge badge-cyan">Full Syllabus Catalog</span>
-                <h2 style="font-size: 2.2rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">All 20 Python Physics Chapters</h2>
+                <h2 style="font-size: 2.2rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">All 21 Python Physics Chapters</h2>
                 <p style="margin: 0;">Comprehensive computational modules matching university physics curricula.</p>
             </div>
             <a href="<?php echo $siteurl; ?>program/python/index.php" class="btn-modern btn-secondary">
@@ -442,10 +442,11 @@ plt.show()
             if (isset($menu_titles) && is_array($menu_titles)) {
                 $icons = [
                     1 => 'fa-terminal', 2 => 'fa-layer-group', 3 => 'fa-calculator', 4 => 'fa-table-cells',
-                    5 => 'fa-chart-pie', 6 => 'fa-chart-line', 7 => 'fa-cubes', 8 => 'fa-equals',
-                    9 => 'fa-microscope', 10 => 'fa-bezier-curve', 11 => 'fa-chart-area', 12 => 'fa-route',
-                    13 => 'fa-chart-column', 14 => 'fa-infinity', 15 => 'fa-wave-square', 16 => 'fa-water',
-                    17 => 'fa-crosshairs', 18 => 'fa-atom', 19 => 'fa-circle-nodes', 20 => 'fa-temperature-half'
+                    5 => 'fa-chart-pie', 6 => 'fa-chart-line', 7 => 'fa-cubes', 8 => 'fa-table',
+                    9 => 'fa-equals', 10 => 'fa-microscope', 11 => 'fa-bezier-curve', 12 => 'fa-chart-area',
+                    13 => 'fa-route', 14 => 'fa-chart-column', 15 => 'fa-infinity', 16 => 'fa-wave-square',
+                    17 => 'fa-water', 18 => 'fa-crosshairs', 19 => 'fa-atom', 20 => 'fa-circle-nodes',
+                    21 => 'fa-temperature-half'
                 ];
 
                 $chapter_formulas = [
@@ -456,19 +457,20 @@ plt.show()
                     5 => '$\\sin(\\omega t), e^{i\\theta}$',
                     6 => '$\\frac{dx}{dt} = f(t,x)$',
                     7 => '$\\det(\\mathbf{A} - \\lambda\\mathbf{I}) = 0$',
-                    8 => '$f(x) = 0$',
-                    9 => '$\\frac{d^2y}{dx^2} + qy = r$',
-                    10 => '$\\nabla \\phi$',
-                    11 => '$\\int_a^b f(x)dx$',
-                    12 => '$\\ddot{x} + \\omega^2 x = 0$',
-                    13 => '$\\hat{f}(k) = \\int f e^{-ikx}$',
-                    14 => '$\\lim_{N\\to\\infty} \\sum$',
-                    15 => '$\\nabla^2 u = \\frac{1}{v^2}\\ddot{u}$',
-                    16 => '$\\nabla \\cdot \\mathbf{v} = 0$',
-                    17 => '$\\mathbf{F} = q(\\mathbf{E}+\\mathbf{v}\\times\\mathbf{B})$',
-                    18 => '$i\\hbar \\partial_t \\psi = \\hat{H}\\psi$',
-                    19 => '$N(t) = N_0 e^{-\\lambda t}$',
-                    20 => '$dU = TdS - PdV$'
+                    8 => '$\\bar{x}, s_x, \\mathrm{SEM}$',
+                    9 => '$f(x) = 0$',
+                    10 => '$\\frac{d^2y}{dx^2} + qy = r$',
+                    11 => '$\\nabla \\phi$',
+                    12 => '$\\int_a^b f(x)dx$',
+                    13 => '$\\ddot{x} + \\omega^2 x = 0$',
+                    14 => '$\\hat{f}(k) = \\int f e^{-ikx}$',
+                    15 => '$\\lim_{N\\to\\infty} \\sum$',
+                    16 => '$\\nabla^2 u = \\frac{1}{v^2}\\ddot{u}$',
+                    17 => '$\\nabla \\cdot \\mathbf{v} = 0$',
+                    18 => '$\\mathbf{F} = q(\\mathbf{E}+\\mathbf{v}\\times\\mathbf{B})$',
+                    19 => '$i\\hbar \\partial_t \\psi = \\hat{H}\\psi$',
+                    20 => '$N(t) = N_0 e^{-\\lambda t}$',
+                    21 => '$dU = TdS - PdV$'
                 ];
 
                 foreach ($menu_titles as $mid => $mtitle) {

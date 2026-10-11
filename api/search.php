@@ -74,7 +74,13 @@ if (isset($conn) && $conn !== null) {
             $menu_id = $row['menu_id'];
             $sub_id = $row['submenu_id'];
             $topic = $python_submenus[$menu_id][$sub_id] ?? ($python_menus[$menu_id] ?? "Python Chapter $menu_id");
-            $title = !empty(trim(strip_tags($row['algo']))) ? trim(strip_tags($row['algo'])) : "$topic - Program {$row['program_id']}";
+            $raw_algo = trim(strip_tags($row['algo']));
+            $first_line = strtok($raw_algo, "\r\n");
+            if (!empty($first_line) && strlen($first_line) <= 75 && !str_contains($first_line, '$$') && !str_contains($first_line, '\\')) {
+                $title = $first_line;
+            } else {
+                $title = "$topic (Program {$row['program_id']})";
+            }
 
             $results[] = [
                 'id'         => $row['id'],

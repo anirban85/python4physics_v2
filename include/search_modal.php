@@ -15,7 +15,7 @@
         <div id="searchResultsContainer" class="search-results-container">
             <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-dim);">
                 <i class="fa-solid fa-bolt fa-2x" style="margin-bottom: 0.75rem; color: var(--accent); opacity: 0.7; display: block;"></i>
-                Instant search across <strong>345 Python</strong>, <strong>49 GNUplot</strong>, and <strong>115 LaTeX</strong> physics algorithms.
+                Instant search across <strong>353 Python</strong>, <strong>49 GNUplot</strong>, and <strong>115 LaTeX</strong> physics algorithms.
             </div>
         </div>
         <div class="search-modal-footer">

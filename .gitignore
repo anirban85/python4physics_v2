@@ -1,6 +1,7 @@
 # Database dumps and temporary local text dumps
 *.sql
 !database_v2_migration.sql
+!database_migration_ch8_pandas.sql
 tables.txt
 diff_block.txt
 recovered.txt
