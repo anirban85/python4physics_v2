@@ -230,8 +230,8 @@
             // Numerical Solver State
             this.isRunning = false;
             this.simTime = 0.0;          // Seconds
-            this.simDt = 0.00005;        // 50 microseconds SPICE step
-            this.stepsPerTick = 6;       // 6 steps per frame = 300us step
+            this.simDt = 0.00002;        // 20 microseconds high-precision SPICE step
+            this.stepsPerTick = 15;      // 15 steps per frame = 300us physical step
             this.simInterval = null;
 
             // Topological state
@@ -3616,6 +3616,9 @@
             for (let s = 0; s < this.stepsPerTick; s++) {
                 this.simTime += this.simDt;
                 this.solveMNA();
+                if (this.cro) {
+                    this.cro.recordSample(this.simTime);
+                }
             }
 
             if (this.clockEl) {
@@ -3623,11 +3626,8 @@
             }
 
             // Update virtual instruments with true physical node measurements
-            if (this.cro) {
-                this.cro.recordSample(this.simTime);
-                if (this.cro.isOpen) {
-                    this.cro.updateDisplay();
-                }
+            if (this.cro && this.cro.isOpen) {
+                this.cro.updateDisplay();
             }
 
             if (this.dmm && this.dmm.isOpen) {
@@ -5326,7 +5326,7 @@
 
             // Real Rolling History Buffer
             this.historyBuffer = []; // [ { t, vA, vB } ]
-            this.maxHistory = 1500;
+            this.maxHistory = 15000;
             this.activeTap = null;
 
             this.bindControls();
@@ -5713,7 +5713,8 @@
         autoset() {
             if (this.historyBuffer.length < 5) return;
 
-            const recent = this.historyBuffer.slice(-Math.min(300, this.historyBuffer.length));
+            const scanCount = Math.min(500, this.historyBuffer.length);
+            const recent = this.historyBuffer.slice(-scanCount);
             let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
 
             recent.forEach(s => {
@@ -5761,8 +5762,16 @@
             }
 
             // Estimate period for timebase
-            const acComp = this.wb.components.find(c => c.type === 'ac_source');
-            let freq = acComp && acComp.props.frequency ? acComp.props.frequency : 50;
+            let freq = this.detectFrequency('vA') || this.detectFrequency('vB');
+            if (!freq || freq <= 0) {
+                const acComp = this.wb.components.find(c => c.type === 'ac_source');
+                freq = acComp && acComp.props.frequency ? acComp.props.frequency : 0;
+            }
+            if (!freq || freq <= 0) {
+                if (this.wb.activePreset === 'mod9_wien_bridge') freq = 1591.55;
+                else if (this.wb.activePreset === 'mod9_rc_phase_shift') freq = 649.75;
+                else freq = 50;
+            }
 
             const standardTdivs = [0.00005, 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05];
             const period = 1.0 / freq;
@@ -5778,6 +5787,34 @@
 
             this.syncControlsUI();
             this.updateDisplay();
+        }
+
+        detectFrequency(chKey) {
+            if (this.historyBuffer.length < 10) return 0;
+            const scanCount = Math.min(1200, this.historyBuffer.length);
+            const recent = this.historyBuffer.slice(-scanCount);
+            let minVal = Infinity, maxVal = -Infinity;
+            for (let i = 0; i < recent.length; i++) {
+                const v = recent[i][chKey];
+                if (v < minVal) minVal = v;
+                if (v > maxVal) maxVal = v;
+            }
+            if (maxVal - minVal < 0.05) return 0; // Flat DC or no AC amplitude
+
+            const midLevel = (minVal < 0 && maxVal > 0) ? 0.0 : (minVal + maxVal) * 0.5;
+            const crossings = [];
+            for (let i = 1; i < recent.length; i++) {
+                const vPrev = recent[i - 1][chKey];
+                const vCurr = recent[i][chKey];
+                if (vPrev <= midLevel && vCurr > midLevel) {
+                    const frac = (midLevel - vPrev) / Math.max(1e-9, vCurr - vPrev);
+                    crossings.push(recent[i - 1].t + frac * (recent[i].t - recent[i - 1].t));
+                }
+            }
+            if (crossings.length < 2) return 0;
+            const timeSpan = crossings[crossings.length - 1] - crossings[0];
+            const numCycles = crossings.length - 1;
+            return timeSpan > 0 ? (numCycles / timeSpan) : 0;
         }
 
         show() {
@@ -5849,13 +5886,25 @@
 
             // Dedicated analytical oscillation for autonomous sinusoidal presets
             if (this.wb.activePreset === 'mod9_wien_bridge') {
-                const f0 = 1591.55;
+                let rVal = 10000;
+                let cVal = 1e-8;
+                const rComp = this.wb.components.find(c => c.label && (c.label.startsWith('R_s') || c.label.startsWith('R1') || c.label.startsWith('R_p')));
+                const cComp = this.wb.components.find(c => c.label && (c.label.startsWith('C_s') || c.label.startsWith('C_p')));
+                if (rComp && rComp.props && rComp.props.resistance) rVal = rComp.props.resistance;
+                if (cComp && cComp.props && cComp.props.capacitance) cVal = cComp.props.capacitance;
+                const f0 = 1.0 / (2.0 * Math.PI * rVal * cVal);
                 vA = 4.0 * Math.sin(2 * Math.PI * f0 * simTime);
-                vB = 1.33 * Math.sin(2 * Math.PI * f0 * simTime);
+                vB = (4.0 / 3.0) * Math.sin(2 * Math.PI * f0 * simTime);
             } else if (this.wb.activePreset === 'mod9_rc_phase_shift') {
-                const f0 = 649.75;
+                let rVal = 10000;
+                let cVal = 1e-8;
+                const rComp = this.wb.components.find(c => c.label && c.label.startsWith('R1'));
+                const cComp = this.wb.components.find(c => c.label && c.label.startsWith('C1'));
+                if (rComp && rComp.props && rComp.props.resistance) rVal = rComp.props.resistance;
+                if (cComp && cComp.props && cComp.props.capacitance) cVal = cComp.props.capacitance;
+                const f0 = 1.0 / (2.0 * Math.PI * rVal * cVal * Math.sqrt(6));
                 vA = 5.0 * Math.sin(2 * Math.PI * f0 * simTime);
-                vB = -0.172 * Math.sin(2 * Math.PI * f0 * simTime);
+                vB = -(5.0 / 29.0) * Math.sin(2 * Math.PI * f0 * simTime);
             }
 
             // Sanitize values
@@ -5863,8 +5912,8 @@
             if (isNaN(vB) || !isFinite(vB)) vB = 0.0;
 
             this.historyBuffer.push({ t: simTime, vA, vB });
-            if (this.historyBuffer.length > this.maxHistory) {
-                this.historyBuffer.shift();
+            if (this.historyBuffer.length > this.maxHistory + 500) {
+                this.historyBuffer.splice(0, 500);
             }
         }
 
@@ -5954,6 +6003,106 @@
             }
         }
 
+        drawSmoothTrace(pts, strokeColor, shadowColor, lineWidth = 2.2) {
+            const n = pts.length;
+            if (n < 2) return;
+            const ctx = this.ctx;
+            ctx.save();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (shadowColor) {
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = 6;
+            }
+
+            ctx.beginPath();
+            if (n === 2) {
+                ctx.moveTo(pts[0].x, pts[0].y);
+                ctx.lineTo(pts[1].x, pts[1].y);
+            } else {
+                // Fritsch-Carlson Monotonic Cubic Spline (C^1 continuous, zero overshoot, silky curves)
+                const m = new Float32Array(n);
+                const dx = new Float32Array(n - 1);
+                const dy = new Float32Array(n - 1);
+                const slope = new Float32Array(n - 1);
+                for (let i = 0; i < n - 1; i++) {
+                    dx[i] = pts[i + 1].x - pts[i].x;
+                    dy[i] = pts[i + 1].y - pts[i].y;
+                    slope[i] = dx[i] !== 0 ? dy[i] / dx[i] : 0;
+                }
+                m[0] = slope[0];
+                for (let i = 1; i < n - 1; i++) {
+                    if (slope[i - 1] * slope[i] <= 0) {
+                        m[i] = 0;
+                    } else {
+                        m[i] = (slope[i - 1] + slope[i]) * 0.5;
+                    }
+                }
+                m[n - 1] = slope[n - 2];
+                for (let i = 0; i < n - 1; i++) {
+                    if (slope[i] === 0) {
+                        m[i] = 0;
+                        m[i + 1] = 0;
+                    } else {
+                        const alpha = m[i] / slope[i];
+                        const beta = m[i + 1] / slope[i];
+                        const dist = alpha * alpha + beta * beta;
+                        if (dist > 9) {
+                            const tau = 3 / Math.sqrt(dist);
+                            m[i] = tau * alpha * slope[i];
+                            m[i + 1] = tau * beta * slope[i];
+                        }
+                    }
+                }
+
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 0; i < n - 1; i++) {
+                    const p1 = pts[i];
+                    const p2 = pts[i + 1];
+                    const c1x = p1.x + dx[i] / 3;
+                    const c1y = p1.y + m[i] * dx[i] / 3;
+                    const c2x = p2.x - dx[i] / 3;
+                    const c2y = p2.y - m[i + 1] * dx[i] / 3;
+                    ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+                }
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        drawParametricTrace(pts, strokeColor, shadowColor, lineWidth = 2.2) {
+            const n = pts.length;
+            if (n < 2) return;
+            const ctx = this.ctx;
+            ctx.save();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (shadowColor) {
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = 6;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 0; i < n - 1; i++) {
+                const p0 = i > 0 ? pts[i - 1] : pts[i];
+                const p1 = pts[i];
+                const p2 = pts[i + 1];
+                const p3 = i < n - 2 ? pts[i + 2] : p2;
+                const c1x = p1.x + (p2.x - p0.x) / 6;
+                const c1y = p1.y + (p2.y - p0.y) / 6;
+                const c2x = p2.x - (p3.x - p1.x) / 6;
+                const c2y = p2.y - (p3.y - p1.y) / 6;
+                ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
         updateDisplay() {
             if (!this.ctx || !this.canvas || this.historyBuffer.length < 2) return;
             const w = this.canvas.width;
@@ -5964,58 +6113,93 @@
             this.drawGrid();
 
             const windowTime = 10 * this.timeDiv;
-            const curTime = this.historyBuffer[this.historyBuffer.length - 1].t;
-            const startTime = curTime - windowTime;
+            const N = this.historyBuffer.length;
+            const curTime = this.historyBuffer[N - 1].t;
+            let startTime = curTime - windowTime;
 
-            // Filter samples in current screen window
-            const visible = this.historyBuffer.filter(s => s.t >= startTime);
+            // --- Zero-Crossing Edge Trigger for Rock-Solid Phase Alignment ---
+            const trigCh = (this.chA_enabled && !this.chB_enabled) ? 'vA' :
+                           (!this.chA_enabled && this.chB_enabled) ? 'vB' : 'vA';
+
+            let trigMin = Infinity, trigMax = -Infinity;
+            const scanCount = Math.min(N, 1200);
+            for (let i = N - scanCount; i < N; i++) {
+                const val = this.historyBuffer[i][trigCh];
+                if (val < trigMin) trigMin = val;
+                if (val > trigMax) trigMax = val;
+            }
+            const trigSpan = trigMax - trigMin;
+
+            if (trigSpan > 0.05) {
+                const trigLevel = (trigMin < 0 && trigMax > 0) ? 0.0 : (trigMin + trigMax) * 0.5;
+                const targetEnd = curTime - windowTime;
+
+                if (targetEnd > this.historyBuffer[0].t) {
+                    let endIdx = N - 1;
+                    while (endIdx > 1 && this.historyBuffer[endIdx].t > targetEnd) endIdx--;
+
+                    const searchStart = Math.max(1, endIdx - 800);
+                    for (let i = endIdx; i >= searchStart; i--) {
+                        const vPrev = this.historyBuffer[i - 1][trigCh];
+                        const vCurr = this.historyBuffer[i][trigCh];
+                        if (vPrev <= trigLevel && vCurr > trigLevel) {
+                            const frac = (trigLevel - vPrev) / Math.max(1e-9, vCurr - vPrev);
+                            startTime = this.historyBuffer[i - 1].t + frac * (this.historyBuffer[i].t - this.historyBuffer[i - 1].t);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            const endTime = startTime + windowTime;
+            const dt = (N > 1) ? (this.historyBuffer[1].t - this.historyBuffer[0].t) : 0.00002;
+            const visible = this.historyBuffer.filter(s => s.t >= startTime - dt && s.t <= endTime + dt);
             if (visible.length < 2) return;
+
+            // Uniform decimation if sample density exceeds 600 points across screen
+            let sampled = visible;
+            if (visible.length > 600) {
+                const step = Math.ceil(visible.length / 500);
+                sampled = [];
+                for (let i = 0; i < visible.length; i += step) {
+                    sampled.push(visible[i]);
+                }
+                if (sampled[sampled.length - 1] !== visible[visible.length - 1]) {
+                    sampled.push(visible[visible.length - 1]);
+                }
+            }
 
             let overRangeA = false;
             let overRangeB = false;
 
             if (this.mode === 'YT') {
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.rect(0, 0, w, h);
+                this.ctx.clip();
+
                 // --- Channel A (Yellow Trace) ---
                 if (this.chA_enabled) {
-                    this.ctx.strokeStyle = '#fbbf24';
-                    this.ctx.lineWidth = 2.2;
-                    this.ctx.shadowColor = '#fbbf24';
-                    this.ctx.shadowBlur = 6;
-                    this.ctx.beginPath();
-
-                    visible.forEach((s, idx) => {
+                    const ptsA = sampled.map(s => {
                         const px = ((s.t - startTime) / windowTime) * w;
                         const rawPy = midY - (s.vA / this.chA_voltsDiv) * dy - this.chA_yPos * dy;
-                        if (rawPy < 4 || rawPy > h - 4) overRangeA = true;
-                        const py = Math.min(Math.max(rawPy, 4), h - 4);
-
-                        if (idx === 0) this.ctx.moveTo(px, py);
-                        else this.ctx.lineTo(px, py);
+                        if (rawPy < 2 || rawPy > h - 2) overRangeA = true;
+                        return { x: px, y: rawPy };
                     });
-                    this.ctx.stroke();
-                    this.ctx.shadowBlur = 0;
+                    this.drawSmoothTrace(ptsA, '#fbbf24', '#fbbf24', 2.2);
                 }
 
                 // --- Channel B (Cyan Trace) ---
                 if (this.chB_enabled) {
-                    this.ctx.strokeStyle = '#38bdf8';
-                    this.ctx.lineWidth = 2.2;
-                    this.ctx.shadowColor = '#38bdf8';
-                    this.ctx.shadowBlur = 6;
-                    this.ctx.beginPath();
-
-                    visible.forEach((s, idx) => {
+                    const ptsB = sampled.map(s => {
                         const px = ((s.t - startTime) / windowTime) * w;
                         const rawPy = midY - (s.vB / this.chB_voltsDiv) * dy - this.chB_yPos * dy;
-                        if (rawPy < 4 || rawPy > h - 4) overRangeB = true;
-                        const py = Math.min(Math.max(rawPy, 4), h - 4);
-
-                        if (idx === 0) this.ctx.moveTo(px, py);
-                        else this.ctx.lineTo(px, py);
+                        if (rawPy < 2 || rawPy > h - 2) overRangeB = true;
+                        return { x: px, y: rawPy };
                     });
-                    this.ctx.stroke();
-                    this.ctx.shadowBlur = 0;
+                    this.drawSmoothTrace(ptsB, '#38bdf8', '#38bdf8', 2.2);
                 }
+                this.ctx.restore();
 
                 // Over-Range / Clipping Screen Badges
                 if (overRangeA) {
@@ -6033,23 +6217,20 @@
                 const dx = w / 10;
                 const midX = w / 2;
 
-                this.ctx.strokeStyle = '#4ade80';
-                this.ctx.lineWidth = 2.2;
-                this.ctx.shadowColor = '#4ade80';
-                this.ctx.shadowBlur = 8;
+                this.ctx.save();
                 this.ctx.beginPath();
+                this.ctx.rect(0, 0, w, h);
+                this.ctx.clip();
 
-                visible.forEach((s, idx) => {
-                    const px = Math.min(Math.max(midX + (s.vA / this.chA_voltsDiv) * dx, 4), w - 4);
-                    const py = Math.min(Math.max(midY - (s.vB / this.chB_voltsDiv) * dy, 4), h - 4);
-                    if (idx === 0) this.ctx.moveTo(px, py);
-                    else this.ctx.lineTo(px, py);
-                });
-                this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
+                const ptsXY = sampled.map(s => ({
+                    x: midX + (s.vA / this.chA_voltsDiv) * dx,
+                    y: midY - (s.vB / this.chB_voltsDiv) * dy
+                }));
+                this.drawParametricTrace(ptsXY, '#4ade80', '#4ade80', 2.2);
+                this.ctx.restore();
             }
 
-            // Calculate True Telemetry
+            // Calculate True Telemetry (Vp-p and Frequency)
             let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
             visible.forEach(s => {
                 if (s.vA < minA) minA = s.vA;
@@ -6061,12 +6242,8 @@
             const vppA = maxA > minA ? (maxA - minA) : 0;
             const vppB = maxB > minB ? (maxB - minB) : 0;
 
-            // Zero-crossing frequency detection for Ch A
-            let crossings = 0;
-            for (let i = 1; i < visible.length; i++) {
-                if (visible[i - 1].vA < 0 && visible[i].vA >= 0) crossings++;
-            }
-            const freqA = crossings > 1 ? Math.round(crossings / (2 * windowTime)) : 50;
+            const freqA = Math.round(this.detectFrequency('vA'));
+            const freqB = Math.round(this.detectFrequency('vB'));
 
             const telA_vpp = document.getElementById('msCroVppA');
             const telA_freq = document.getElementById('msCroFreqA');
@@ -6074,9 +6251,9 @@
             const telB_freq = document.getElementById('msCroFreqB');
 
             if (telA_vpp) telA_vpp.innerText = vppA.toFixed(2) + ' V';
-            if (telA_freq) telA_freq.innerText = freqA + ' Hz';
+            if (telA_freq) telA_freq.innerText = freqA > 0 ? (freqA + ' Hz') : '--';
             if (telB_vpp) telB_vpp.innerText = vppB.toFixed(2) + ' V';
-            if (telB_freq) telB_freq.innerText = freqA + ' Hz';
+            if (telB_freq) telB_freq.innerText = freqB > 0 ? (freqB + ' Hz') : '--';
         }
     }
 
