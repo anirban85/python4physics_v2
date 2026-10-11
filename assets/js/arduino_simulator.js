@@ -2674,18 +2674,11 @@ void loop() {
             });
         }
 
-        // 6. 1.8" Color TFT Module Click - Open / Expand High-Res Inspector
+        // 6. 1.8" Color TFT Module Click - Open / Expand High-Res Replica Pop-up
         if (comp.type === 'tft_lcd') {
             el.addEventListener('click', (e) => {
-                const mod = document.getElementById('tcTftInspectorModal');
-                if (mod) {
-                    const body = document.getElementById('tcTftModalBody');
-                    if (body) body.style.display = 'block';
-                    const minBtn = document.getElementById('tcTftMinBtn');
-                    if (minBtn) minBtn.textContent = '_';
-                    mod.classList.add('tc-highlight-pulse');
-                    setTimeout(() => mod.classList.remove('tc-highlight-pulse'), 800);
-                }
+                e.stopPropagation();
+                openTftReplicaModal();
             });
         }
     }
@@ -3753,114 +3746,11 @@ void loop() {
 
         // 8. 1.8" Color TFT Display Live Inspector Modal (Exp 08)
         const tftComp = state.components.find(c => c.type === 'tft_lcd');
-        let tftModal = document.getElementById('tcTftInspectorModal');
-
+        const tftModal = document.getElementById('tcTftInspectorModal');
         if (tftComp) {
-            if (!tftModal) {
-                tftModal = document.createElement('div');
-                tftModal.id = 'tcTftInspectorModal';
-                tftModal.className = 'tc-tft-inspector-modal';
-                tftModal.innerHTML = `
-                    <div class="tc-tft-modal-header" id="tcTftModalHeader">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span class="tc-tft-status-led" id="tcTftStatusLed"></span>
-                            <span style="font-weight:800;letter-spacing:0.5px;">1.8" COLOR TFT (ST7735)</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:4px;">
-                            <button type="button" class="tc-tft-ctrl-btn" id="tcTftModeBtn" title="Switch Display View: Live Screen vs Telemetry vs Demo">🖥️ Screen</button>
-                            <button type="button" class="tc-tft-ctrl-btn" id="tcTftMinBtn" title="Minimize / Expand Window">_</button>
-                        </div>
-                    </div>
-                    <div class="tc-tft-modal-body" id="tcTftModalBody">
-                        <div class="tc-tft-screen-bezel">
-                            <div class="tc-tft-screen" id="tcTftScreenView">
-                                <!-- High-Resolution ST7735 User Frame Buffer Canvas -->
-                                <canvas id="tcTftScreenCanvas" width="128" height="160" class="tc-tft-screen-canvas"></canvas>
-
-                                <!-- Telemetry Screen View -->
-                                <div id="tcTftViewTelemetry" class="tc-tft-view-pane" style="display:none;">
-                                    <div class="tc-tft-top-bar">
-                                        <span>★ PHYSICS 4 LAB ★</span>
-                                        <span id="tcTftClock">00:00</span>
-                                    </div>
-                                    <div class="tc-tft-sub-bar">EXP 08: ST7735 SPI GRAPHICS</div>
-                                    <div class="tc-tft-value-box">
-                                        <div class="tc-tft-lbl">CH A0 INPUT VOLTAGE:</div>
-                                        <div class="tc-tft-big-readout"><span id="tcTftScreenVolt">0.00</span> <span style="font-size:0.8rem;color:#38bdf8;">V</span></div>
-                                        <div class="tc-tft-adc-line">ADC: <span id="tcTftScreenAdc">0</span> / 1023 (<span id="tcTftScreenPct">0%</span>)</div>
-                                    </div>
-                                    <div class="tc-tft-meter-box">
-                                        <div class="tc-tft-meter-track">
-                                            <div class="tc-tft-meter-fill" id="tcTftMeterFill" style="width:0%;"></div>
-                                            <div class="tc-tft-meter-pointer" id="tcTftMeterPointer" style="left:0%;"></div>
-                                        </div>
-                                        <div class="tc-tft-meter-labels">
-                                            <span>0V</span><span>1.25V</span><span>2.5V</span><span>3.75V</span><span>5V</span>
-                                        </div>
-                                    </div>
-                                    <div class="tc-tft-chart-container">
-                                        <div class="tc-tft-chart-title">REAL-TIME VOLTAGE STRIP-CHART</div>
-                                        <canvas id="tcTftWaveCanvas" width="216" height="42" class="tc-tft-wave-canvas"></canvas>
-                                    </div>
-                                    <div class="tc-tft-footer-bar">
-                                        <span id="tcTftSpiStatus">SPI MODE 0 • 8MHz</span>
-                                        <span id="tcTftFpsBadge">20 FPS</span>
-                                    </div>
-                                </div>
-
-                                <!-- Graphics Demo View -->
-                                <div id="tcTftViewDemo" class="tc-tft-view-pane" style="display:none;">
-                                    <div class="tc-tft-top-bar">ST7735 65K COLOR PALETTE</div>
-                                    <div class="tc-tft-color-bars">
-                                        <div style="background:#ef4444;">RED</div>
-                                        <div style="background:#22c55e;">GREEN</div>
-                                        <div style="background:#3b82f6;">BLUE</div>
-                                        <div style="background:#eab308;color:#000;">YELLOW</div>
-                                        <div style="background:#06b6d4;color:#000;">CYAN</div>
-                                        <div style="background:#ec4899;">MAGENTA</div>
-                                        <div style="background:#ffffff;color:#000;">WHITE</div>
-                                    </div>
-                                    <div class="tc-tft-shapes-demo">
-                                        <div class="tc-tft-shape-circle"></div>
-                                        <div class="tc-tft-shape-rect"></div>
-                                        <div class="tc-tft-shape-line"></div>
-                                    </div>
-                                    <div class="tc-tft-footer-bar">128 x 160 PIXELS • 16-BIT RGB565</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Interactive Potentiometer Quick-Dial -->
-                        <div class="tc-tft-quick-control">
-                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;font-weight:700;color:#94a3b8;margin-bottom:4px;">
-                                <span>POTENTIOMETER (A0):</span>
-                                <span id="tcTftSliderValText" style="color:#38bdf8;font-family:'JetBrains Mono',monospace;">2.50 V (50%)</span>
-                            </div>
-                            <input type="range" id="tcTftPotSlider" min="0" max="100" value="50" class="tc-tft-slider">
-                            <div class="tc-tft-preset-buttons">
-                                <button type="button" class="tc-tft-chip" data-pct="0">0V (Min)</button>
-                                <button type="button" class="tc-tft-chip" data-pct="25">1.25V</button>
-                                <button type="button" class="tc-tft-chip" data-pct="50">2.50V (Mid)</button>
-                                <button type="button" class="tc-tft-chip" data-pct="75">3.75V</button>
-                                <button type="button" class="tc-tft-chip" data-pct="100">5.0V (Max)</button>
-                            </div>
-                        </div>
-
-                        <!-- Hardware Diagnostics -->
-                        <div class="tc-tft-diag-grid">
-                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagVcc"></span> VCC (5V)</div>
-                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagGnd"></span> GND</div>
-                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagCs"></span> CS (D10)</div>
-                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagRst"></span> RST (D8)</div>
-                        </div>
-                    </div>
-                `;
-                stage.appendChild(tftModal);
-                bindTftInspectorEvents(tftModal);
-            }
             updateTftDisplay();
         } else {
-            if (tftModal) tftModal.remove();
+            if (tftModal) tftModal.style.display = 'none';
         }
     }
 
@@ -4245,84 +4135,298 @@ void loop() {
     // ==========================================
     // 11c. 1.8" COLOR TFT DISPLAY (ST7735) ENGINE
     // ==========================================
-    function bindTftInspectorEvents(tftModal) {
-        // Dragging window
-        const header = tftModal.querySelector('#tcTftModalHeader');
-        if (header) {
-            let isDragging = false, startX = 0, startY = 0, initLeft = 0, initTop = 0;
-            header.addEventListener('mousedown', (e) => {
-                if (e.target.tagName === 'BUTTON') return;
-                isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                initLeft = tftModal.offsetLeft;
-                initTop = tftModal.offsetTop;
-                const onMouseMove = (ev) => {
-                    if (!isDragging) return;
-                    tftModal.style.left = `${initLeft + (ev.clientX - startX)}px`;
-                    tftModal.style.top = `${initTop + (ev.clientY - startY)}px`;
-                    tftModal.style.right = 'auto';
-                };
+    let floatingZIndex = 120;
+
+    function bringWindowToFront(modalEl) {
+        if (!modalEl) return;
+        floatingZIndex++;
+        modalEl.style.zIndex = floatingZIndex;
+    }
+
+    function makeDraggable(modalEl, headerEl) {
+        if (!modalEl || !headerEl) return;
+        modalEl.addEventListener('mousedown', () => bringWindowToFront(modalEl));
+        modalEl.addEventListener('touchstart', () => bringWindowToFront(modalEl), { passive: true });
+        let isDragging = false, startX = 0, startY = 0, initLeft = 0, initTop = 0;
+
+        const startDrag = (clientX, clientY, target) => {
+            if (target.tagName === 'BUTTON' || target.closest('button') || target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.closest('.tc-plotter-hud-tag')) return false;
+            isDragging = true;
+            bringWindowToFront(modalEl);
+            startX = clientX;
+            startY = clientY;
+            initLeft = modalEl.offsetLeft;
+            initTop = modalEl.offsetTop;
+            return true;
+        };
+
+        const moveDrag = (clientX, clientY) => {
+            if (!isDragging) return;
+            const container = document.getElementById('tcCanvasContainer') || document.body;
+            const rect = container.getBoundingClientRect();
+            const newLeft = Math.max(0, Math.min(rect.width - 60, initLeft + (clientX - startX)));
+            const newTop = Math.max(0, Math.min(rect.height - 40, initTop + (clientY - startY)));
+            modalEl.style.left = `${newLeft}px`;
+            modalEl.style.top = `${newTop}px`;
+            modalEl.style.right = 'auto';
+        };
+
+        const stopDrag = () => {
+            isDragging = false;
+        };
+
+        headerEl.addEventListener('mousedown', (e) => {
+            if (startDrag(e.clientX, e.clientY, e.target)) {
+                const onMouseMove = (ev) => moveDrag(ev.clientX, ev.clientY);
                 const onMouseUp = () => {
-                    isDragging = false;
+                    stopDrag();
                     window.removeEventListener('mousemove', onMouseMove);
                     window.removeEventListener('mouseup', onMouseUp);
                 };
                 window.addEventListener('mousemove', onMouseMove);
                 window.addEventListener('mouseup', onMouseUp);
+            }
+        });
+
+        headerEl.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length > 0) {
+                const touch = e.touches[0];
+                if (startDrag(touch.clientX, touch.clientY, e.target)) {
+                    const onTouchMove = (ev) => {
+                        if (ev.touches && ev.touches.length > 0) {
+                            moveDrag(ev.touches[0].clientX, ev.touches[0].clientY);
+                        }
+                    };
+                    const onTouchEnd = () => {
+                        stopDrag();
+                        window.removeEventListener('touchmove', onTouchMove);
+                        window.removeEventListener('touchend', onTouchEnd);
+                    };
+                    window.addEventListener('touchmove', onTouchMove, { passive: true });
+                    window.addEventListener('touchend', onTouchEnd);
+                }
+            }
+        }, { passive: true });
+    }
+
+    function openTftReplicaModal() {
+        const modal = document.getElementById('tcTftInspectorModal');
+        if (!modal) return;
+        modal.style.display = 'block';
+        bringWindowToFront(modal);
+        modal.classList.add('tc-highlight-pulse');
+        setTimeout(() => modal.classList.remove('tc-highlight-pulse'), 800);
+        updateTftDisplay();
+        if (virtualTft) virtualTft.syncToDisplays();
+    }
+
+    function closeTftModal() {
+        const modal = document.getElementById('tcTftInspectorModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function toggleSerialMonitorModal(force = null) {
+        const modal = document.getElementById('tcSerialMonitorModal');
+        const btn = document.getElementById('tcToggleSerialMonitorBtn');
+        if (!modal) return;
+        const isVisible = modal.style.display === 'flex' || (modal.style.display !== 'none' && modal.style.display !== '');
+        const shouldOpen = force !== null ? force : !isVisible;
+        if (shouldOpen) {
+            modal.style.display = 'flex';
+            bringWindowToFront(modal);
+            btn?.classList.add('active');
+            const stream = document.getElementById('tcSerialModalStream');
+            if (stream) stream.scrollTop = stream.scrollHeight;
+            const input = document.getElementById('tcSerialModalInput');
+            if (input) setTimeout(() => input.focus(), 60);
+        } else {
+            modal.style.display = 'none';
+            btn?.classList.remove('active');
+        }
+    }
+
+    function sendSerialModalMessage() {
+        const input = document.getElementById('tcSerialModalInput');
+        if (!input) return;
+        const val = input.value;
+        if (!val) return;
+        const endingSelect = document.getElementById('tcSerialLineEnding');
+        const ending = endingSelect ? endingSelect.value : '\r\n';
+        const toSend = val + ending;
+
+        if (!state.hardwareValues.btQueue) state.hardwareValues.btQueue = [];
+        for (let i = 0; i < toSend.length; i++) {
+            state.hardwareValues.btQueue.push(toSend[i]);
+        }
+
+        const txDot = document.getElementById('tcSerialTxDot');
+        if (txDot) {
+            txDot.classList.add('blink');
+            setTimeout(() => txDot.classList.remove('blink'), 150);
+        }
+
+        appendSerial(`> [TX]: ${val}\n`);
+        input.value = '';
+    }
+
+    function toggleSerialPlotterModal(force = null) {
+        const modal = document.getElementById('tcSerialPlotterModal');
+        const btn = document.getElementById('tcToggleSerialPlotterBtn');
+        if (!modal) return;
+        const isVisible = modal.style.display === 'flex' || (modal.style.display !== 'none' && modal.style.display !== '');
+        const shouldOpen = force !== null ? force : !isVisible;
+        if (shouldOpen) {
+            modal.style.display = 'flex';
+            bringWindowToFront(modal);
+            btn?.classList.add('active');
+            drawPlotter();
+        } else {
+            modal.style.display = 'none';
+            btn?.classList.remove('active');
+        }
+    }
+
+    function initFloatingInstruments() {
+        // 1. TFT Replica Modal
+        const tftModal = document.getElementById('tcTftInspectorModal');
+        const tftHeader = document.getElementById('tcTftModalHeader');
+        if (tftModal && tftHeader) {
+            makeDraggable(tftModal, tftHeader);
+
+            document.getElementById('tcCloseTftModalBtn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeTftModal();
+            });
+
+            // Scale toggle (2x Sharp -> Large 2.25x -> 1x Mini)
+            let tftScale = 1;
+            const scaleBtn = document.getElementById('tcTftScaleBtn');
+            const canvasEl = document.getElementById('tcTftScreenCanvas');
+            scaleBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                tftScale = (tftScale + 1) % 3;
+                if (canvasEl) {
+                    canvasEl.classList.remove('scale-1x', 'scale-2x', 'scale-large');
+                    if (tftScale === 0) {
+                        canvasEl.classList.add('scale-1x');
+                        scaleBtn.textContent = '1x Mini';
+                    } else if (tftScale === 1) {
+                        canvasEl.classList.add('scale-2x');
+                        scaleBtn.textContent = '2x Sharp';
+                    } else {
+                        canvasEl.classList.add('scale-large');
+                        scaleBtn.textContent = 'Large (2.25x)';
+                    }
+                }
+            });
+
+            // Mode toggle
+            let currentMode = 0;
+            const modeBtn = document.getElementById('tcTftModeBtn');
+            const viewCanvas = document.getElementById('tcTftScreenCanvas');
+            const viewTel = document.getElementById('tcTftViewTelemetry');
+            const viewDemo = document.getElementById('tcTftViewDemo');
+            modeBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentMode = (currentMode + 1) % 3;
+                if (viewCanvas) viewCanvas.style.display = (currentMode === 0) ? 'block' : 'none';
+                if (viewTel) viewTel.style.display = (currentMode === 1) ? 'block' : 'none';
+                if (viewDemo) viewDemo.style.display = (currentMode === 2) ? 'block' : 'none';
+                if (currentMode === 0) modeBtn.textContent = '🖥️ Screen';
+                else if (currentMode === 1) modeBtn.textContent = '📊 Data';
+                else modeBtn.textContent = '🎨 Demo';
+            });
+
+            // Slider & Preset chips
+            const slider = document.getElementById('tcTftPotSlider');
+            slider?.addEventListener('input', (e) => {
+                const potComp = state.components.find(c => c.type === 'potentiometer');
+                if (potComp) setPotPosition(potComp, Number(e.target.value) / 100);
+            });
+
+            tftModal.querySelectorAll('.tc-tft-chip').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const pct = Number(btn.getAttribute('data-pct') || 0);
+                    const potComp = state.components.find(c => c.type === 'potentiometer');
+                    if (potComp) setPotPosition(potComp, pct / 100);
+                });
             });
         }
 
-        // Minimize / Expand
-        const minBtn = tftModal.querySelector('#tcTftMinBtn');
-        const modalBody = tftModal.querySelector('#tcTftModalBody');
-        minBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (modalBody) {
-                const isHidden = modalBody.style.display === 'none';
-                modalBody.style.display = isHidden ? 'block' : 'none';
-                minBtn.textContent = isHidden ? '_' : '▢';
-            }
-        });
+        // 2. Serial Monitor Modal
+        const smModal = document.getElementById('tcSerialMonitorModal');
+        const smHeader = document.getElementById('tcSerialMonitorHeader');
+        if (smModal && smHeader) {
+            makeDraggable(smModal, smHeader);
 
-        // Mode Switch (Live Screen vs Telemetry vs Demo)
-        const modeBtn = tftModal.querySelector('#tcTftModeBtn');
-        const viewCanvas = tftModal.querySelector('#tcTftScreenCanvas');
-        const viewTel = tftModal.querySelector('#tcTftViewTelemetry');
-        const viewDemo = tftModal.querySelector('#tcTftViewDemo');
-        let currentMode = 0; // 0 = Canvas, 1 = Telemetry, 2 = Demo
+            document.getElementById('tcToggleSerialMonitorBtn')?.addEventListener('click', () => toggleSerialMonitorModal());
+            document.getElementById('tcCloseSerialMonitorBtn')?.addEventListener('click', () => toggleSerialMonitorModal(false));
+            document.getElementById('tcSerialModalSendBtn')?.addEventListener('click', sendSerialModalMessage);
 
-        modeBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentMode = (currentMode + 1) % 3;
-            if (viewCanvas) viewCanvas.style.display = (currentMode === 0) ? 'block' : 'none';
-            if (viewTel) viewTel.style.display = (currentMode === 1) ? 'block' : 'none';
-            if (viewDemo) viewDemo.style.display = (currentMode === 2) ? 'block' : 'none';
-            if (currentMode === 0) modeBtn.textContent = '🖥️ Screen';
-            else if (currentMode === 1) modeBtn.textContent = '📊 Data';
-            else modeBtn.textContent = '🎨 Demo';
-        });
-
-        // Slider interaction
-        const slider = tftModal.querySelector('#tcTftPotSlider');
-        slider?.addEventListener('input', (e) => {
-            const potComp = state.components.find(c => c.type === 'potentiometer');
-            if (potComp) {
-                setPotPosition(potComp, Number(e.target.value) / 100);
-            }
-        });
-
-        // Preset buttons
-        tftModal.querySelectorAll('.tc-tft-chip').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const pct = Number(btn.getAttribute('data-pct') || 0);
-                const potComp = state.components.find(c => c.type === 'potentiometer');
-                if (potComp) {
-                    setPotPosition(potComp, pct / 100);
+            document.getElementById('tcSerialModalInput')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendSerialModalMessage();
                 }
             });
-        });
+
+            document.getElementById('tcSerialClearModalBtn')?.addEventListener('click', () => {
+                state.serialLogs = [];
+                const mStream = document.getElementById('tcSerialModalStream');
+                const bStream = document.getElementById('tcSerialStream');
+                if (mStream) mStream.textContent = '';
+                if (bStream) bStream.textContent = '';
+            });
+
+            document.getElementById('tcSerialCopyBtn')?.addEventListener('click', () => {
+                const text = state.serialLogs.join('');
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('Serial console output copied!');
+                    });
+                }
+            });
+
+            document.getElementById('tcSerialModalBaud')?.addEventListener('change', function() {
+                state.baudRate = parseInt(this.value, 10) || 9600;
+                appendSerial(`[Serial] Baud set to ${state.baudRate}\n`);
+            });
+        }
+
+        // 3. Serial Plotter Modal
+        const spModal = document.getElementById('tcSerialPlotterModal');
+        const spHeader = document.getElementById('tcSerialPlotterHeader');
+        if (spModal && spHeader) {
+            makeDraggable(spModal, spHeader);
+
+            document.getElementById('tcToggleSerialPlotterBtn')?.addEventListener('click', () => toggleSerialPlotterModal());
+            document.getElementById('tcCloseSerialPlotterBtn')?.addEventListener('click', () => toggleSerialPlotterModal(false));
+
+            document.getElementById('tcPlotterClearModalBtn')?.addEventListener('click', () => {
+                state.plotterData = [];
+                drawPlotter();
+            });
+
+            document.getElementById('tcPlotterPauseBtn')?.addEventListener('click', function() {
+                state.plotterPaused = !state.plotterPaused;
+                this.innerHTML = state.plotterPaused ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-pause"></i>';
+                this.title = state.plotterPaused ? 'Resume Plotter' : 'Pause Plotter';
+            });
+
+            document.getElementById('tcPlotterWindowSize')?.addEventListener('change', function() {
+                state.plotterPoints = parseInt(this.value, 10) || 120;
+                if (state.plotterData.length > state.plotterPoints) {
+                    state.plotterData = state.plotterData.slice(-state.plotterPoints);
+                }
+                drawPlotter();
+            });
+
+            document.getElementById('tcPlotterScaleMode')?.addEventListener('change', function() {
+                state.plotterScaleMode = this.value;
+                drawPlotter();
+            });
+        }
     }
 
     function renderTftWaveform(voltage) {
@@ -4482,7 +4586,7 @@ void loop() {
         const spiStatus = document.getElementById('tcTftSpiStatus');
 
         if (statusLed) {
-            statusLed.className = `tc-tft-status-led ${isOnline ? 'online' : isPowered ? 'standby' : 'offline'}`;
+            statusLed.className = `tc-modal-status-led ${isOnline ? 'online' : isPowered ? 'standby' : 'offline'}`;
         }
 
         if (screenVolt) {
@@ -6425,6 +6529,7 @@ void loop() {
                 if (!isNaN(v)) {
                     if (!state.userTelemetry) state.userTelemetry = {};
                     state.userTelemetry.voltage = v;
+                    pushPlotter(v);
                 }
             }
 
@@ -6724,6 +6829,13 @@ void loop() {
                     if (modalCanvas.width !== this.w || modalCanvas.height !== this.h) {
                         modalCanvas.width = this.w;
                         modalCanvas.height = this.h;
+                    }
+                    if (this.w > this.h) {
+                        modalCanvas.style.width = '320px';
+                        modalCanvas.style.height = '256px';
+                    } else {
+                        modalCanvas.style.width = '256px';
+                        modalCanvas.style.height = '320px';
                     }
                     const mCtx = modalCanvas.getContext('2d');
                     if (mCtx) {
@@ -7268,23 +7380,23 @@ void loop() {
             return;
         }
 
-        // Check if string is purely numeric (supports floats, negatives, scientific notation, commas/spaces)
-        // e.g. "0.244", "0.244\n", "1023", "2.5, 3.1", "100 200"
+        // 1. Check if string is purely numeric e.g. "0.244", "2.5", "1023", "2.5, 3.1"
         const isNumeric = /^[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?(?:\s*[, \t]\s*[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)*$/.test(trimmed);
-
-        // Or standard telemetry key:value like "vCap: 3.14" or "val = 2.5"
-        const isKeyValue = /^[a-zA-Z_][a-zA-Z0-9_]*\s*[:=]\s*[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$/.test(trimmed);
-
-        if (!isNumeric && !isKeyValue) {
+        if (isNumeric) {
+            const match = trimmed.match(/(?:[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/g);
+            if (match && match.length > 0) {
+                const lastNum = parseFloat(match[match.length - 1]);
+                if (!isNaN(lastNum)) pushPlotter(lastNum);
+            }
             return;
         }
 
-        const match = trimmed.match(/(?:[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/g);
-        if (match && match.length > 0) {
-            const lastNum = parseFloat(match[match.length - 1]);
-            if (!isNaN(lastNum)) {
-                pushPlotter(lastNum);
-            }
+        // 2. Standard telemetry key:value like "vCap: 3.14" or "val = 2.5" or "V=2.50"
+        const keyMatch = trimmed.match(/(?:[a-zA-Z_][a-zA-Z0-9_]*)\s*[:=]\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/i);
+        if (keyMatch) {
+            const val = parseFloat(keyMatch[1]);
+            if (!isNaN(val)) pushPlotter(val);
+            return;
         }
     }
 
@@ -7324,88 +7436,168 @@ void loop() {
     }
 
     function appendSerial(msg) {
-        state.serialLogs.push(msg);
-        if (state.serialLogs.length > 400) state.serialLogs.shift();
+        let formattedMsg = msg;
+        const tsCheckbox = document.getElementById('tcSerialTimestamp');
+        if (tsCheckbox && tsCheckbox.checked) {
+            const diff = Date.now() - (state.simStartTime || Date.now());
+            const min = Math.floor(diff / 60000);
+            const sec = Math.floor((diff % 60000) / 1000);
+            const ms = diff % 1000;
+            const ts = `[${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${String(ms).padStart(3,'0')}] `;
+            formattedMsg = ts + msg;
+        }
+
+        state.serialLogs.push(formattedMsg);
+        if (state.serialLogs.length > 500) state.serialLogs.shift();
+
+        const text = state.serialLogs.join('');
         const stream = document.getElementById('tcSerialStream');
         if (stream) {
-            stream.textContent = state.serialLogs.join('');
+            stream.textContent = text;
             stream.scrollTop = stream.scrollHeight;
+        }
+        const modalStream = document.getElementById('tcSerialModalStream');
+        if (modalStream) {
+            modalStream.textContent = text;
+            const autoScrollBox = document.getElementById('tcSerialAutoscroll');
+            if (!autoScrollBox || autoScrollBox.checked) {
+                modalStream.scrollTop = modalStream.scrollHeight;
+            }
+        }
+
+        // Blink RX indicator dot
+        const rxDot = document.getElementById('tcSerialRxDot');
+        if (rxDot) {
+            rxDot.classList.add('blink');
+            setTimeout(() => rxDot.classList.remove('blink'), 90);
         }
     }
 
     function pushPlotter(val) {
+        if (state.plotterPaused) return;
         state.plotterData.push(val);
-        if (state.plotterData.length > 120) state.plotterData.shift();
+        const maxPts = state.plotterPoints || 120;
+        if (state.plotterData.length > maxPts) state.plotterData.shift();
         drawPlotter();
     }
 
     function drawPlotter() {
-        const canvas = document.getElementById('tcSerialPlotterCanvas');
-        if (!canvas || canvas.style.display === 'none') return;
+        const modalCanvas = document.getElementById('tcSerialPlotterModalCanvas');
+        const modalEl = document.getElementById('tcSerialPlotterModal');
+        const isModalVisible = modalEl && modalEl.style.display !== 'none' && modalEl.style.display !== '';
 
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width;
-        const h = canvas.height;
+        const bottomCanvas = document.getElementById('tcSerialPlotterCanvas');
+        const isBottomVisible = bottomCanvas && bottomCanvas.style.display !== 'none';
 
-        ctx.fillStyle = '#020617';
-        ctx.fillRect(0, 0, w, h);
+        if (!isModalVisible && !isBottomVisible) return;
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.lineWidth = 1;
-        for (let y = 20; y < h; y += 25) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        const maxPts = state.plotterPoints || 120;
+        const pts = state.plotterData;
+        const count = pts.length;
+
+        let minVal = 0.0;
+        let maxVal = 5.0;
+        if (state.plotterScaleMode === 'auto' && count > 0) {
+            minVal = Math.min(...pts);
+            maxVal = Math.max(...pts);
+            if (maxVal - minVal < 0.2) {
+                maxVal += 0.1;
+                minVal -= 0.1;
+            }
         }
-        for (let x = 0; x < w; x += 40) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        const range = (maxVal - minVal) || 1.0;
+        const latest = count > 0 ? pts[count - 1] : 0.0;
+
+        // Update HUD readouts on modal
+        const lastValEl = document.getElementById('tcPlotterLastVal');
+        if (lastValEl) lastValEl.textContent = latest.toFixed(2);
+        const minValEl = document.getElementById('tcScopeMinVal');
+        if (minValEl) minValEl.textContent = minVal.toFixed(2);
+        const maxValEl = document.getElementById('tcScopeMaxVal');
+        if (maxValEl) maxValEl.textContent = maxVal.toFixed(2);
+        const vppValEl = document.getElementById('tcScopeVppVal');
+        if (vppValEl) vppValEl.textContent = (maxVal - minVal).toFixed(2);
+
+        function renderScopeCanvas(canvas) {
+            if (!canvas) return;
+            if (canvas.clientWidth && canvas.clientHeight) {
+                if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                    canvas.width = canvas.clientWidth;
+                    canvas.height = canvas.clientHeight;
+                }
+            }
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Background
+            ctx.fillStyle = '#010409';
+            ctx.fillRect(0, 0, w, h);
+
+            // Grid lines
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            const ySteps = 4;
+            for (let i = 0; i <= ySteps; i++) {
+                const y = Math.round(15 + (i / ySteps) * (h - 30));
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+            }
+            for (let x = 0; x < w; x += 40) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+            }
+            ctx.stroke();
+
+            if (count < 2) return;
+
+            const stepX = w / Math.max(1, maxPts - 1);
+
+            // Fill gradient under curve
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, 'rgba(0, 240, 255, 0.22)');
+            grad.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            pts.forEach((pt, i) => {
+                const x = i * stepX;
+                const y = (h - 15) - ((pt - minVal) / range) * (h - 30);
+                if (i === 0) ctx.lineTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            const lastX = (count - 1) * stepX;
+            ctx.lineTo(lastX, h);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Trace stroke with neon glow
+            ctx.beginPath();
+            pts.forEach((pt, i) => {
+                const x = i * stepX;
+                const y = (h - 15) - ((pt - minVal) / range) * (h - 30);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 6;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Glowing indicator dot at leading edge
+            const lastY = (h - 15) - ((latest - minVal) / range) * (h - 30);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, 3, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        if (state.plotterData.length === 0) return;
-
-        const minVal = Math.min(...state.plotterData, 0);
-        const maxVal = Math.max(...state.plotterData, 5.0);
-        const range = (maxVal - minVal) || 1;
-
-        ctx.fillStyle = '#64748b';
-        ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.fillText(`Max: ${maxVal.toFixed(2)}`, 10, 14);
-        ctx.fillText(`Min: ${minVal.toFixed(2)}`, 10, h - 4);
-
-        const latest = state.plotterData[state.plotterData.length - 1];
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText(`${latest.toFixed(2)}`, w - 55, 14);
-
-        if (state.plotterData.length < 2) return;
-
-        const gradient = ctx.createLinearGradient(0, 0, 0, h);
-        gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
-        gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
-
-        const stepX = w / 120;
-        ctx.beginPath();
-        state.plotterData.forEach((pt, i) => {
-            const x = i * stepX;
-            const y = h - 15 - ((pt - minVal) / range) * (h - 30);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        });
-
-        const lastX = (state.plotterData.length - 1) * stepX;
-        ctx.lineTo(lastX, h);
-        ctx.lineTo(0, h);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-
-        ctx.beginPath();
-        state.plotterData.forEach((pt, i) => {
-            const x = i * stepX;
-            const y = h - 15 - ((pt - minVal) / range) * (h - 30);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        if (isModalVisible) renderScopeCanvas(modalCanvas);
+        if (isBottomVisible) renderScopeCanvas(bottomCanvas);
     }
 
     // ==========================================
@@ -8031,6 +8223,9 @@ void loop() {
         updateInteractivePhysicsWidgets();
         appendSerial(`--- Loaded Project: ${p.title} ---\n`);
         showToast(`🚀 Loaded: ${p.title}`);
+        if (key === 'tft_lcd') {
+            setTimeout(openTftReplicaModal, 120);
+        }
 
         if (options.scroll) {
             document.getElementById('tcStudio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -8116,6 +8311,7 @@ void loop() {
         document.getElementById('tcTabSchematic')?.addEventListener('click', () => switchView('schematic'));
         document.getElementById('tcTabBom')?.addEventListener('click', () => switchView('bom'));
 
+        initFloatingInstruments();
         document.getElementById('tcExportSchematicBtn')?.addEventListener('click', exportSchematicSvg);
         document.getElementById('tcExportBomBtn')?.addEventListener('click', exportBomCsv);
 

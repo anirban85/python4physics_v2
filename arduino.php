@@ -209,6 +209,16 @@ require_once __DIR__ . '/include/navbar.php';
                     <i class="fa-solid fa-code"></i> Code
                 </button>
 
+                <!-- Serial Monitor Toggle Button -->
+                <button type="button" class="btn-tc-code-toggle" id="tcToggleSerialMonitorBtn" title="Open Interactive Serial Monitor Window">
+                    <i class="fa-solid fa-terminal" style="color: #38bdf8;"></i> Serial Monitor
+                </button>
+
+                <!-- Serial Plotter Toggle Button -->
+                <button type="button" class="btn-tc-code-toggle" id="tcToggleSerialPlotterBtn" title="Open Real-time Serial Plotter Oscilloscope">
+                    <i class="fa-solid fa-chart-line" style="color: #22c55e;"></i> Serial Plotter
+                </button>
+
                 <!-- Export Dropdown -->
                 <div class="tc-export-dropdown">
                     <button type="button" class="btn-tc-code-toggle" id="tcExportMenuBtn" title="Export Circuit Image or Arduino Code">
@@ -652,6 +662,256 @@ require_once __DIR__ . '/include/navbar.php';
 
                 <!-- Bottom Status Bar -->
                 <div class="tc-status-bar" id="tcStatusBar"></div>
+
+                <!-- Floating Instrument Pop-up Windows -->
+
+                <!-- 1. Enlarged 1.8" Color TFT Display Replica Window -->
+                <div class="tc-floating-window tc-tft-inspector-modal" id="tcTftInspectorModal" style="display: none; top: 20px; right: 20px;">
+                    <!-- Draggable Window Header -->
+                    <div class="tc-floating-window-header tc-tft-modal-header" id="tcTftModalHeader">
+                        <div style="display: flex; align-items: center; gap: 7px;">
+                            <span class="tc-modal-status-led" id="tcTftStatusLed"></span>
+                            <span style="font-weight: 800; letter-spacing: 0.5px; font-size: 0.76rem; color: #f8fafc;">
+                                <i class="fa-solid fa-tv" style="color: #38bdf8; margin-right: 3px;"></i> 1.8" TFT REPLICA (ST7735)
+                            </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <button type="button" class="tc-window-ctrl-btn" id="tcTftModeBtn" title="Switch Display View: Live Screen vs Telemetry vs Demo">🖥️ Screen</button>
+                            <button type="button" class="tc-window-ctrl-btn" id="tcTftScaleBtn" title="Toggle Display Scale: 2x Sharp vs 1x">2x Scale</button>
+                            <button type="button" class="tc-window-ctrl-btn tc-window-btn-close" id="tcCloseTftModalBtn" title="Close TFT Replica">&times;</button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Body: Realistic ST7735 Module Replica -->
+                    <div class="tc-tft-modal-body" id="tcTftModalBody">
+                        <div class="tc-tft-replica-pcb">
+                            <!-- 4 Corner Brass Mounting Holes -->
+                            <div class="tc-tft-hole-corner top-left"></div>
+                            <div class="tc-tft-hole-corner top-right"></div>
+                            <div class="tc-tft-hole-corner bot-left"></div>
+                            <div class="tc-tft-hole-corner bot-right"></div>
+                            
+                            <div class="tc-tft-pcb-label">ST7735 128×160 SPI TFT LCD</div>
+
+                            <!-- Screen Bezel -->
+                            <div class="tc-tft-screen-bezel">
+                                <div class="tc-tft-screen" id="tcTftScreenView">
+                                    <!-- High-Resolution Canvas for ST7735 (2x integer scaling: 256x320) -->
+                                    <canvas id="tcTftScreenCanvas" width="128" height="160" class="tc-tft-screen-canvas"></canvas>
+
+                                    <!-- Telemetry View (Gauges & Readout) -->
+                                    <div id="tcTftViewTelemetry" class="tc-tft-view-pane" style="display: none;">
+                                        <div class="tc-tft-top-bar">
+                                            <span>★ PHYSICS 4 LAB ★</span>
+                                            <span id="tcTftClock">00:00</span>
+                                        </div>
+                                        <div class="tc-tft-sub-bar">EXP 08: ST7735 SPI GRAPHICS</div>
+                                        <div class="tc-tft-value-box">
+                                            <div class="tc-tft-lbl">CH A0 INPUT VOLTAGE:</div>
+                                            <div class="tc-tft-big-readout"><span id="tcTftScreenVolt">0.00</span> <span style="font-size: 0.8rem; color: #38bdf8;">V</span></div>
+                                            <div class="tc-tft-adc-line">ADC: <span id="tcTftScreenAdc">0</span> / 1023 (<span id="tcTftScreenPct">0%</span>)</div>
+                                        </div>
+                                        <div class="tc-tft-meter-box">
+                                            <div class="tc-tft-meter-track">
+                                                <div class="tc-tft-meter-fill" id="tcTftMeterFill" style="width: 0%;"></div>
+                                                <div class="tc-tft-meter-pointer" id="tcTftMeterPointer" style="left: 0%;"></div>
+                                            </div>
+                                            <div class="tc-tft-meter-labels">
+                                                <span>0V</span><span>1.25V</span><span>2.5V</span><span>3.75V</span><span>5V</span>
+                                            </div>
+                                        </div>
+                                        <div class="tc-tft-chart-container">
+                                            <div class="tc-tft-chart-title">REAL-TIME VOLTAGE STRIP-CHART</div>
+                                            <canvas id="tcTftWaveCanvas" width="230" height="42" class="tc-tft-wave-canvas"></canvas>
+                                        </div>
+                                        <div class="tc-tft-footer-bar">
+                                            <span id="tcTftSpiStatus">SPI MODE 0 • 8MHz</span>
+                                            <span id="tcTftFpsBadge">20 FPS</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Demo Palette View -->
+                                    <div id="tcTftViewDemo" class="tc-tft-view-pane" style="display: none;">
+                                        <div class="tc-tft-top-bar">ST7735 65K COLOR PALETTE</div>
+                                        <div class="tc-tft-color-bars">
+                                            <div style="background: #ef4444;">RED</div>
+                                            <div style="background: #22c55e;">GREEN</div>
+                                            <div style="background: #3b82f6;">BLUE</div>
+                                            <div style="background: #eab308; color: #000;">YEL</div>
+                                            <div style="background: #06b6d4; color: #000;">CYAN</div>
+                                            <div style="background: #ec4899;">MAG</div>
+                                            <div style="background: #ffffff; color: #000;">WHT</div>
+                                        </div>
+                                        <div class="tc-tft-shapes-demo">
+                                            <div class="tc-tft-shape-circle"></div>
+                                            <div class="tc-tft-shape-rect"></div>
+                                            <div class="tc-tft-shape-line"></div>
+                                        </div>
+                                        <div class="tc-tft-footer-bar">128 x 160 PIXELS • 16-BIT RGB565</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pin Header Silkscreen -->
+                            <div class="tc-tft-pin-header-bar">
+                                <span>VCC</span><span>GND</span><span>CS</span><span>RST</span><span>DC</span><span>SDA</span><span>SCK</span><span>LED</span>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Potentiometer Quick-Dial -->
+                        <div class="tc-tft-quick-control">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 700; color: #94a3b8; margin-bottom: 4px;">
+                                <span>POTENTIOMETER (A0):</span>
+                                <span id="tcTftSliderValText" style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">2.50 V (50%)</span>
+                            </div>
+                            <input type="range" id="tcTftPotSlider" min="0" max="100" value="50" class="tc-tft-slider">
+                            <div class="tc-tft-preset-buttons">
+                                <button type="button" class="tc-tft-chip" data-pct="0">0V (Min)</button>
+                                <button type="button" class="tc-tft-chip" data-pct="25">1.25V</button>
+                                <button type="button" class="tc-tft-chip" data-pct="50">2.50V (Mid)</button>
+                                <button type="button" class="tc-tft-chip" data-pct="75">3.75V</button>
+                                <button type="button" class="tc-tft-chip" data-pct="100">5.0V (Max)</button>
+                            </div>
+                        </div>
+
+                        <!-- Hardware Diagnostics Status Badges -->
+                        <div class="tc-tft-diag-grid">
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot online" id="tcTftDiagVcc"></span> VCC (5V)</div>
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot online" id="tcTftDiagGnd"></span> GND</div>
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot online" id="tcTftDiagCs"></span> CS (D10)</div>
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot online" id="tcTftDiagRst"></span> RST (D8)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Interactive Serial Monitor Window -->
+                <div class="tc-floating-window tc-serial-monitor-modal" id="tcSerialMonitorModal" style="display: none; top: 25px; right: 350px;">
+                    <!-- Draggable Header -->
+                    <div class="tc-floating-window-header" id="tcSerialMonitorHeader">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-terminal" style="color: #38bdf8;"></i>
+                            <span style="font-weight: 700; font-size: 0.78rem; color: #f8fafc;">Serial Monitor — COM3 (Arduino Uno)</span>
+                            <span class="tc-pill-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.65rem; padding: 1px 6px; border-radius: 10px;">ONLINE</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <button type="button" class="tc-window-ctrl-btn" id="tcSerialCopyBtn" title="Copy Output to Clipboard">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <button type="button" class="tc-window-ctrl-btn" id="tcSerialClearModalBtn" title="Clear Console">
+                                <i class="fa-solid fa-ban"></i>
+                            </button>
+                            <button type="button" class="tc-window-ctrl-btn tc-window-btn-close" id="tcCloseSerialMonitorBtn" title="Close Serial Monitor">&times;</button>
+                        </div>
+                    </div>
+
+                    <!-- Send Command Bar (TX) -->
+                    <div class="tc-serial-tx-bar">
+                        <div class="tc-serial-input-wrapper">
+                            <input type="text" id="tcSerialModalInput" placeholder="Message to Arduino (TX)... Press Enter to send" autocomplete="off">
+                        </div>
+                        <select id="tcSerialLineEnding" title="Line Ending">
+                            <option value="\r\n" selected>Both NL &amp; CR</option>
+                            <option value="\n">Newline (\n)</option>
+                            <option value="\r">Carriage return (\r)</option>
+                            <option value="">No line ending</option>
+                        </select>
+                        <button type="button" id="tcSerialModalSendBtn" class="btn-tc-send">
+                            <i class="fa-solid fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+
+                    <!-- Output Stream Terminal -->
+                    <div class="tc-serial-modal-body">
+                        <div class="tc-serial-stream-content" id="tcSerialModalStream">--- Arduino Virtual Serial Monitor Online (9600 baud) ---
+Ready for firmware telemetry and UART serial communication...
+</div>
+                    </div>
+
+                    <!-- Bottom Status & Options Bar -->
+                    <div class="tc-serial-bottom-bar">
+                        <div style="display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: #94a3b8;">
+                            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="tcSerialAutoscroll" checked> Autoscroll
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="tcSerialTimestamp"> Show timestamp
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #64748b;">
+                                <span>RX <span class="tc-comm-dot rx" id="tcSerialRxDot"></span></span>
+                                <span>TX <span class="tc-comm-dot tx" id="tcSerialTxDot"></span></span>
+                            </div>
+                            <select id="tcSerialModalBaud">
+                                <option value="9600" selected>9600 baud</option>
+                                <option value="19200">19200 baud</option>
+                                <option value="38400">38400 baud</option>
+                                <option value="57600">57600 baud</option>
+                                <option value="115200">115200 baud</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Oscilloscope Serial Plotter Window -->
+                <div class="tc-floating-window tc-serial-plotter-modal" id="tcSerialPlotterModal" style="display: none; top: 60px; left: 40px;">
+                    <!-- Draggable Header -->
+                    <div class="tc-floating-window-header" id="tcSerialPlotterHeader">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-chart-line" style="color: #22c55e;"></i>
+                            <span style="font-weight: 700; font-size: 0.78rem; color: #f8fafc;">Serial Plotter — Real-time Oscilloscope</span>
+                            <div class="tc-plotter-hud-tag" id="tcPlotterHudValue">VAL: <span id="tcPlotterLastVal" style="color: #22c55e; font-weight: 800;">0.00</span> V</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <button type="button" class="tc-window-ctrl-btn" id="tcPlotterPauseBtn" title="Pause / Resume Plotter">
+                                <i class="fa-solid fa-pause"></i>
+                            </button>
+                            <button type="button" class="tc-window-ctrl-btn" id="tcPlotterClearModalBtn" title="Clear Plotter Waveform">
+                                <i class="fa-solid fa-ban"></i>
+                            </button>
+                            <button type="button" class="tc-window-ctrl-btn tc-window-btn-close" id="tcCloseSerialPlotterBtn" title="Close Serial Plotter">&times;</button>
+                        </div>
+                    </div>
+
+                    <!-- Oscilloscope Screen -->
+                    <div class="tc-plotter-modal-body">
+                        <div class="tc-oscilloscope-screen">
+                            <canvas id="tcSerialPlotterModalCanvas" width="580" height="220"></canvas>
+                            <div class="tc-scope-grid-overlay">
+                                <span class="tc-scope-tick y5">5.00V</span>
+                                <span class="tc-scope-tick y4">3.75V</span>
+                                <span class="tc-scope-tick y3">2.50V</span>
+                                <span class="tc-scope-tick y2">1.25V</span>
+                                <span class="tc-scope-tick y1">0.00V</span>
+                            </div>
+                            <div class="tc-scope-hud-panel" id="tcScopeHudPanel">
+                                <div>MIN: <span id="tcScopeMinVal">0.00</span> V</div>
+                                <div>MAX: <span id="tcScopeMaxVal">5.00</span> V</div>
+                                <div>Vpp: <span id="tcScopeVppVal">5.00</span> V</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Plotter Controls -->
+                    <div class="tc-plotter-bottom-bar">
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: #94a3b8;">
+                            <span>Channel 1 (Analog Telemetry)</span>
+                            <span class="tc-channel-badge" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem;">CH1 ACTIVE</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <select id="tcPlotterWindowSize" style="background: #0f172a; color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.7rem; padding: 2px 6px;">
+                                <option value="60">60 points</option>
+                                <option value="120" selected>120 points</option>
+                                <option value="240">240 points</option>
+                                <option value="480">480 points</option>
+                            </select>
+                            <select id="tcPlotterScaleMode" style="background: #0f172a; color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.7rem; padding: 2px 6px;">
+                                <option value="fixed" selected>0V - 5V (Fixed)</option>
+                                <option value="auto">Auto Scale</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
@@ -1355,8 +1615,8 @@ require_once __DIR__ . '/include/navbar.php';
 
         </div>
 
-        <!-- Bottom Drawer: Live Serial Monitor & Serial Plotter -->
-        <div class="tc-bottom-serial-drawer">
+        <!-- Bottom Drawer: Live Serial Monitor & Serial Plotter (Floating Pop-ups are now primary) -->
+        <div class="tc-bottom-serial-drawer" id="tcBottomSerialDrawer" style="display: none;">
             <div class="tc-serial-head">
                 <div style="display: flex; gap: 8px;">
                     <button type="button" class="tc-view-tab active" id="tcSerialTabMonitor" style="padding: 2px 8px; font-size: 0.75rem;">
