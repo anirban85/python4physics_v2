@@ -389,16 +389,16 @@
             name: '1.8" Color TFT Display',
             category: 'actuators',
             defaultProps: { name: 'TFT', text: 'Physics Lab' },
-            width: 85,
-            height: 65,
+            width: 124,
+            height: 95,
             terminalOffsets: [
-                { id: 'vcc', label: 'VCC', dx: 10, dy: 58 },
-                { id: 'gnd', label: 'GND', dx: 20, dy: 58 },
-                { id: 'cs', label: 'CS (D10)', dx: 30, dy: 58 },
-                { id: 'rst', label: 'RESET (D8)', dx: 40, dy: 58 },
-                { id: 'dc', label: 'A0/DC (D9)', dx: 50, dy: 58 },
-                { id: 'sda', label: 'SDA/MOSI (D11)', dx: 60, dy: 58 },
-                { id: 'sck', label: 'SCK (D13)', dx: 70, dy: 58 }
+                { id: 'vcc', label: 'VCC (5V)', dx: 11, dy: 86 },
+                { id: 'gnd', label: 'GND', dx: 28, dy: 86 },
+                { id: 'cs', label: 'CS (D10)', dx: 45, dy: 86 },
+                { id: 'rst', label: 'RESET (D8)', dx: 62, dy: 86 },
+                { id: 'dc', label: 'A0/DC (D9)', dx: 79, dy: 86 },
+                { id: 'sda', label: 'SDA/MOSI (D11)', dx: 96, dy: 86 },
+                { id: 'sck', label: 'SCK (D13)', dx: 113, dy: 86 }
             ]
         }
     };
@@ -876,21 +876,33 @@ void loop() {
         tft_lcd: {
             title: "Exp 08: 1.8\" TFT / LCD Graphics & Data Print",
             components: [
-                { id: 'tft1', type: 'tft_lcd', x: 670, y: 150, rotation: 0, props: { name: 'TFT1.8', text: 'PHYSICS' } },
-                { id: 'pot1', type: 'potentiometer', x: 790, y: 143, rotation: 0, props: { resistance: 10000, name: 'ADC_POT', position: 0.5 } }
+                { id: 'tft1', type: 'tft_lcd', x: 624, y: 133, rotation: 0, props: { name: 'TFT1.8', text: 'PHYSICS' } },
+                { id: 'pot1', type: 'potentiometer', x: 813.5, y: 126, rotation: 0, props: { resistance: 10000, name: 'ADC_POT', position: 0.5 } }
             ],
             autoWires: [
-                { from: 'ard-pin-5v', to: 'bb-top-pos-10', color: '#ef4444', waypoints: [] },
-                { from: 'ard-pin-gnd1', to: 'bb-top-neg-10', color: '#0f172a', waypoints: [] },
-                { from: 'ard-pin-10', to: 'bb-f13', color: '#38bdf8', waypoints: [] },
-                { from: 'ard-pin-9', to: 'bb-f15', color: '#10b981', waypoints: [] },
-                { from: 'ard-pin-11', to: 'bb-f16', color: '#f59e0b', waypoints: [] },
-                { from: 'ard-pin-13', to: 'bb-f17', color: '#ec4899', waypoints: [] },
-                { from: 'ard-pin-a0', to: 'bb-a20', color: '#10b981', waypoints: [] }
+                // 1. Power rails from Arduino Uno
+                { from: 'ard-pin-5v', to: 'bb-top-pos-10', color: '#ef4444', waypoints: [{ x: 208, y: 340 }, { x: 390, y: 340 }, { x: 390, y: 45 }, { x: 635, y: 45 }] },
+                { from: 'ard-pin-gnd1', to: 'bb-top-neg-10', color: '#0f172a', waypoints: [{ x: 220, y: 355 }, { x: 400, y: 355 }, { x: 400, y: 65 }, { x: 635, y: 65 }] },
+
+                // 2. 1.8" Color TFT Power (VCC & GND)
+                { from: 'bb-top-pos-10', to: 'bb-j10', color: '#ef4444', waypoints: [{ x: 615, y: 55 }, { x: 615, y: 287 }] },
+                { from: 'bb-top-neg-11', to: 'bb-j11', color: '#0f172a', waypoints: [{ x: 622, y: 77 }, { x: 622, y: 287 }] },
+
+                // 3. 1.8" Color TFT SPI Controls (CS, RST, DC, SDA, SCK)
+                { from: 'ard-pin-10', to: 'bb-j12', color: '#0284c7', waypoints: [] },
+                { from: 'ard-pin-8', to: 'bb-j13', color: '#8b5cf6', waypoints: [] },
+                { from: 'ard-pin-9', to: 'bb-j14', color: '#10b981', waypoints: [] },
+                { from: 'ard-pin-11', to: 'bb-j15', color: '#f59e0b', waypoints: [] },
+                { from: 'ard-pin-13', to: 'bb-j16', color: '#ec4899', waypoints: [] },
+
+                // 4. Potentiometer 10-Bit ADC Voltage Divider (Columns 21, 22, 23)
+                { from: 'bb-top-pos-21', to: 'bb-a21', color: '#ef4444', waypoints: [] },
+                { from: 'ard-pin-a0', to: 'bb-a22', color: '#10b981', waypoints: [] },
+                { from: 'bb-top-neg-23', to: 'bb-a23', color: '#0f172a', waypoints: [] }
             ],
             code: `// ========================================================
 // Exp 08: 1.8-inch TFT/LCD Color Display Interfacing (SPI)
-// Print real-time sensor measurements, voltage, and graphical text.
+// Print real-time sensor measurements, voltage, and graphical bar graph.
 // ========================================================
 
 const int csPin = 10;
@@ -901,26 +913,41 @@ const int sensorPin = A0;
 void setup() {
   Serial.begin(9600);
   Serial.println("--- Exp 08: 1.8-inch Color TFT Display Initialized ---");
-  Serial.println("TFT Screen: 128x160 RGB SPI • ST7735 Controller");
-  Serial.println("[TFT Graphics] Initializing Canvas & Fonts...");
+  Serial.println("Display Controller: ST7735 (128x160 RGB Color SPI)");
+  Serial.println("SPI Interface     : CS=D10, DC=D9, RST=D8, MOSI=D11, SCK=D13");
+  Serial.println("[TFT Canvas] Calibrating 10-Bit ADC Analog Input A0...");
 }
 
 void loop() {
   int rawADC = analogRead(sensorPin);
   float voltage = (rawADC / 1023.0) * 5.0;
+  int percent = map(rawADC, 0, 1023, 0, 100);
+  int barLen = map(rawADC, 0, 1023, 0, 16);
   
+  String bar = "[";
+  for (int i = 0; i < 16; i++) {
+    if (i < barLen) bar += "=";
+    else if (i == barLen) bar += ">";
+    else bar += " ";
+  }
+  bar += "]";
+
   Serial.println("================================");
   Serial.println("  1.8-INCH TFT DISPLAY TELEMETRY");
   Serial.println("================================");
-  Serial.println("Physics Lab : Computational Exps");
-  Serial.print("Analog Ch A0: ");
+  Serial.println("Display Title : Physics Lab - Exp 08");
+  Serial.print("Analog Ch A0  : ");
   Serial.print(voltage, 2);
   Serial.println(" V");
-  Serial.print("ADC Counts  : ");
-  Serial.println(rawADC);
-  Serial.println("Drawing Bar Graph [##########   ]");
+  Serial.print("10-Bit ADC    : ");
+  Serial.print(rawADC);
+  Serial.print(" / 1023 (");
+  Serial.print(percent);
+  Serial.println("%)");
+  Serial.print("TFT Bar Graph : ");
+  Serial.println(bar);
   
-  delay(1000);
+  delay(300);
 }`
         },
 
@@ -2608,6 +2635,21 @@ void loop() {
                 triggerCircuitSolve();
             });
         }
+
+        // 6. 1.8" Color TFT Module Click - Open / Expand High-Res Inspector
+        if (comp.type === 'tft_lcd') {
+            el.addEventListener('click', (e) => {
+                const mod = document.getElementById('tcTftInspectorModal');
+                if (mod) {
+                    const body = document.getElementById('tcTftModalBody');
+                    if (body) body.style.display = 'block';
+                    const minBtn = document.getElementById('tcTftMinBtn');
+                    if (minBtn) minBtn.textContent = '_';
+                    mod.classList.add('tc-highlight-pulse');
+                    setTimeout(() => mod.classList.remove('tc-highlight-pulse'), 800);
+                }
+            });
+        }
     }
 
     function triggerPirMotion(comp) {
@@ -2915,11 +2957,26 @@ void loop() {
                 </div>`;
 
             case 'tft_lcd':
-                return `<div style="width:85px;height:65px;position:relative;background:#0f172a;border-radius:4px;border:2px solid #ef4444;padding:4px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.5);">
-                    <div style="width:100%;height:100%;background:#000000;border:1px solid #334155;border-radius:2px;display:flex;flex-direction:column;justify-content:space-between;padding:2px;box-sizing:border-box;">
-                        <div style="font-size:0.45rem;color:#38bdf8;font-weight:700;">1.8" SPI TFT LCD</div>
-                        <div style="font-size:0.55rem;color:#22c55e;font-family:'JetBrains Mono',monospace;">${comp.props.text || 'PHYSICS 4'}</div>
-                        <div style="width:100%;height:10px;background:#0284c7;border-radius:1px;"></div>
+                return `<div id="${comp.id}_body" class="tc-tft-module-pcb" style="width:124px;height:95px;position:relative;" title="1.8-inch ST7735 SPI Color TFT Display (Click to open High-Res Inspector)">
+                    <div class="tc-tft-mounting-hole top-left"></div>
+                    <div class="tc-tft-mounting-hole top-right"></div>
+                    <div class="tc-tft-mounting-hole bot-left"></div>
+                    <div class="tc-tft-mounting-hole bot-right"></div>
+                    <div class="tc-tft-bezel">
+                        <div id="${comp.id}_screen" class="tc-tft-screen-surface">
+                            <div class="tc-tft-screen-header">
+                                <span>ST7735 128x160</span>
+                                <span id="${comp.id}_onboard_dot" class="tc-tft-dot-offline">○</span>
+                            </div>
+                            <div id="${comp.id}_onboard_v" class="tc-tft-screen-value">STANDBY</div>
+                            <div class="tc-tft-bar-track">
+                                <div id="${comp.id}_onboard_bar" class="tc-tft-bar-fill" style="width:0%;"></div>
+                            </div>
+                            <div id="${comp.id}_onboard_adc" class="tc-tft-screen-footer">Click "Start Simulation"</div>
+                        </div>
+                    </div>
+                    <div class="tc-tft-pin-labels">
+                        <span>VCC</span><span>GND</span><span>CS</span><span>RST</span><span>DC</span><span>SDA</span><span>SCK</span>
                     </div>
                 </div>`;
 
@@ -3545,6 +3602,115 @@ void loop() {
         } else {
             if (photogateWidget) photogateWidget.remove();
         }
+
+        // 8. 1.8" Color TFT Display Live Inspector Modal (Exp 08)
+        const tftComp = state.components.find(c => c.type === 'tft_lcd');
+        let tftModal = document.getElementById('tcTftInspectorModal');
+
+        if (tftComp) {
+            if (!tftModal) {
+                tftModal = document.createElement('div');
+                tftModal.id = 'tcTftInspectorModal';
+                tftModal.className = 'tc-tft-inspector-modal';
+                tftModal.innerHTML = `
+                    <div class="tc-tft-modal-header" id="tcTftModalHeader">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span class="tc-tft-status-led" id="tcTftStatusLed"></span>
+                            <span style="font-weight:800;letter-spacing:0.5px;">1.8" COLOR TFT (ST7735)</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px;">
+                            <button type="button" class="tc-tft-ctrl-btn" id="tcTftModeBtn" title="Switch Display Mode: Telemetry vs Graphics Demo">🎨 Demo</button>
+                            <button type="button" class="tc-tft-ctrl-btn" id="tcTftMinBtn" title="Minimize / Expand Window">_</button>
+                        </div>
+                    </div>
+                    <div class="tc-tft-modal-body" id="tcTftModalBody">
+                        <div class="tc-tft-screen-bezel">
+                            <div class="tc-tft-screen" id="tcTftScreenView">
+                                <!-- Telemetry Screen View -->
+                                <div id="tcTftViewTelemetry" class="tc-tft-view-pane">
+                                    <div class="tc-tft-top-bar">
+                                        <span>★ PHYSICS 4 LAB ★</span>
+                                        <span id="tcTftClock">00:00</span>
+                                    </div>
+                                    <div class="tc-tft-sub-bar">EXP 08: ST7735 SPI GRAPHICS</div>
+                                    <div class="tc-tft-value-box">
+                                        <div class="tc-tft-lbl">CH A0 INPUT VOLTAGE:</div>
+                                        <div class="tc-tft-big-readout"><span id="tcTftScreenVolt">0.00</span> <span style="font-size:0.8rem;color:#38bdf8;">V</span></div>
+                                        <div class="tc-tft-adc-line">ADC: <span id="tcTftScreenAdc">0</span> / 1023 (<span id="tcTftScreenPct">0%</span>)</div>
+                                    </div>
+                                    <div class="tc-tft-meter-box">
+                                        <div class="tc-tft-meter-track">
+                                            <div class="tc-tft-meter-fill" id="tcTftMeterFill" style="width:0%;"></div>
+                                            <div class="tc-tft-meter-pointer" id="tcTftMeterPointer" style="left:0%;"></div>
+                                        </div>
+                                        <div class="tc-tft-meter-labels">
+                                            <span>0V</span><span>1.25V</span><span>2.5V</span><span>3.75V</span><span>5V</span>
+                                        </div>
+                                    </div>
+                                    <div class="tc-tft-chart-container">
+                                        <div class="tc-tft-chart-title">REAL-TIME VOLTAGE STRIP-CHART</div>
+                                        <canvas id="tcTftWaveCanvas" width="216" height="42" class="tc-tft-wave-canvas"></canvas>
+                                    </div>
+                                    <div class="tc-tft-footer-bar">
+                                        <span id="tcTftSpiStatus">SPI MODE 0 • 8MHz</span>
+                                        <span id="tcTftFpsBadge">20 FPS</span>
+                                    </div>
+                                </div>
+
+                                <!-- Graphics Demo View -->
+                                <div id="tcTftViewDemo" class="tc-tft-view-pane" style="display:none;">
+                                    <div class="tc-tft-top-bar">ST7735 65K COLOR PALETTE</div>
+                                    <div class="tc-tft-color-bars">
+                                        <div style="background:#ef4444;">RED</div>
+                                        <div style="background:#22c55e;">GREEN</div>
+                                        <div style="background:#3b82f6;">BLUE</div>
+                                        <div style="background:#eab308;color:#000;">YELLOW</div>
+                                        <div style="background:#06b6d4;color:#000;">CYAN</div>
+                                        <div style="background:#ec4899;">MAGENTA</div>
+                                        <div style="background:#ffffff;color:#000;">WHITE</div>
+                                    </div>
+                                    <div class="tc-tft-shapes-demo">
+                                        <div class="tc-tft-shape-circle"></div>
+                                        <div class="tc-tft-shape-rect"></div>
+                                        <div class="tc-tft-shape-line"></div>
+                                    </div>
+                                    <div class="tc-tft-footer-bar">128 x 160 PIXELS • 16-BIT RGB565</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Potentiometer Quick-Dial -->
+                        <div class="tc-tft-quick-control">
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;font-weight:700;color:#94a3b8;margin-bottom:4px;">
+                                <span>POTENTIOMETER (A0):</span>
+                                <span id="tcTftSliderValText" style="color:#38bdf8;font-family:'JetBrains Mono',monospace;">2.50 V (50%)</span>
+                            </div>
+                            <input type="range" id="tcTftPotSlider" min="0" max="100" value="50" class="tc-tft-slider">
+                            <div class="tc-tft-preset-buttons">
+                                <button type="button" class="tc-tft-chip" data-pct="0">0V (Min)</button>
+                                <button type="button" class="tc-tft-chip" data-pct="25">1.25V</button>
+                                <button type="button" class="tc-tft-chip" data-pct="50">2.50V (Mid)</button>
+                                <button type="button" class="tc-tft-chip" data-pct="75">3.75V</button>
+                                <button type="button" class="tc-tft-chip" data-pct="100">5.0V (Max)</button>
+                            </div>
+                        </div>
+
+                        <!-- Hardware Diagnostics -->
+                        <div class="tc-tft-diag-grid">
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagVcc"></span> VCC (5V)</div>
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagGnd"></span> GND</div>
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagCs"></span> CS (D10)</div>
+                            <div class="tc-tft-diag-item"><span class="tc-tft-diag-dot" id="tcTftDiagRst"></span> RST (D8)</div>
+                        </div>
+                    </div>
+                `;
+                stage.appendChild(tftModal);
+                bindTftInspectorEvents(tftModal);
+            }
+            updateTftDisplay();
+        } else {
+            if (tftModal) tftModal.remove();
+        }
     }
 
     function bindDraggableObstacle(obstacle, usComp) {
@@ -3923,6 +4089,280 @@ void loop() {
                 }, 40);
             }
         });
+    }
+
+    // ==========================================
+    // 11c. 1.8" COLOR TFT DISPLAY (ST7735) ENGINE
+    // ==========================================
+    function bindTftInspectorEvents(tftModal) {
+        // Dragging window
+        const header = tftModal.querySelector('#tcTftModalHeader');
+        if (header) {
+            let isDragging = false, startX = 0, startY = 0, initLeft = 0, initTop = 0;
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initLeft = tftModal.offsetLeft;
+                initTop = tftModal.offsetTop;
+                const onMouseMove = (ev) => {
+                    if (!isDragging) return;
+                    tftModal.style.left = `${initLeft + (ev.clientX - startX)}px`;
+                    tftModal.style.top = `${initTop + (ev.clientY - startY)}px`;
+                    tftModal.style.right = 'auto';
+                };
+                const onMouseUp = () => {
+                    isDragging = false;
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
+                };
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            });
+        }
+
+        // Minimize / Expand
+        const minBtn = tftModal.querySelector('#tcTftMinBtn');
+        const modalBody = tftModal.querySelector('#tcTftModalBody');
+        minBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (modalBody) {
+                const isHidden = modalBody.style.display === 'none';
+                modalBody.style.display = isHidden ? 'block' : 'none';
+                minBtn.textContent = isHidden ? '_' : '▢';
+            }
+        });
+
+        // Mode Switch (Telemetry vs Demo)
+        const modeBtn = tftModal.querySelector('#tcTftModeBtn');
+        const viewTel = tftModal.querySelector('#tcTftViewTelemetry');
+        const viewDemo = tftModal.querySelector('#tcTftViewDemo');
+        modeBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (viewTel && viewDemo) {
+                const isDemo = viewDemo.style.display !== 'none';
+                viewDemo.style.display = isDemo ? 'none' : 'block';
+                viewTel.style.display = isDemo ? 'block' : 'none';
+                modeBtn.textContent = isDemo ? '🎨 Demo' : '📊 Data';
+            }
+        });
+
+        // Slider interaction
+        const slider = tftModal.querySelector('#tcTftPotSlider');
+        slider?.addEventListener('input', (e) => {
+            const potComp = state.components.find(c => c.type === 'potentiometer');
+            if (potComp) {
+                setPotPosition(potComp, Number(e.target.value) / 100);
+            }
+        });
+
+        // Preset buttons
+        tftModal.querySelectorAll('.tc-tft-chip').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const pct = Number(btn.getAttribute('data-pct') || 0);
+                const potComp = state.components.find(c => c.type === 'potentiometer');
+                if (potComp) {
+                    setPotPosition(potComp, pct / 100);
+                }
+            });
+        });
+    }
+
+    function renderTftWaveform(voltage) {
+        const canvas = document.getElementById('tcTftWaveCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        if (!state.tftWaveHistory) state.tftWaveHistory = [];
+        state.tftWaveHistory.push(voltage);
+        if (state.tftWaveHistory.length > 36) state.tftWaveHistory.shift();
+
+        const w = canvas.width;
+        const h = canvas.height;
+
+        ctx.fillStyle = '#030712';
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle grid lines
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let y = 10; y < h; y += 10) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+        }
+        for (let x = 20; x < w; x += 20) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+        }
+        ctx.stroke();
+
+        if (state.tftWaveHistory.length < 2) return;
+        const step = w / 35;
+
+        // Gradient under curve
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        state.tftWaveHistory.forEach((v, idx) => {
+            const x = idx * step;
+            const y = h - (v / 5.0) * (h - 6) - 3;
+            if (idx === 0) ctx.lineTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.lineTo((state.tftWaveHistory.length - 1) * step, h);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Glowing line
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        state.tftWaveHistory.forEach((v, idx) => {
+            const x = idx * step;
+            const y = h - (v / 5.0) * (h - 6) - 3;
+            if (idx === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    }
+
+    function updateTftDisplay() {
+        const tftComp = state.components.find(c => c.type === 'tft_lcd');
+        if (!tftComp) return;
+
+        // 1. Electrical Continuity & Power verification via Netlist
+        let isPowered = false;
+        let isSpiConnected = false;
+        let a0Voltage = 0.0;
+        let rawADC = 0;
+
+        if (state.circuitStatus && state.circuitStatus.find) {
+            const find = state.circuitStatus.find;
+            const v5Roots = state.circuitStatus.v5Roots || new Set();
+            const gndRoots = state.circuitStatus.gndRoots || new Set();
+            const netVoltages = state.circuitStatus.netVoltages || {};
+
+            const vRoot = find(`${tftComp.id}_vcc`);
+            const gRoot = find(`${tftComp.id}_gnd`);
+            isPowered = v5Roots.has(vRoot) && gndRoots.has(gRoot);
+
+            const csOk = find(`${tftComp.id}_cs`) === find('ard-pin-10');
+            const rstOk = find(`${tftComp.id}_rst`) === find('ard-pin-8');
+            const dcOk = find(`${tftComp.id}_dc`) === find('ard-pin-9');
+            const sdaOk = find(`${tftComp.id}_sda`) === find('ard-pin-11');
+            const sckOk = find(`${tftComp.id}_sck`) === find('ard-pin-13');
+            isSpiConnected = csOk && rstOk && dcOk && sdaOk && sckOk;
+
+            const a0Root = find('ard-pin-a0');
+            a0Voltage = netVoltages[a0Root] !== undefined ? netVoltages[a0Root] : 0.0;
+            rawADC = Math.min(1023, Math.max(0, Math.round((a0Voltage / 5.0) * 1023)));
+        }
+
+        const isOnline = isPowered && state.isSimulating;
+        const pct = Math.min(100, Math.max(0, Math.round((rawADC / 1023) * 100)));
+
+        // 2. Update On-Breadboard TFT DOM
+        const obScreen = document.getElementById(`${tftComp.id}_screen`);
+        const obVolt = document.getElementById(`${tftComp.id}_onboard_v`);
+        const obBar = document.getElementById(`${tftComp.id}_onboard_bar`);
+        const obAdc = document.getElementById(`${tftComp.id}_onboard_adc`);
+        const obDot = document.getElementById(`${tftComp.id}_onboard_dot`);
+
+        if (obScreen) {
+            if (isOnline) {
+                obScreen.classList.add('tc-tft-screen-on');
+                if (obVolt) obVolt.textContent = `${a0Voltage.toFixed(2)} V`;
+                if (obBar) obBar.style.width = `${pct}%`;
+                if (obAdc) obAdc.textContent = `ADC: ${rawADC} • SPI OK`;
+                if (obDot) {
+                    obDot.className = 'tc-tft-dot-online';
+                    obDot.textContent = '●';
+                }
+            } else {
+                obScreen.classList.remove('tc-tft-screen-on');
+                if (obVolt) obVolt.textContent = state.isSimulating ? 'NO POWER' : 'STANDBY';
+                if (obBar) obBar.style.width = '0%';
+                if (obAdc) obAdc.textContent = isPowered ? 'Click "Start Simulation"' : 'Connect VCC & GND';
+                if (obDot) {
+                    obDot.className = 'tc-tft-dot-offline';
+                    obDot.textContent = '○';
+                }
+            }
+        }
+
+        // 3. Update High-Res Inspector Modal DOM
+        const statusLed = document.getElementById('tcTftStatusLed');
+        const screenVolt = document.getElementById('tcTftScreenVolt');
+        const screenAdc = document.getElementById('tcTftScreenAdc');
+        const screenPct = document.getElementById('tcTftScreenPct');
+        const meterFill = document.getElementById('tcTftMeterFill');
+        const meterPointer = document.getElementById('tcTftMeterPointer');
+        const clockEl = document.getElementById('tcTftClock');
+        const spiStatus = document.getElementById('tcTftSpiStatus');
+
+        if (statusLed) {
+            statusLed.className = `tc-tft-status-led ${isOnline ? 'online' : isPowered ? 'standby' : 'offline'}`;
+        }
+
+        if (screenVolt) {
+            screenVolt.textContent = isOnline ? a0Voltage.toFixed(2) : '--.--';
+        }
+        if (screenAdc) {
+            screenAdc.textContent = isOnline ? rawADC.toString() : '---';
+        }
+        if (screenPct) {
+            screenPct.textContent = isOnline ? `${pct}%` : '--%';
+        }
+        if (meterFill) {
+            meterFill.style.width = isOnline ? `${pct}%` : '0%';
+        }
+        if (meterPointer) {
+            meterPointer.style.left = isOnline ? `${pct}%` : '0%';
+        }
+        if (clockEl) {
+            const elapsed = state.isSimulating ? Math.floor((Date.now() - state.simStartTime) / 1000) : 0;
+            const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const ss = String(elapsed % 60).padStart(2, '0');
+            clockEl.textContent = `${mm}:${ss}`;
+        }
+        if (spiStatus) {
+            spiStatus.textContent = isSpiConnected ? 'SPI MODE 0 • 8MHz • OK' : 'SPI BUS: DISCONNECTED';
+            spiStatus.style.color = isSpiConnected ? '#38bdf8' : '#f87171';
+        }
+
+        // Diagnostic indicators
+        const diagVcc = document.getElementById('tcTftDiagVcc');
+        const diagGnd = document.getElementById('tcTftDiagGnd');
+        const diagCs = document.getElementById('tcTftDiagCs');
+        const diagRst = document.getElementById('tcTftDiagRst');
+        if (diagVcc) diagVcc.className = `tc-tft-diag-dot ${isPowered ? 'active' : ''}`;
+        if (diagGnd) diagGnd.className = `tc-tft-diag-dot ${isPowered ? 'active' : ''}`;
+        if (diagCs) diagCs.className = `tc-tft-diag-dot ${isSpiConnected ? 'active' : ''}`;
+        if (diagRst) diagRst.className = `tc-tft-diag-dot ${isSpiConnected ? 'active' : ''}`;
+
+        // Synchronize Slider if user tweaked potentiometer on breadboard
+        const potComp = state.components.find(c => c.type === 'potentiometer');
+        const slider = document.getElementById('tcTftPotSlider');
+        const sliderText = document.getElementById('tcTftSliderValText');
+        if (potComp && slider && document.activeElement !== slider) {
+            const potPct = Math.round((potComp.props.position !== undefined ? potComp.props.position : 0.5) * 100);
+            slider.value = potPct;
+            if (sliderText) sliderText.textContent = `${a0Voltage.toFixed(2)} V (${potPct}%)`;
+        }
+
+        // 4. Update Rolling Waveform Strip-Chart Canvas
+        renderTftWaveform(isOnline ? a0Voltage : 0.0);
     }
 
     function setupCanvasPanning() {
@@ -5306,6 +5746,7 @@ void loop() {
         };
 
         updateCircuitWarning(warningText, validStatus);
+        updateTftDisplay();
     }
 
     function updateCapacitors(voltagesMap, findFn, gndRootsSet, v5RootsSet) {
@@ -5950,6 +6391,7 @@ void loop() {
             if (state.circuitStatus && state.circuitStatus.netVoltages) {
                 updateCapacitors();
             }
+            updateTftDisplay();
         }, 50);
 
         try {
@@ -6036,6 +6478,7 @@ void loop() {
             });
         });
 
+        updateTftDisplay();
         updateCircuitWarning('', false);
         appendSerial('--- Simulation Terminated ---\n');
     }
