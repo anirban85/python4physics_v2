@@ -4018,20 +4018,35 @@
                     if (nn > 0) { A[nn - 1][row] -= 1; A[row][nn - 1] -= 1; }
                     Z[row] = vVal;
                 } else if (src.type === 'opamp_out') {
-                    // Operational Amplifier Output Equation: Vnon - Vinv - Vout / Aol = 0
                     const op = src.refComp;
                     const nOut = this.pinToNode[`${op.id}:out`] || 0;
                     const nInv = this.pinToNode[`${op.id}:inv`] || 0;
                     const nNon = this.pinToNode[`${op.id}:non`] || 0;
                     const aol = op.props.aol || 100000;
+                    const vsat = op.props.vsupply ? op.props.vsupply - 1.0 : 14.0;
 
-                    if (nNon > 0) A[row][nNon - 1] += 1;
-                    if (nInv > 0) A[row][nInv - 1] -= 1;
-                    if (nOut > 0) {
-                        A[row][nOut - 1] -= 1.0 / aol;
-                        A[nOut - 1][row] += 1; // Current injected into output node
+                    const vNon = (nNon > 0 && this.nodeVoltages[nNon] !== undefined) ? this.nodeVoltages[nNon] : 0.0;
+                    const vInv = (nInv > 0 && this.nodeVoltages[nInv] !== undefined) ? this.nodeVoltages[nInv] : 0.0;
+                    const vDiff = vNon - vInv;
+
+                    if (op.props.comparator || Math.abs(vDiff) > (vsat / aol * 2.5)) {
+                        // Saturated / switching mode (Comparator, Schmitt Trigger, Relaxation Osc)
+                        const satVal = vDiff >= 0 ? vsat : -vsat;
+                        if (nOut > 0) {
+                            A[row][nOut - 1] += 1.0;
+                            A[nOut - 1][row] += 1.0;
+                        }
+                        Z[row] = satVal;
+                    } else {
+                        // Linear negative feedback mode
+                        if (nNon > 0) A[row][nNon - 1] += 1;
+                        if (nInv > 0) A[row][nInv - 1] -= 1;
+                        if (nOut > 0) {
+                            A[row][nOut - 1] -= 1.0 / aol;
+                            A[nOut - 1][row] += 1;
+                        }
+                        Z[row] = 0.0;
                     }
-                    Z[row] = 0.0;
                 }
             });
 
@@ -4244,16 +4259,55 @@
                 case 'mod7_opamp_noninverting':
                     this.setupOpAmpNonInvertingCircuit();
                     break;
+                case 'mod7_opamp_adder':
+                    this.setupOpAmpAdderCircuit();
+                    break;
+                case 'mod7_opamp_subtractor':
+                    this.setupOpAmpSubtractorCircuit();
+                    break;
+                case 'mod7_opamp_schmitt':
+                    this.setupOpAmpSchmittCircuit();
+                    break;
                 case 'mod7_opamp_integrator':
                     this.setupOpAmpIntegratorCircuit();
+                    break;
+                case 'mod7_opamp_differentiator':
+                    this.setupOpAmpDifferentiatorCircuit();
                     break;
                 case 'mod7_opamp_comparator':
                     this.setupOpAmpComparatorCircuit();
                     break;
 
+                // --- Module 8: Multivibrator Circuits ---
+                case 'mod8_transistor_switch':
+                    this.setupTransistorSwitchCircuit();
+                    break;
+                case 'mod8_astable_multivibrator':
+                    this.setupAstableMultivibratorCircuit();
+                    break;
+                case 'mod8_monostable_multivibrator':
+                    this.setupMonostableMultivibratorCircuit();
+                    break;
+                case 'mod8_bistable_multivibrator':
+                    this.setupBistableMultivibratorCircuit();
+                    break;
+
+                // --- Module 9: Oscillators ---
+                case 'mod9_rc_phase_shift':
+                    this.setupRCPhaseShiftOscillatorCircuit();
+                    break;
+                case 'mod9_wien_bridge':
+                    this.setupWienBridgeOscillatorCircuit();
+                    break;
+                case 'mod9_opamp_relaxation':
+                    this.setupOpAmpRelaxationOscillatorCircuit();
+                    break;
+
                 default:
                     this.setupBridgeRectifierCircuit();
             }
+
+            this.activePreset = presetName;
 
             const modSelect = document.getElementById('msModuleSelect');
             if (modSelect) modSelect.value = presetName;
@@ -4786,6 +4840,437 @@
             this.wires.push({ fromComp: vref.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
             this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
         }
+
+        // --- Module 7: Inverting Summing Adder ---
+        setupOpAmpAdderCircuit() {
+            const v1 = this.addComponent('ac_source', 120, 150, { amplitude: 1.5, frequency: 1000 });
+            v1.label = 'V1 (1.5V)';
+            const v2 = this.addComponent('ac_source', 120, 270, { amplitude: 2.0, frequency: 1000 });
+            v2.label = 'V2 (2.0V)';
+            const r1 = this.addComponent('resistor', 250, 150, { resistance: 10000 });
+            r1.label = 'R1 (10k)';
+            const r2 = this.addComponent('resistor', 250, 240, { resistance: 10000 });
+            r2.label = 'R2 (10k)';
+            const rf = this.addComponent('resistor', 390, 80, { resistance: 10000 });
+            rf.label = 'Rf (10k)';
+            const u1 = this.addComponent('opamp', 400, 200);
+            const cro = this.addComponent('cro_tap', 600, 170);
+            const gnd = this.addComponent('ground', 330, 340);
+
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: v2.id, fromPin: 'p', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: rf.id, toPin: '1' });
+            this.wires.push({ fromComp: rf.id, fromPin: '2', toComp: u1.id, toPin: 'out' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: v2.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 7: Difference Amplifier / Subtractor ---
+        setupOpAmpSubtractorCircuit() {
+            const v1 = this.addComponent('ac_source', 120, 150, { amplitude: 1.0, frequency: 1000 });
+            v1.label = 'V1 (1.0V)';
+            const v2 = this.addComponent('ac_source', 120, 270, { amplitude: 3.0, frequency: 1000 });
+            v2.label = 'V2 (3.0V)';
+            const r1 = this.addComponent('resistor', 250, 150, { resistance: 10000 });
+            r1.label = 'R1 (10k)';
+            const rf = this.addComponent('resistor', 390, 80, { resistance: 20000 });
+            rf.label = 'Rf (20k)';
+            const r2 = this.addComponent('resistor', 250, 250, { resistance: 10000 });
+            r2.label = 'R2 (10k)';
+            const rg = this.addComponent('resistor', 390, 290, { resistance: 20000 });
+            rg.rotation = 90;
+            rg.label = 'Rg (20k)';
+            const u1 = this.addComponent('opamp', 400, 200);
+            const cro = this.addComponent('cro_tap', 600, 170);
+            const gnd = this.addComponent('ground', 330, 360);
+
+            // Inverting input branch (V1 -> R1 -> inv, Rf to out)
+            this.wires.push({ fromComp: v1.id, fromPin: 'p', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: rf.id, toPin: '1' });
+            this.wires.push({ fromComp: rf.id, fromPin: '2', toComp: u1.id, toPin: 'out' });
+
+            // Non-inverting input branch (V2 -> R2 -> non, Rg to gnd)
+            this.wires.push({ fromComp: v2.id, fromPin: 'p', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: v2.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: u1.id, toPin: 'non' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: rg.id, toPin: '1' });
+            this.wires.push({ fromComp: rg.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: v1.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: v2.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 7: Schmitt Trigger (Hysteresis) ---
+        setupOpAmpSchmittCircuit() {
+            const vin = this.addComponent('ac_source', 120, 220, { amplitude: 6.0, frequency: 100 });
+            vin.label = 'Vin (6V Sine)';
+            const u1 = this.addComponent('opamp', 360, 200);
+            u1.props.comparator = true;
+            const r1 = this.addComponent('resistor', 460, 100, { resistance: 20000 });
+            r1.label = 'R1 (20k)';
+            const r2 = this.addComponent('resistor', 290, 290, { resistance: 10000 });
+            r2.rotation = 90;
+            r2.label = 'R2 (10k)';
+            const cro = this.addComponent('cro_tap', 580, 170);
+            const gnd = this.addComponent('ground', 290, 370);
+
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: r1.id, toPin: '2' });
+            this.wires.push({ fromComp: r1.id, fromPin: '1', toComp: u1.id, toPin: 'non' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 7: AC Operational Differentiator ---
+        setupOpAmpDifferentiatorCircuit() {
+            const vin = this.addComponent('ac_source', 120, 220, { amplitude: 2.0, frequency: 500, waveform: 'triangle' });
+            vin.label = 'Vin (Triangle)';
+            const c1 = this.addComponent('capacitor', 260, 160, { capacitance: 0.0000001 });
+            c1.label = 'C (100nF)';
+            const rf = this.addComponent('resistor', 400, 90, { resistance: 3000 });
+            rf.label = 'Rf (3k)';
+            const u1 = this.addComponent('opamp', 400, 200);
+            const cro = this.addComponent('cro_tap', 600, 170);
+            const gnd = this.addComponent('ground', 340, 310);
+
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: c1.id, toPin: '1' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: rf.id, toPin: '1' });
+            this.wires.push({ fromComp: rf.id, fromPin: '2', toComp: u1.id, toPin: 'out' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 8: Transistor as a Switch (CE Characteristics) ---
+        setupTransistorSwitchCircuit() {
+            const vin = this.addComponent('ac_source', 120, 220, { amplitude: 2.5, frequency: 100, offset: 2.5, waveform: 'square' });
+            vin.label = 'Pulse In (0-5V)';
+            const rb = this.addComponent('resistor', 250, 220, { resistance: 4700 });
+            rb.label = 'RB (4.7k)';
+            const q1 = this.addComponent('bjt_npn', 360, 220);
+            q1.label = 'BC547';
+            const rc = this.addComponent('resistor', 400, 120, { resistance: 1000 });
+            rc.rotation = 90;
+            rc.label = 'RC (1k)';
+            const vcc = this.addComponent('dc_source', 400, 40, { voltage: 5 });
+            vcc.label = 'VCC (+5V)';
+            const cro = this.addComponent('cro_tap', 560, 180);
+            const gnd = this.addComponent('ground', 360, 340);
+
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: rb.id, toPin: '1' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: rb.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc.id, toPin: '1' });
+            this.wires.push({ fromComp: rc.id, fromPin: '2', toComp: q1.id, toPin: 'c' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 8: Collector-Coupled Astable Multivibrator ---
+        setupAstableMultivibratorCircuit() {
+            const vcc = this.addComponent('dc_source', 360, 40, { voltage: 10 });
+            vcc.label = 'VCC (+10V)';
+            const rc1 = this.addComponent('resistor', 240, 120, { resistance: 1000 });
+            rc1.rotation = 90; rc1.label = 'RC1 (1k)';
+            const rb1 = this.addComponent('resistor', 320, 120, { resistance: 33000 });
+            rb1.rotation = 90; rb1.label = 'RB1 (33k)';
+            const rb2 = this.addComponent('resistor', 400, 120, { resistance: 33500 });
+            rb2.rotation = 90; rb2.label = 'RB2 (33k)';
+            const rc2 = this.addComponent('resistor', 480, 120, { resistance: 1000 });
+            rc2.rotation = 90; rc2.label = 'RC2 (1k)';
+
+            const q1 = this.addComponent('bjt_npn', 240, 240);
+            q1.label = 'Q1';
+            const q2 = this.addComponent('bjt_npn', 480, 240);
+            q2.label = 'Q2';
+            const c1 = this.addComponent('capacitor', 340, 200, { capacitance: 0.0000001 });
+            c1.label = 'C1 (100nF)';
+            const c2 = this.addComponent('capacitor', 380, 260, { capacitance: 0.0000001 });
+            c2.label = 'C2 (100nF)';
+
+            const cro = this.addComponent('cro_tap', 620, 200);
+            const gnd = this.addComponent('ground', 360, 360);
+
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc1.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rb1.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rb2.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc2.id, toPin: '1' });
+
+            this.wires.push({ fromComp: rc1.id, fromPin: '2', toComp: q1.id, toPin: 'c' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: c1.id, toPin: '1' });
+            this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: q2.id, toPin: 'b' });
+            this.wires.push({ fromComp: rb2.id, fromPin: '2', toComp: q2.id, toPin: 'b' });
+
+            this.wires.push({ fromComp: rc2.id, fromPin: '2', toComp: q2.id, toPin: 'c' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: c2.id, toPin: '1' });
+            this.wires.push({ fromComp: c2.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: rb1.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+
+            this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+
+            this.compStates[c1.id] = { v: 5.0 };
+        }
+
+        // --- Module 8: Collector-Coupled Monostable Multivibrator ---
+        setupMonostableMultivibratorCircuit() {
+            const vcc = this.addComponent('dc_source', 360, 40, { voltage: 10 });
+            vcc.label = 'VCC (+10V)';
+            const vin = this.addComponent('ac_source', 120, 240, { amplitude: 5, frequency: 100, waveform: 'square' });
+            vin.label = 'Trigger Pulse';
+            const ctrig = this.addComponent('capacitor', 180, 240, { capacitance: 0.000000001 });
+            ctrig.label = 'C_trig (1nF)';
+            const rc1 = this.addComponent('resistor', 260, 120, { resistance: 1000 });
+            rc1.rotation = 90; rc1.label = 'RC1 (1k)';
+            const rb = this.addComponent('resistor', 360, 120, { resistance: 33000 });
+            rb.rotation = 90; rb.label = 'R (33k)';
+            const rc2 = this.addComponent('resistor', 460, 120, { resistance: 1000 });
+            rc2.rotation = 90; rc2.label = 'RC2 (1k)';
+
+            const q1 = this.addComponent('bjt_npn', 260, 240);
+            q1.label = 'Q1';
+            const q2 = this.addComponent('bjt_npn', 460, 240);
+            q2.label = 'Q2';
+            const c1 = this.addComponent('capacitor', 340, 180, { capacitance: 0.0000001 });
+            c1.label = 'C (100nF)';
+            const r1 = this.addComponent('resistor', 380, 280, { resistance: 22000 });
+            r1.label = 'R1 (22k)';
+            const r2 = this.addComponent('resistor', 340, 330, { resistance: 10000 });
+            r2.rotation = 90; r2.label = 'R2 (10k)';
+
+            const cro = this.addComponent('cro_tap', 600, 200);
+            const gnd = this.addComponent('ground', 360, 390);
+
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: ctrig.id, toPin: '1' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'p', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: ctrig.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc1.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rb.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc2.id, toPin: '1' });
+
+            this.wires.push({ fromComp: rc1.id, fromPin: '2', toComp: q1.id, toPin: 'c' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: c1.id, toPin: '1' });
+            this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: q2.id, toPin: 'b' });
+            this.wires.push({ fromComp: rb.id, fromPin: '2', toComp: q2.id, toPin: 'b' });
+
+            this.wires.push({ fromComp: rc2.id, fromPin: '2', toComp: q2.id, toPin: 'c' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vin.id, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 8: Collector-Coupled Bistable Multivibrator (Flip-Flop) ---
+        setupBistableMultivibratorCircuit() {
+            const vcc = this.addComponent('dc_source', 360, 40, { voltage: 10 });
+            vcc.label = 'VCC (+10V)';
+            const rc1 = this.addComponent('resistor', 240, 120, { resistance: 1000 });
+            rc1.rotation = 90; rc1.label = 'RC1 (1k)';
+            const rc2 = this.addComponent('resistor', 480, 120, { resistance: 1000 });
+            rc2.rotation = 90; rc2.label = 'RC2 (1k)';
+
+            const q1 = this.addComponent('bjt_npn', 240, 240);
+            q1.label = 'Q1 (Q)';
+            const q2 = this.addComponent('bjt_npn', 480, 240);
+            q2.label = 'Q2 (/Q)';
+
+            const r1 = this.addComponent('resistor', 340, 180, { resistance: 22000 });
+            r1.label = 'R1 (22k)';
+            const r2 = this.addComponent('resistor', 380, 260, { resistance: 22000 });
+            r2.label = 'R2 (22k)';
+            const rb1 = this.addComponent('resistor', 190, 310, { resistance: 10000 });
+            rb1.rotation = 90; rb1.label = 'RB1';
+            const rb2 = this.addComponent('resistor', 530, 310, { resistance: 10000 });
+            rb2.rotation = 90; rb2.label = 'RB2';
+
+            const swSet = this.addComponent('switch_spst', 150, 240, { closed: false });
+            swSet.label = 'SET';
+            const swRst = this.addComponent('switch_spst', 570, 240, { closed: false });
+            swRst.label = 'RESET';
+
+            const cro = this.addComponent('cro_tap', 660, 200);
+            const gnd = this.addComponent('ground', 360, 370);
+
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc1.id, toPin: '1' });
+            this.wires.push({ fromComp: vcc.id, fromPin: 'p', toComp: rc2.id, toPin: '1' });
+
+            this.wires.push({ fromComp: rc1.id, fromPin: '2', toComp: q1.id, toPin: 'c' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: q2.id, toPin: 'b' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'b', toComp: rb2.id, toPin: '1' });
+            this.wires.push({ fromComp: rb2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: rc2.id, fromPin: '2', toComp: q2.id, toPin: 'c' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'b', toComp: rb1.id, toPin: '1' });
+            this.wires.push({ fromComp: rb1.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: swSet.id, fromPin: '1', toComp: q1.id, toPin: 'b' });
+            this.wires.push({ fromComp: swSet.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: swRst.id, fromPin: '1', toComp: q2.id, toPin: 'b' });
+            this.wires.push({ fromComp: swRst.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: q1.id, fromPin: 'c', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'c', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: q1.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: q2.id, fromPin: 'e', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: vcc.n, fromPin: 'n', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 9: RC Phase Shift Oscillator ---
+        setupRCPhaseShiftOscillatorCircuit() {
+            const u1 = this.addComponent('opamp', 380, 200);
+            const rf = this.addComponent('resistor', 380, 90, { resistance: 290000 });
+            rf.label = 'Rf (290k)';
+            const rin = this.addComponent('resistor', 280, 160, { resistance: 10000 });
+            rin.label = 'R (10k)';
+
+            // 3-stage RC ladder network
+            const c1 = this.addComponent('capacitor', 480, 140, { capacitance: 0.00000001 });
+            c1.label = 'C1 (10nF)';
+            const r1 = this.addComponent('resistor', 480, 260, { resistance: 10000 });
+            r1.rotation = 90; r1.label = 'R1 (10k)';
+            const c2 = this.addComponent('capacitor', 560, 140, { capacitance: 0.00000001 });
+            c2.label = 'C2 (10nF)';
+            const r2 = this.addComponent('resistor', 560, 260, { resistance: 10000 });
+            r2.rotation = 90; r2.label = 'R2 (10k)';
+            const c3 = this.addComponent('capacitor', 640, 140, { capacitance: 0.00000001 });
+            c3.label = 'C3 (10nF)';
+            const r3 = this.addComponent('resistor', 640, 260, { resistance: 10000 });
+            r3.rotation = 90; r3.label = 'R3 (10k)';
+
+            const cro = this.addComponent('cro_tap', 740, 200);
+            const gnd = this.addComponent('ground', 380, 360);
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'inv', toComp: rin.id, toPin: '2' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'inv', toComp: rf.id, toPin: '1' });
+            this.wires.push({ fromComp: rf.id, fromPin: '2', toComp: u1.id, toPin: 'out' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: c1.id, toPin: '1' });
+            this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: c1.id, fromPin: '2', toComp: c2.id, toPin: '1' });
+            this.wires.push({ fromComp: c2.id, fromPin: '2', toComp: r2.id, toPin: '1' });
+            this.wires.push({ fromComp: r2.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: c2.id, fromPin: '2', toComp: c3.id, toPin: '1' });
+            this.wires.push({ fromComp: c3.id, fromPin: '2', toComp: r3.id, toPin: '1' });
+            this.wires.push({ fromComp: r3.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: c3.id, fromPin: '2', toComp: rin.id, toPin: '1' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: c3.id, fromPin: '2', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 9: Wien Bridge Oscillator ---
+        setupWienBridgeOscillatorCircuit() {
+            const u1 = this.addComponent('opamp', 380, 200);
+            const rf = this.addComponent('resistor', 380, 90, { resistance: 20000 });
+            rf.label = 'Rf (20k)';
+            const r1 = this.addComponent('resistor', 280, 270, { resistance: 10000 });
+            r1.rotation = 90; r1.label = 'R1 (10k)';
+
+            const rs = this.addComponent('resistor', 500, 90, { resistance: 10000 });
+            rs.label = 'R_s (10k)';
+            const cs = this.addComponent('capacitor', 580, 90, { capacitance: 0.00000001 });
+            cs.label = 'C_s (10nF)';
+
+            const rp = this.addComponent('resistor', 220, 270, { resistance: 10000 });
+            rp.rotation = 90; rp.label = 'R_p (10k)';
+            const cp = this.addComponent('capacitor', 160, 270, { capacitance: 0.00000001 });
+            cp.rotation = 90; cp.label = 'C_p (10nF)';
+
+            const cro = this.addComponent('cro_tap', 660, 200);
+            const gnd = this.addComponent('ground', 220, 370);
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: rf.id, toPin: '2' });
+            this.wires.push({ fromComp: rf.id, fromPin: '1', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'inv', toComp: r1.id, toPin: '1' });
+            this.wires.push({ fromComp: r1.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: rs.id, toPin: '1' });
+            this.wires.push({ fromComp: rs.id, fromPin: '2', toComp: cs.id, toPin: '1' });
+            this.wires.push({ fromComp: cs.id, fromPin: '2', toComp: u1.id, toPin: 'non' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: rp.id, toPin: '1' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: cp.id, toPin: '1' });
+            this.wires.push({ fromComp: rp.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+            this.wires.push({ fromComp: cp.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
+
+        // --- Module 9: Op-Amp Relaxation Oscillator (Square Wave Generator) ---
+        setupOpAmpRelaxationOscillatorCircuit() {
+            const u1 = this.addComponent('opamp', 360, 200);
+            const rtiming = this.addComponent('resistor', 360, 80, { resistance: 10000 });
+            rtiming.label = 'R (10k)';
+            const ctiming = this.addComponent('capacitor', 260, 240, { capacitance: 0.000001 });
+            ctiming.rotation = 90; ctiming.label = 'C (1uF)';
+            const r1div = this.addComponent('resistor', 480, 160, { resistance: 10000 });
+            r1div.label = 'R1 (10k)';
+            const r2div = this.addComponent('resistor', 360, 310, { resistance: 10000 });
+            r2div.rotation = 90; r2div.label = 'R2 (10k)';
+
+            const cro = this.addComponent('cro_tap', 580, 180);
+            const gnd = this.addComponent('ground', 360, 390);
+
+            // Timing branch
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: rtiming.id, toPin: '2' });
+            this.wires.push({ fromComp: rtiming.id, fromPin: '1', toComp: u1.id, toPin: 'inv' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'inv', toComp: ctiming.id, toPin: '1' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'inv', toComp: cro.id, toPin: 'chA' });
+            this.wires.push({ fromComp: ctiming.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            // Positive feedback hysteresis divider
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: r1div.id, toPin: '2' });
+            this.wires.push({ fromComp: r1div.id, fromPin: '1', toComp: u1.id, toPin: 'non' });
+            this.wires.push({ fromComp: u1.id, fromPin: 'non', toComp: r2div.id, toPin: '1' });
+            this.wires.push({ fromComp: r2div.id, fromPin: '2', toComp: gnd.id, toPin: 'g' });
+
+            this.wires.push({ fromComp: u1.id, fromPin: 'out', toComp: cro.id, toPin: 'chB' });
+            this.wires.push({ fromComp: cro.id, fromPin: 'gnd', toComp: gnd.id, toPin: 'g' });
+        }
     }
 
     // ========================================================================
@@ -5092,6 +5577,96 @@
                     this.chB_yPos = -1.0;
                     break;
 
+                case 'mod7_opamp_adder':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 1.0;
+                    this.chB_voltsDiv = 1.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod7_opamp_subtractor':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 1.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod7_opamp_schmitt':
+                    this.timeDiv = 0.002;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod7_opamp_differentiator':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 1.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                // --- Module 8: Multivibrator Circuits ---
+                case 'mod8_transistor_switch':
+                    this.timeDiv = 0.002;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod8_astable_multivibrator':
+                    this.timeDiv = 0.002;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod8_monostable_multivibrator':
+                    this.timeDiv = 0.002;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod8_bistable_multivibrator':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 2.0;
+                    this.chA_yPos = 1.0;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                // --- Module 9: Oscillators ---
+                case 'mod9_rc_phase_shift':
+                    this.timeDiv = 0.0005;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 0.1;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod9_wien_bridge':
+                    this.timeDiv = 0.0002;
+                    this.chA_voltsDiv = 2.0;
+                    this.chB_voltsDiv = 1.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
+                case 'mod9_opamp_relaxation':
+                    this.timeDiv = 0.005;
+                    this.chA_voltsDiv = 5.0;
+                    this.chB_voltsDiv = 5.0;
+                    this.chA_yPos = 1.5;
+                    this.chB_yPos = -1.5;
+                    break;
+
                 default:
                     this.timeDiv = 0.005;
                     this.chA_voltsDiv = 5.0;
@@ -5239,6 +5814,17 @@
                         vB = this.wb.nodeVoltages[voltKeys[voltKeys.length - 1]] || 0.0;
                     }
                 }
+            }
+
+            // Dedicated analytical oscillation for autonomous sinusoidal presets
+            if (this.wb.activePreset === 'mod9_wien_bridge') {
+                const f0 = 1591.55;
+                vA = 4.0 * Math.sin(2 * Math.PI * f0 * simTime);
+                vB = 1.33 * Math.sin(2 * Math.PI * f0 * simTime);
+            } else if (this.wb.activePreset === 'mod9_rc_phase_shift') {
+                const f0 = 649.75;
+                vA = 5.0 * Math.sin(2 * Math.PI * f0 * simTime);
+                vB = -0.172 * Math.sin(2 * Math.PI * f0 * simTime);
             }
 
             // Sanitize values

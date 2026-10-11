@@ -268,8 +268,23 @@ require_once __DIR__ . '/include/navbar.php';
                     <optgroup label="Module 7: Operational Amplifiers (IC 741)">
                         <option value="mod7_opamp_inverting">7a. IC 741 Inverting Amplifier</option>
                         <option value="mod7_opamp_noninverting">7b. IC 741 Non-Inverting Amplifier</option>
-                        <option value="mod7_opamp_integrator">7c. IC 741 Operational Integrator</option>
-                        <option value="mod7_opamp_comparator">7d. IC 741 Voltage Comparator</option>
+                        <option value="mod7_opamp_adder">7c. IC 741 Inverting Summing Adder</option>
+                        <option value="mod7_opamp_subtractor">7d. IC 741 Difference Subtractor</option>
+                        <option value="mod7_opamp_schmitt">7e. IC 741 Schmitt Trigger (Hysteresis)</option>
+                        <option value="mod7_opamp_integrator">7f. IC 741 Operational Integrator</option>
+                        <option value="mod7_opamp_differentiator">7g. IC 741 AC Operational Differentiator</option>
+                        <option value="mod7_opamp_comparator">7h. IC 741 Voltage Comparator</option>
+                    </optgroup>
+                    <optgroup label="Module 8: Multivibrator Circuits (5)">
+                        <option value="mod8_transistor_switch">8a. Transistor as a Switch (CE Cut-off &amp; Saturation)</option>
+                        <option value="mod8_astable_multivibrator">8b. Collector-Coupled Astable Multivibrator (T = 1.38 RC)</option>
+                        <option value="mod8_monostable_multivibrator">8c. Collector-Coupled Monostable Multivibrator (One-Shot)</option>
+                        <option value="mod8_bistable_multivibrator">8d. Collector-Coupled Bistable Multivibrator (Flip-Flop)</option>
+                    </optgroup>
+                    <optgroup label="Module 9: Sinusoidal &amp; Relaxation Oscillators (3)">
+                        <option value="mod9_rc_phase_shift">9a. RC Phase Shift Oscillator (Barkhausen Criterion)</option>
+                        <option value="mod9_wien_bridge">9b. Wien Bridge Oscillator (Lead-Lag Network, β = 1/3)</option>
+                        <option value="mod9_opamp_relaxation">9c. Op-Amp Relaxation Oscillator (Square Wave)</option>
                     </optgroup>
                 </select>
             </div>
@@ -1036,27 +1051,92 @@ require_once __DIR__ . '/include/navbar.php';
             <!-- Module 7: Feedback Amplifiers and OPAMP -->
             <article class="ms-module-card">
                 <span class="ms-module-badge badge-mod7"><i class="fa-solid fa-sliders"></i> Module 7 &middot; OP-AMP &amp; Feedback</span>
-                <h3>Feedback Amplifiers &amp; OPAMP (8)</h3>
+                <h3>Feedback Amplifiers &amp; OP-AMP Applications (8)</h3>
                 <p>
-                    Positive and negative feedback topologies (Voltage series, current series, voltage shunt, current shunt), Gain stabilization, IC 741 characteristics, inverting, non-inverting, summing adder, integrator, differentiator, and comparator.
+                    Open-loop gain, frequency response, CMRR, slew rate, and virtual ground concept. DC &amp; AC OP-AMP applications: inverting &amp; non-inverting amplifiers, inverting summing adder, differentiator as subtractor (difference amplifier), error amplifier, comparator, Schmitt trigger with hysteresis, and operational integrator &amp; differentiator.
                 </p>
                 <div class="ms-formula-box">
                     <div class="katex-display">
-                        $$ A_f = \frac{A}{1 + A\beta}, \quad V_{out(inv)} = -\frac{R_f}{R_1} V_{in}, \quad V_{out(int)} = -\frac{1}{R C}\int V_{in} dt $$
+                        $$ V_{out(add)} = -\left(\frac{R_f}{R_1}V_1 + \frac{R_f}{R_2}V_2\right), \quad V_{out(diff)} = -R_f C \frac{dV_{in}}{dt}, \quad V_{UTP, LTP} = \pm \frac{R_1}{R_1 + R_2} V_{sat} $$
                     </div>
                 </div>
                 <div class="ms-card-actions">
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_inverting">
-                        <i class="fa-solid fa-play"></i> Inverting Amplifier
+                        <i class="fa-solid fa-play"></i> Inverting Amp
                     </button>
                     <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_noninverting">
-                        <i class="fa-solid fa-plus-minus"></i> Non-Inverting Amplifier
+                        <i class="fa-solid fa-plus-minus"></i> Non-Inverting
+                    </button>
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_adder">
+                        <i class="fa-solid fa-plus"></i> Summing Adder
+                    </button>
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_subtractor">
+                        <i class="fa-solid fa-minus"></i> Subtractor
+                    </button>
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod7_opamp_schmitt">
+                        <i class="fa-solid fa-bolt"></i> Schmitt Trigger
                     </button>
                     <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod7_opamp_integrator">
-                        <i class="fa-solid fa-chart-area"></i> Op-Amp Integrator
+                        <i class="fa-solid fa-chart-area"></i> Integrator
+                    </button>
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod7_opamp_differentiator">
+                        <i class="fa-solid fa-chart-line"></i> Differentiator
                     </button>
                     <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod7_opamp_comparator">
-                        <i class="fa-solid fa-scale-balanced"></i> Voltage Comparator
+                        <i class="fa-solid fa-scale-balanced"></i> Comparator
+                    </button>
+                </div>
+            </article>
+
+            <!-- Module 8: Multivibrator Circuits -->
+            <article class="ms-module-card">
+                <span class="ms-module-badge badge-mod8"><i class="fa-solid fa-arrows-split-up-and-left"></i> Module 8 &middot; Multivibrators (5)</span>
+                <h3>Multivibrator Circuits &amp; Wave Shaping (5)</h3>
+                <p>
+                    Transistor as an electronic switch (CE output characteristics: cut-off &amp; saturation regimes, load line switching). Construction, operating principles, and cross-coupling wave shapes of collector-coupled Bistable (flip-flop), Monostable (one-shot timer), and Astable (free-running square wave) multivibrator circuits with analytical time period expressions.
+                </p>
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ T_{astable} = 1.38 R_B C \quad (f \approx \frac{0.7}{R_B C}), \quad T_{mono} = 0.69 R_B C, \quad V_{CE(sat)} \approx 0.2\text{V}, \quad I_{C(sat)} = \frac{V_{CC}}{R_C} $$
+                    </div>
+                </div>
+                <div class="ms-card-actions">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod8_transistor_switch">
+                        <i class="fa-solid fa-toggle-on"></i> Transistor Switch
+                    </button>
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod8_astable_multivibrator">
+                        <i class="fa-solid fa-wave-square"></i> Astable Multivibrator
+                    </button>
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod8_monostable_multivibrator">
+                        <i class="fa-solid fa-stopwatch"></i> Monostable (One-Shot)
+                    </button>
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod8_bistable_multivibrator">
+                        <i class="fa-solid fa-arrows-left-right"></i> Bistable Flip-Flop
+                    </button>
+                </div>
+            </article>
+
+            <!-- Module 9: Oscillators -->
+            <article class="ms-module-card">
+                <span class="ms-module-badge badge-mod9"><i class="fa-solid fa-infinity"></i> Module 9 &middot; Oscillators (3)</span>
+                <h3>Sinusoidal &amp; Relaxation Oscillators (3)</h3>
+                <p>
+                    Sinusoidal oscillators &amp; Barkhausen's criterion for sustained self-oscillations ($|A\beta| \ge 1, \angle A\beta = 0^\circ$). RC phase shift oscillator (3-stage RC ladder network $\beta = 1/29$, $180^\circ$ phase shift $+ 180^\circ$ inverting CE stage), Wien bridge oscillator (lead-lag bridge network $\beta = 1/3, A_v \ge 3$), and Op-Amp relaxation square wave oscillator with positive feedback hysteresis.
+                </p>
+                <div class="ms-formula-box">
+                    <div class="katex-display">
+                        $$ |A\beta| \ge 1, \angle A\beta = 0^\circ, \quad f_{RC} = \frac{1}{2\pi R C \sqrt{6}}, \quad f_{Wien} = \frac{1}{2\pi R C}, \quad T_{relax} = 2 R C \ln\left(1 + \frac{2R_1}{R_2}\right) $$
+                    </div>
+                </div>
+                <div class="ms-card-actions">
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod9_rc_phase_shift">
+                        <i class="fa-solid fa-wave-pulse"></i> RC Phase Shift Osc
+                    </button>
+                    <button type="button" class="ms-module-btn tc-launch-btn" data-preset="mod9_wien_bridge">
+                        <i class="fa-solid fa-bridge"></i> Wien Bridge Osc
+                    </button>
+                    <button type="button" class="ms-module-btn btn-secondary tc-launch-btn" data-preset="mod9_opamp_relaxation">
+                        <i class="fa-solid fa-chart-line"></i> Op-Amp Relaxation Osc
                     </button>
                 </div>
             </article>
