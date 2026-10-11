@@ -901,53 +901,91 @@ void loop() {
                 { from: 'bb-top-neg-23', to: 'bb-a23', color: '#0f172a', waypoints: [] }
             ],
             code: `// ========================================================
-// Exp 08: 1.8-inch TFT/LCD Color Display Interfacing (SPI)
-// Print real-time sensor measurements, voltage, and graphical bar graph.
+// Exp 08: 1.8-inch TFT Color Display Interfacing (ST7735 SPI)
+// Real-time ADC Sensor Sampling, Custom Graphics & Telemetry
 // ========================================================
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
 
-const int csPin = 10;
-const int dcPin = 9;
-const int rstPin = 8;
-const int sensorPin = A0;
+#define TFT_CS    10
+#define TFT_RST    8
+#define TFT_DC     9
+#define SENSOR_PIN A0
+
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 void setup() {
   Serial.begin(9600);
+  tft.initR(INITR_BLACKTAB);
+  tft.fillScreen(ST7735_BLACK);
+  
+  // Header Banner
+  tft.fillRect(0, 0, 128, 22, ST7735_BLUE);
+  tft.setCursor(6, 6);
+  tft.setTextColor(ST7735_WHITE);
+  tft.setTextSize(1);
+  tft.println("PHYSICS 4 LAB: EXP 08");
+  
+  // Static Labels
+  tft.setCursor(6, 28);
+  tft.setTextColor(ST7735_YELLOW);
+  tft.println("ST7735 128x160 SPI");
+  
+  tft.setCursor(6, 42);
+  tft.setTextColor(ST7735_CYAN);
+  tft.println("ANALOG CH A0 INPUT:");
+
   Serial.println("--- Exp 08: 1.8-inch Color TFT Display Initialized ---");
   Serial.println("Display Controller: ST7735 (128x160 RGB Color SPI)");
   Serial.println("SPI Interface     : CS=D10, DC=D9, RST=D8, MOSI=D11, SCK=D13");
-  Serial.println("[TFT Canvas] Calibrating 10-Bit ADC Analog Input A0...");
 }
 
 void loop() {
-  int rawADC = analogRead(sensorPin);
+  int rawADC = analogRead(SENSOR_PIN);
   float voltage = (rawADC / 1023.0) * 5.0;
   int percent = map(rawADC, 0, 1023, 0, 100);
-  int barLen = map(rawADC, 0, 1023, 0, 16);
-  
-  String bar = "[";
-  for (int i = 0; i < 16; i++) {
-    if (i < barLen) bar += "=";
-    else if (i == barLen) bar += ">";
-    else bar += " ";
-  }
-  bar += "]";
+  int barWidth = map(rawADC, 0, 1023, 0, 114);
 
-  Serial.println("================================");
-  Serial.println("  1.8-INCH TFT DISPLAY TELEMETRY");
-  Serial.println("================================");
-  Serial.println("Display Title : Physics Lab - Exp 08");
-  Serial.print("Analog Ch A0  : ");
+  // Large Voltage Readout (clear previous reading background)
+  tft.fillRect(6, 56, 116, 24, ST7735_BLACK);
+  tft.setCursor(10, 60);
+  tft.setTextColor(ST7735_GREEN);
+  tft.setTextSize(2);
+  tft.print(voltage, 2);
+  tft.setTextSize(1);
+  tft.println(" Volts");
+
+  // ADC Value & Percentage
+  tft.fillRect(6, 84, 116, 14, ST7735_BLACK);
+  tft.setCursor(6, 84);
+  tft.setTextColor(ST7735_WHITE);
+  tft.print("ADC: ");
+  tft.print(rawADC);
+  tft.print(" (");
+  tft.print(percent);
+  tft.println("%)");
+
+  // Dynamic Graphic Bar Meter
+  tft.drawRect(6, 104, 116, 14, ST7735_WHITE);
+  tft.fillRect(7, 105, 114, 12, ST7735_BLACK);
+  tft.fillRect(7, 105, barWidth, 12, ST7735_RED);
+
+  // Status Footer
+  tft.setCursor(6, 128);
+  tft.setTextColor(ST7735_CYAN);
+  tft.println("SPI BUS 8MHz: OK");
+
+  // Serial Monitor Output
+  Serial.print("V=");
   Serial.print(voltage, 2);
-  Serial.println(" V");
-  Serial.print("10-Bit ADC    : ");
+  Serial.print("V | ADC=");
   Serial.print(rawADC);
-  Serial.print(" / 1023 (");
+  Serial.print(" | Pct=");
   Serial.print(percent);
-  Serial.println("%)");
-  Serial.print("TFT Bar Graph : ");
-  Serial.println(bar);
-  
-  delay(300);
+  Serial.println("%");
+
+  delay(200);
 }`
         },
 
@@ -2918,7 +2956,7 @@ void loop() {
                 </div>`;
 
             case 'dot_matrix':
-                return `<div style="width:75px;height:75px;position:relative;background:#0a0e17;border-radius:6px;border:2px solid #38bdf8;padding:4px;box-sizing:border-box;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:2px;">
+                return `<div id="${comp.id}_grid" style="width:75px;height:75px;position:relative;background:#0a0e17;border-radius:6px;border:2px solid #38bdf8;padding:4px;box-sizing:border-box;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:2px;">
                     ${renderDotMatrixDots(comp.props.char || 'A')}
                 </div>`;
 
@@ -2964,15 +3002,18 @@ void loop() {
                     <div class="tc-tft-mounting-hole bot-right"></div>
                     <div class="tc-tft-bezel">
                         <div id="${comp.id}_screen" class="tc-tft-screen-surface">
-                            <div class="tc-tft-screen-header">
-                                <span>ST7735 128x160</span>
-                                <span id="${comp.id}_onboard_dot" class="tc-tft-dot-offline">○</span>
+                            <canvas id="${comp.id}_screen_canvas" width="128" height="160" class="tc-tft-canvas-layer"></canvas>
+                            <div id="${comp.id}_screen_telemetry" class="tc-tft-screen-content" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+                                <div class="tc-tft-screen-header">
+                                    <span>ST7735 128x160</span>
+                                    <span id="${comp.id}_onboard_dot" class="tc-tft-dot-offline">○</span>
+                                </div>
+                                <div id="${comp.id}_onboard_v" class="tc-tft-screen-value">STANDBY</div>
+                                <div class="tc-tft-bar-track">
+                                    <div id="${comp.id}_onboard_bar" class="tc-tft-bar-fill" style="width:0%;"></div>
+                                </div>
+                                <div id="${comp.id}_onboard_adc" class="tc-tft-screen-footer">Click "Start Simulation"</div>
                             </div>
-                            <div id="${comp.id}_onboard_v" class="tc-tft-screen-value">STANDBY</div>
-                            <div class="tc-tft-bar-track">
-                                <div id="${comp.id}_onboard_bar" class="tc-tft-bar-fill" style="width:0%;"></div>
-                            </div>
-                            <div id="${comp.id}_onboard_adc" class="tc-tft-screen-footer">Click "Start Simulation"</div>
                         </div>
                     </div>
                     <div class="tc-tft-pin-labels">
@@ -2985,13 +3026,120 @@ void loop() {
         }
     }
 
+    const FONT_8X8 = {
+        '0': [0x3C, 0x66, 0x6E, 0x76, 0x66, 0x66, 0x3C, 0x00],
+        '1': [0x18, 0x38, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00],
+        '2': [0x3C, 0x66, 0x06, 0x0C, 0x18, 0x30, 0x7E, 0x00],
+        '3': [0x3C, 0x66, 0x06, 0x1C, 0x06, 0x66, 0x3C, 0x00],
+        '4': [0x0C, 0x1C, 0x34, 0x64, 0x7E, 0x04, 0x04, 0x00],
+        '5': [0x7E, 0x60, 0x7C, 0x06, 0x06, 0x66, 0x3C, 0x00],
+        '6': [0x3C, 0x66, 0x60, 0x7C, 0x66, 0x66, 0x3C, 0x00],
+        '7': [0x7E, 0x06, 0x0C, 0x18, 0x30, 0x30, 0x30, 0x00],
+        '8': [0x3C, 0x66, 0x66, 0x3C, 0x66, 0x66, 0x3C, 0x00],
+        '9': [0x3C, 0x66, 0x66, 0x3E, 0x06, 0x66, 0x3C, 0x00],
+        'A': [0x18, 0x3C, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x00],
+        'B': [0x7C, 0x66, 0x66, 0x7C, 0x66, 0x66, 0x7C, 0x00],
+        'C': [0x3C, 0x66, 0x60, 0x60, 0x60, 0x66, 0x3C, 0x00],
+        'D': [0x78, 0x6C, 0x66, 0x66, 0x66, 0x6C, 0x78, 0x00],
+        'E': [0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x7E, 0x00],
+        'F': [0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x60, 0x00],
+        'G': [0x3C, 0x66, 0x60, 0x6E, 0x66, 0x66, 0x3C, 0x00],
+        'H': [0x66, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x66, 0x00],
+        'I': [0x3C, 0x18, 0x18, 0x18, 0x18, 0x18, 0x3C, 0x00],
+        'J': [0x0E, 0x06, 0x06, 0x06, 0x06, 0x66, 0x3C, 0x00],
+        'K': [0x66, 0x6C, 0x78, 0x70, 0x78, 0x6C, 0x66, 0x00],
+        'L': [0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x7E, 0x00],
+        'M': [0x63, 0x77, 0x7F, 0x6B, 0x63, 0x63, 0x63, 0x00],
+        'N': [0x66, 0x76, 0x7E, 0x7E, 0x6E, 0x66, 0x66, 0x00],
+        'O': [0x3C, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00],
+        'P': [0x7C, 0x66, 0x66, 0x7C, 0x60, 0x60, 0x60, 0x00],
+        'Q': [0x3C, 0x66, 0x66, 0x66, 0x6A, 0x6C, 0x36, 0x00],
+        'R': [0x7C, 0x66, 0x66, 0x7C, 0x6C, 0x66, 0x66, 0x00],
+        'S': [0x3C, 0x66, 0x60, 0x3C, 0x06, 0x66, 0x3C, 0x00],
+        'T': [0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00],
+        'U': [0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00],
+        'V': [0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x18, 0x00],
+        'W': [0x63, 0x63, 0x63, 0x6B, 0x7F, 0x77, 0x63, 0x00],
+        'X': [0x66, 0x66, 0x3C, 0x18, 0x3C, 0x66, 0x66, 0x00],
+        'Y': [0x66, 0x66, 0x66, 0x3C, 0x18, 0x18, 0x18, 0x00],
+        'Z': [0x7E, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x7E, 0x00],
+        'a': [0x00, 0x00, 0x3C, 0x06, 0x3E, 0x66, 0x3B, 0x00],
+        'b': [0x60, 0x60, 0x7C, 0x66, 0x66, 0x66, 0x7C, 0x00],
+        'c': [0x00, 0x00, 0x3C, 0x66, 0x60, 0x66, 0x3C, 0x00],
+        'd': [0x06, 0x06, 0x3E, 0x66, 0x66, 0x66, 0x3E, 0x00],
+        'e': [0x00, 0x00, 0x3C, 0x66, 0x7E, 0x60, 0x3C, 0x00],
+        'f': [0x0E, 0x18, 0x7E, 0x18, 0x18, 0x18, 0x18, 0x00],
+        'g': [0x00, 0x00, 0x3E, 0x66, 0x66, 0x3E, 0x06, 0x7C],
+        'h': [0x60, 0x60, 0x7C, 0x66, 0x66, 0x66, 0x66, 0x00],
+        'i': [0x18, 0x00, 0x38, 0x18, 0x18, 0x18, 0x3C, 0x00],
+        'j': [0x06, 0x00, 0x06, 0x06, 0x06, 0x66, 0x3C, 0x00],
+        'k': [0x60, 0x60, 0x66, 0x6C, 0x78, 0x6C, 0x66, 0x00],
+        'l': [0x38, 0x18, 0x18, 0x18, 0x18, 0x18, 0x3C, 0x00],
+        'm': [0x00, 0x00, 0x66, 0x7F, 0x7F, 0x6B, 0x63, 0x00],
+        'n': [0x00, 0x00, 0x7C, 0x66, 0x66, 0x66, 0x66, 0x00],
+        'o': [0x00, 0x00, 0x3C, 0x66, 0x66, 0x66, 0x3C, 0x00],
+        'p': [0x00, 0x00, 0x7C, 0x66, 0x66, 0x7C, 0x60, 0x60],
+        'q': [0x00, 0x00, 0x3E, 0x66, 0x66, 0x3E, 0x06, 0x06],
+        'r': [0x00, 0x00, 0x7C, 0x66, 0x60, 0x60, 0x60, 0x00],
+        's': [0x00, 0x00, 0x3E, 0x60, 0x3C, 0x06, 0x7C, 0x00],
+        't': [0x18, 0x18, 0x7E, 0x18, 0x18, 0x18, 0x0E, 0x00],
+        'u': [0x00, 0x00, 0x66, 0x66, 0x66, 0x66, 0x3E, 0x00],
+        'v': [0x00, 0x00, 0x66, 0x66, 0x66, 0x3C, 0x18, 0x00],
+        'w': [0x00, 0x00, 0x63, 0x6B, 0x7F, 0x3E, 0x36, 0x00],
+        'x': [0x00, 0x00, 0x66, 0x3C, 0x18, 0x3C, 0x66, 0x00],
+        'y': [0x00, 0x00, 0x66, 0x66, 0x66, 0x3E, 0x06, 0x7C],
+        'z': [0x00, 0x00, 0x7E, 0x0C, 0x18, 0x30, 0x7E, 0x00],
+        ' ': [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+        '!': [0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18, 0x00],
+        '?': [0x3C, 0x66, 0x0C, 0x18, 0x18, 0x00, 0x18, 0x00],
+        '-': [0x00, 0x00, 0x00, 0x7E, 0x00, 0x00, 0x00, 0x00]
+    };
+
     function renderDotMatrixDots(char) {
+        const bmp = FONT_8X8[char] || FONT_8X8[String(char || 'A').toUpperCase()] || FONT_8X8['A'];
         let dots = '';
-        for (let i = 0; i < 64; i++) {
-            const isLit = (i % 9 === 0 || i % 7 === 0 || (i >= 24 && i <= 31));
-            dots += `<div style="width:100%;height:100%;border-radius:50%;background:${isLit ? '#ef4444' : '#1e293b'};box-shadow:${isLit ? '0 0 4px #ef4444' : 'none'};"></div>`;
+        for (let r = 0; r < 8; r++) {
+            const rowByte = bmp[r] || 0;
+            for (let c = 0; c < 8; c++) {
+                const isLit = (rowByte & (1 << (7 - c))) !== 0;
+                dots += `<div class="tc-matrix-dot ${isLit ? 'lit' : ''}" style="width:100%;height:100%;border-radius:50%;background:${isLit ? '#ef4444' : '#1e293b'};box-shadow:${isLit ? '0 0 5px #ef4444' : 'none'};"></div>`;
+            }
         }
         return dots;
+    }
+
+    function updateDotMatrixBitmap(comp, bmpArray) {
+        if (!comp || !bmpArray) return;
+        const grid = document.getElementById(`${comp.id}_grid`);
+        if (!grid) return;
+        const dotEls = grid.querySelectorAll('.tc-matrix-dot');
+        let idx = 0;
+        for (let r = 0; r < 8; r++) {
+            const rowByte = bmpArray[r] || 0;
+            for (let c = 0; c < 8; c++) {
+                const isLit = (rowByte & (1 << (7 - c))) !== 0;
+                const el = dotEls[idx++];
+                if (el) {
+                    if (isLit) {
+                        el.classList.add('lit');
+                        el.style.background = '#ef4444';
+                        el.style.boxShadow = '0 0 5px #ef4444';
+                    } else {
+                        el.classList.remove('lit');
+                        el.style.background = '#1e293b';
+                        el.style.boxShadow = 'none';
+                    }
+                }
+            }
+        }
+    }
+
+    function updateDotMatrixChar(comp, ch) {
+        if (!comp || ch === undefined) return;
+        const s = String(ch).trim();
+        if (!s) return;
+        const bmp = FONT_8X8[s[0]] || FONT_8X8[s[0].toUpperCase()] || FONT_8X8['A'];
+        updateDotMatrixBitmap(comp, bmp);
     }
 
     function getResistorBandColor(resistance, bandIndex) {
@@ -3619,15 +3767,18 @@ void loop() {
                             <span style="font-weight:800;letter-spacing:0.5px;">1.8" COLOR TFT (ST7735)</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;">
-                            <button type="button" class="tc-tft-ctrl-btn" id="tcTftModeBtn" title="Switch Display Mode: Telemetry vs Graphics Demo">🎨 Demo</button>
+                            <button type="button" class="tc-tft-ctrl-btn" id="tcTftModeBtn" title="Switch Display View: Live Screen vs Telemetry vs Demo">🖥️ Screen</button>
                             <button type="button" class="tc-tft-ctrl-btn" id="tcTftMinBtn" title="Minimize / Expand Window">_</button>
                         </div>
                     </div>
                     <div class="tc-tft-modal-body" id="tcTftModalBody">
                         <div class="tc-tft-screen-bezel">
                             <div class="tc-tft-screen" id="tcTftScreenView">
+                                <!-- High-Resolution ST7735 User Frame Buffer Canvas -->
+                                <canvas id="tcTftScreenCanvas" width="128" height="160" class="tc-tft-screen-canvas"></canvas>
+
                                 <!-- Telemetry Screen View -->
-                                <div id="tcTftViewTelemetry" class="tc-tft-view-pane">
+                                <div id="tcTftViewTelemetry" class="tc-tft-view-pane" style="display:none;">
                                     <div class="tc-tft-top-bar">
                                         <span>★ PHYSICS 4 LAB ★</span>
                                         <span id="tcTftClock">00:00</span>
@@ -4134,18 +4285,22 @@ void loop() {
             }
         });
 
-        // Mode Switch (Telemetry vs Demo)
+        // Mode Switch (Live Screen vs Telemetry vs Demo)
         const modeBtn = tftModal.querySelector('#tcTftModeBtn');
+        const viewCanvas = tftModal.querySelector('#tcTftScreenCanvas');
         const viewTel = tftModal.querySelector('#tcTftViewTelemetry');
         const viewDemo = tftModal.querySelector('#tcTftViewDemo');
+        let currentMode = 0; // 0 = Canvas, 1 = Telemetry, 2 = Demo
+
         modeBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (viewTel && viewDemo) {
-                const isDemo = viewDemo.style.display !== 'none';
-                viewDemo.style.display = isDemo ? 'none' : 'block';
-                viewTel.style.display = isDemo ? 'block' : 'none';
-                modeBtn.textContent = isDemo ? '🎨 Demo' : '📊 Data';
-            }
+            currentMode = (currentMode + 1) % 3;
+            if (viewCanvas) viewCanvas.style.display = (currentMode === 0) ? 'block' : 'none';
+            if (viewTel) viewTel.style.display = (currentMode === 1) ? 'block' : 'none';
+            if (viewDemo) viewDemo.style.display = (currentMode === 2) ? 'block' : 'none';
+            if (currentMode === 0) modeBtn.textContent = '🖥️ Screen';
+            else if (currentMode === 1) modeBtn.textContent = '📊 Data';
+            else modeBtn.textContent = '🎨 Demo';
         });
 
         // Slider interaction
@@ -4274,23 +4429,38 @@ void loop() {
 
         // 2. Update On-Breadboard TFT DOM
         const obScreen = document.getElementById(`${tftComp.id}_screen`);
+        const obCanvas = document.getElementById(`${tftComp.id}_screen_canvas`);
+        const obTelemetry = document.getElementById(`${tftComp.id}_screen_telemetry`);
         const obVolt = document.getElementById(`${tftComp.id}_onboard_v`);
         const obBar = document.getElementById(`${tftComp.id}_onboard_bar`);
         const obAdc = document.getElementById(`${tftComp.id}_onboard_adc`);
         const obDot = document.getElementById(`${tftComp.id}_onboard_dot`);
 
+        const displayVoltage = state.userTelemetry?.voltage !== undefined ? state.userTelemetry.voltage : a0Voltage;
+        const displayAdc = state.userTelemetry?.adc !== undefined ? state.userTelemetry.adc : rawADC;
+        const displayPct = state.userTelemetry?.pct !== undefined ? state.userTelemetry.pct : pct;
+
         if (obScreen) {
             if (isOnline) {
                 obScreen.classList.add('tc-tft-screen-on');
-                if (obVolt) obVolt.textContent = `${a0Voltage.toFixed(2)} V`;
-                if (obBar) obBar.style.width = `${pct}%`;
-                if (obAdc) obAdc.textContent = `ADC: ${rawADC} • SPI OK`;
+                if (state.tftUserHasRendered) {
+                    if (obCanvas) obCanvas.style.display = 'block';
+                    if (obTelemetry) obTelemetry.style.display = 'none';
+                } else {
+                    if (obCanvas) obCanvas.style.display = 'none';
+                    if (obTelemetry) obTelemetry.style.display = 'flex';
+                    if (obVolt) obVolt.textContent = `${displayVoltage.toFixed(2)} V`;
+                    if (obBar) obBar.style.width = `${displayPct}%`;
+                    if (obAdc) obAdc.textContent = `ADC: ${displayAdc} • SPI OK`;
+                }
                 if (obDot) {
                     obDot.className = 'tc-tft-dot-online';
                     obDot.textContent = '●';
                 }
             } else {
                 obScreen.classList.remove('tc-tft-screen-on');
+                if (obCanvas) obCanvas.style.display = 'none';
+                if (obTelemetry) obTelemetry.style.display = 'flex';
                 if (obVolt) obVolt.textContent = state.isSimulating ? 'NO POWER' : 'STANDBY';
                 if (obBar) obBar.style.width = '0%';
                 if (obAdc) obAdc.textContent = isPowered ? 'Click "Start Simulation"' : 'Connect VCC & GND';
@@ -4316,19 +4486,19 @@ void loop() {
         }
 
         if (screenVolt) {
-            screenVolt.textContent = isOnline ? a0Voltage.toFixed(2) : '--.--';
+            screenVolt.textContent = isOnline ? displayVoltage.toFixed(2) : '--.--';
         }
         if (screenAdc) {
-            screenAdc.textContent = isOnline ? rawADC.toString() : '---';
+            screenAdc.textContent = isOnline ? displayAdc.toString() : '---';
         }
         if (screenPct) {
-            screenPct.textContent = isOnline ? `${pct}%` : '--%';
+            screenPct.textContent = isOnline ? `${displayPct}%` : '--%';
         }
         if (meterFill) {
-            meterFill.style.width = isOnline ? `${pct}%` : '0%';
+            meterFill.style.width = isOnline ? `${displayPct}%` : '0%';
         }
         if (meterPointer) {
-            meterPointer.style.left = isOnline ? `${pct}%` : '0%';
+            meterPointer.style.left = isOnline ? `${displayPct}%` : '0%';
         }
         if (clockEl) {
             const elapsed = state.isSimulating ? Math.floor((Date.now() - state.simStartTime) / 1000) : 0;
@@ -5971,7 +6141,7 @@ void loop() {
                 names.forEach(n => declaredServos.add(n));
             }
 
-            let funcMatch = trimmed.match(/^(?:void|int|float|double|long|unsigned\s+long|bool|boolean|char|String)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*\{/);
+            let funcMatch = trimmed.match(/^(?:void|int|float|double|long|unsigned\s+long|bool|boolean|char|String|uint8_t|int8_t|uint16_t|int16_t|uint32_t|int32_t|size_t)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*\{/);
             if (funcMatch) {
                 let name = funcMatch[1];
                 if (name !== 'setup' && name !== 'loop') {
@@ -5996,8 +6166,7 @@ void loop() {
 
             let defMatch = l.match(/^\s*#define\s+([a-zA-Z0-9_]+)\s+(.+)$/);
             if (defMatch) {
-                out.push(`const ${defMatch[1]} = ${defMatch[2]};`);
-                continue;
+                l = `const ${defMatch[1]} = ${defMatch[2]};`;
             }
 
             let servoDecl = l.match(/^\s*Servo\s+([a-zA-Z0-9_]+)\s*;/);
@@ -6013,8 +6182,9 @@ void loop() {
                 continue;
             }
 
-            // Strip C++ 'volatile'
-            l = l.replace(/\bvolatile\s+/g, '');
+            // Strip C++ 'volatile' and 'PROGMEM'
+            l = l.replace(/\b(?:volatile|PROGMEM)\s+/g, '');
+            l = l.replace(/\bPROGMEM\b/g, '');
 
             // Extract string literals to protect them from regex replacements
             const stringLiterals = [];
@@ -6024,12 +6194,16 @@ void loop() {
             });
 
             // Arrays declarations without init: int arr[10]; -> let arr = new Array(10).fill(0)
-            l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean)\s+([a-zA-Z0-9_]+)\s*\[\s*(\d+)\s*\]/g, 'let $1 = new Array($2).fill(0)');
+            l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|uint8_t|int8_t|uint16_t|int16_t|uint32_t|int32_t|size_t)\s+([a-zA-Z0-9_]+)\s*\[\s*(\d+)\s*\]/g, 'let $1 = new Array($2).fill(0)');
             // Array string/literal without brackets in JS: const char name[] = "..." -> const name = "..."
-            l = l.replace(/\b(?:const\s+)?(?:char|byte|int|float|double)\s+([a-zA-Z0-9_]+)\s*\[\s*\]\s*=/g, 'const $1 =');
+            l = l.replace(/\b(?:const\s+)?(?:char|byte|int|float|double|uint8_t|int8_t)\s+([a-zA-Z0-9_]+)\s*\[\s*\]\s*=/g, 'const $1 =');
+
+            // Strip F(...) and pgm_read_byte(...)
+            l = l.replace(/\bF\s*\(\s*(__STR_LIT_\d+__)\s*\)/g, '$1');
+            l = l.replace(/\bpgm_read_byte\s*\(\s*([^)]+)\s*\)/g, '($1)');
 
             // Function signatures
-            let funcDef = l.match(/^(\s*)(?:void|int|float|double|long|unsigned\s+long|bool|boolean|char|String)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(\{?)/);
+            let funcDef = l.match(/^(\s*)(?:void|int|float|double|long|unsigned\s+long|bool|boolean|char|String|uint8_t|int8_t|uint16_t|int16_t|uint32_t|int32_t|size_t)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*(\{?)/);
             if (funcDef) {
                 let indent = funcDef[1];
                 let name = funcDef[2];
@@ -6041,15 +6215,16 @@ void loop() {
                     if (!pTrim) return '';
                     let parts = pTrim.split(/\s+/);
                     let pName = parts[parts.length - 1].replace(/^&/, '');
+                    if (pName === 'void') return '';
                     return pName;
                 }).filter(Boolean).join(', ');
 
                 l = `${indent}async function ${name}(${cleanedParams}) ${brace}`;
             } else {
                 // Declarations
-                l = l.replace(/\bfor\s*\(\s*(?:int|float|long|unsigned\s+long|unsigned\s+int|short|byte)\s+/g, 'for (let ');
-                l = l.replace(/\bconst\s+(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\b/g, 'const');
-                l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String)\s+([a-zA-Z0-9_]+)\b/g, 'let $1');
+                l = l.replace(/\bfor\s*\(\s*(?:int|float|long|unsigned\s+long|unsigned\s+int|short|byte|uint8_t|int8_t|uint16_t|int16_t|uint32_t|int32_t|size_t)\s+/g, 'for (let ');
+                l = l.replace(/\bconst\s+(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String|uint8_t|int8_t|uint16_t|int16_t|uint32_t|int32_t|size_t)\b/g, 'const');
+                l = l.replace(/\b(?:int|float|double|long|unsigned\s+long|unsigned\s+int|short|byte|char|bool|boolean|String|uint8_t|int8_t|uint16_t|int16_t|uint32_t|int32_t|size_t)\s+([a-zA-Z0-9_]+)\b/g, 'let $1');
 
                 // While loop yields to prevent browser hang
                 l = l.replace(/\bwhile\s*\((.*)\)\s*\{/g, 'while ($1) { await __env.yield();');
@@ -6086,7 +6261,24 @@ void loop() {
                 l = l.replace(/\bround\s*\(/g, 'Math.round(');
                 l = l.replace(/\bfloor\s*\(/g, 'Math.floor(');
                 l = l.replace(/\bceil\s*\(/g, 'Math.ceil(');
+                l = l.replace(/\bsin\s*\(/g, 'Math.sin(');
+                l = l.replace(/\bcos\s*\(/g, 'Math.cos(');
+                l = l.replace(/\btan\s*\(/g, 'Math.tan(');
+                l = l.replace(/\batan\s*\(/g, 'Math.atan(');
+                l = l.replace(/\batan2\s*\(/g, 'Math.atan2(');
+                l = l.replace(/\bexp\s*\(/g, 'Math.exp(');
+                l = l.replace(/\blog\s*\(/g, 'Math.log(');
+                l = l.replace(/\bPI\b/g, 'Math.PI');
+                l = l.replace(/\bDEG_TO_RAD\b/g, '(Math.PI / 180.0)');
+                l = l.replace(/\bRAD_TO_DEG\b/g, '(180.0 / Math.PI)');
                 l = l.replace(/\bstrlen\s*\(/g, '__env.strlen(');
+                l = l.replace(/\bbitRead\s*\(/g, '__env.bitRead(');
+                l = l.replace(/\bbitSet\s*\(/g, '__env.bitSet(');
+                l = l.replace(/\bbitClear\s*\(/g, '__env.bitClear(');
+                l = l.replace(/\bbitWrite\s*\(/g, '__env.bitWrite(');
+                l = l.replace(/\bbit\s*\(/g, '__env.bit(');
+                l = l.replace(/\blowByte\s*\(/g, '__env.lowByte(');
+                l = l.replace(/\bhighByte\s*\(/g, '__env.highByte(');
 
                 // Serial
                 l = l.replace(/\bSerial\.begin\s*\(/g, '__env.Serial.begin(');
@@ -6094,6 +6286,11 @@ void loop() {
                 l = l.replace(/\bSerial\.print\s*\(/g, '__env.Serial.print(');
                 l = l.replace(/\bSerial\.available\s*\(\s*\)/g, '__env.Serial.available()');
                 l = l.replace(/\bSerial\.read\s*\(\s*\)/g, '__env.Serial.read()');
+
+                // Advanced Display & Actuator Classes
+                l = l.replace(/\b(?:Adafruit_ST7735|TFT)\s+([a-zA-Z0-9_]+)\s*(?:=\s*(?:Adafruit_ST7735|TFT)\s*)?(?:\(([^)]*)\))?\s*;/g, 'var $1 = new __env.Adafruit_ST7735($2);');
+                l = l.replace(/\b(?:LiquidCrystal|LiquidCrystal_I2C)\s+([a-zA-Z0-9_]+)\s*(?:=\s*(?:LiquidCrystal|LiquidCrystal_I2C)\s*)?(?:\(([^)]*)\))?\s*;/g, 'var $1 = new __env.LiquidCrystal($2);');
+                l = l.replace(/\b(?:LedControl|MD_MAX72XX)\s+([a-zA-Z0-9_]+)\s*(?:=\s*(?:LedControl|MD_MAX72XX)\s*)?(?:\(([^)]*)\))?\s*;/g, 'var $1 = new __env.LedControl($2);');
 
                 // Advanced Syllabus Components & Protocols
                 l = l.replace(/\bIRrecv\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)\s*;/g, 'let $1 = new __env.IRrecv($2);');
@@ -6105,6 +6302,23 @@ void loop() {
 
                 // Strip C++ address-of operator only inside function argument lists like (&results) or (, &var)
                 l = l.replace(/(?<=[(,]\s*)&\s*([a-zA-Z0-9_]+)/g, '$1');
+
+                // ST7735 Colors & Inits
+                l = l.replace(/\bST7735_BLACK\b/g, '__env.ST7735_BLACK');
+                l = l.replace(/\bST7735_WHITE\b/g, '__env.ST7735_WHITE');
+                l = l.replace(/\bST7735_RED\b/g, '__env.ST7735_RED');
+                l = l.replace(/\bST7735_GREEN\b/g, '__env.ST7735_GREEN');
+                l = l.replace(/\bST7735_BLUE\b/g, '__env.ST7735_BLUE');
+                l = l.replace(/\bST7735_CYAN\b/g, '__env.ST7735_CYAN');
+                l = l.replace(/\bST7735_MAGENTA\b/g, '__env.ST7735_MAGENTA');
+                l = l.replace(/\bST7735_YELLOW\b/g, '__env.ST7735_YELLOW');
+                l = l.replace(/\bST7735_ORANGE\b/g, '__env.ST7735_ORANGE');
+                l = l.replace(/\bINITR_BLACKTAB\b/g, '__env.INITR_BLACKTAB');
+                l = l.replace(/\bINITR_REDTAB\b/g, '__env.INITR_REDTAB');
+                l = l.replace(/\bINITR_GREENTAB\b/g, '__env.INITR_GREENTAB');
+                l = l.replace(/\bINITR_18GREENTAB\b/g, '__env.INITR_18GREENTAB');
+                l = l.replace(/\bINITR_18REDTAB\b/g, '__env.INITR_18REDTAB');
+                l = l.replace(/\bINITR_18BLACKTAB\b/g, '__env.INITR_18BLACKTAB');
 
                 // Constants
                 l = l.replace(/\bHIGH\b/g, '__env.HIGH');
@@ -6167,6 +6381,8 @@ void loop() {
         state.simTick = 0;
         state.plotterData = [];
         state.capacitorStates = {};
+        state.tftUserHasRendered = false;
+        state.userTelemetry = {};
         state.components.filter(c => c.type === 'capacitor').forEach(c => {
             state.capacitorStates[c.id] = { v: 0.0, lastTime: Date.now() };
         });
@@ -6190,6 +6406,465 @@ void loop() {
 
         appendSerial(`--- ATmega328P Online: 16 MHz Clock • Baud ${state.baudRate} ---\n`);
         triggerCircuitSolve();
+
+        function handleSerialTelemetryOutput(str) {
+            if (!str) return;
+            // 1. Detect Dot Matrix character: "Displaying Character: [ A ]" or "Char: 'B'" or "Char: B"
+            const charMatch = str.match(/(?:Character|Char)[:\s]+\[?\s*['"]?([a-zA-Z0-9!?\- ])['"]?\s*\]?/i);
+            if (charMatch) {
+                const ch = charMatch[1];
+                state.components.filter(c => c.type === 'dot_matrix').forEach(comp => {
+                    updateDotMatrixChar(comp, ch);
+                });
+            }
+
+            // 2. Detect Voltage telemetry: "V=2.50V" or "Voltage : 2.50 V" or "Analog Ch A0 : 2.50 V"
+            const vMatch = str.match(/(?:V=|Voltage\s*:|Analog\s+Ch\s+A0\s*:)\s*([0-9.]+)/i);
+            if (vMatch) {
+                const v = parseFloat(vMatch[1]);
+                if (!isNaN(v)) {
+                    if (!state.userTelemetry) state.userTelemetry = {};
+                    state.userTelemetry.voltage = v;
+                }
+            }
+
+            // 3. Detect ADC telemetry: "ADC=512" or "10-Bit ADC : 512" or "ADC : 512"
+            const adcMatch = str.match(/(?:ADC=|10-Bit\s+ADC\s*:|ADC\s*:)\s*(\d+)/i);
+            if (adcMatch) {
+                const adc = parseInt(adcMatch[1], 10);
+                if (!isNaN(adc)) {
+                    if (!state.userTelemetry) state.userTelemetry = {};
+                    state.userTelemetry.adc = adc;
+                }
+            }
+
+            // 4. Detect Percentage telemetry: "Pct=50%" or "Percentage : 50%" or "(\s*50%\s*)"
+            const pctMatch = str.match(/(?:Pct=|Percentage\s*:)\s*(\d+)/i) || str.match(/\(\s*(\d+)%\s*\)/);
+            if (pctMatch) {
+                const pct = parseInt(pctMatch[1], 10);
+                if (!isNaN(pct)) {
+                    if (!state.userTelemetry) state.userTelemetry = {};
+                    state.userTelemetry.pct = pct;
+                }
+            }
+        }
+
+        class VirtualST7735 {
+            constructor(cs, dc, rst) {
+                this.cs = cs;
+                this.dc = dc;
+                this.rst = rst;
+                this.w = 128;
+                this.h = 160;
+                this.cursorX = 0;
+                this.cursorY = 0;
+                this.textColor = '#ffffff';
+                this.textBg = null;
+                this.textSize = 1;
+                this.textWrap = true;
+                this.rotation = 0;
+
+                this.canvas = document.createElement('canvas');
+                this.canvas.width = this.w;
+                this.canvas.height = this.h;
+                this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+                if (this.ctx) this.ctx.imageSmoothingEnabled = false;
+            }
+
+            initR(tab) {
+                this.w = 128;
+                this.h = 160;
+                this.canvas.width = this.w;
+                this.canvas.height = this.h;
+                this.cursorX = 0;
+                this.cursorY = 0;
+                this.fillScreen(0x0000);
+            }
+
+            setRotation(r) {
+                this.rotation = (r || 0) % 4;
+                if (this.rotation === 1 || this.rotation === 3) {
+                    this.w = 160;
+                    this.h = 128;
+                } else {
+                    this.w = 128;
+                    this.h = 160;
+                }
+                this.canvas.width = this.w;
+                this.canvas.height = this.h;
+                this.syncToDisplays();
+            }
+
+            width() { return this.w; }
+            height() { return this.h; }
+
+            color565(r, g, b) {
+                return (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)) & 0xFFFF;
+            }
+
+            _toCSS(c) {
+                if (typeof c === 'string') return c;
+                const num = Number(c) & 0xFFFF;
+                const r = Math.round(((num >> 11) & 0x1F) * 255 / 31);
+                const g = Math.round(((num >> 5) & 0x3F) * 255 / 63);
+                const b = Math.round((num & 0x1F) * 255 / 31);
+                return `rgb(${r},${g},${b})`;
+            }
+
+            fillScreen(c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.fillRect(0, 0, this.w, this.h);
+                this.syncToDisplays();
+            }
+
+            setCursor(x, y) {
+                this.cursorX = Math.round(Number(x) || 0);
+                this.cursorY = Math.round(Number(y) || 0);
+            }
+
+            setTextColor(c, bg) {
+                this.textColor = this._toCSS(c);
+                this.textBg = bg !== undefined ? this._toCSS(bg) : null;
+            }
+
+            setTextSize(s) {
+                this.textSize = Math.max(1, Math.round(Number(s) || 1));
+            }
+
+            setTextWrap(w) {
+                this.textWrap = !!w;
+            }
+
+            drawPixel(x, y, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+                this.syncToDisplays();
+            }
+
+            drawLine(x0, y0, x1, y1, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.strokeStyle = this._toCSS(c);
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(Math.round(x0) + 0.5, Math.round(y0) + 0.5);
+                this.ctx.lineTo(Math.round(x1) + 0.5, Math.round(y1) + 0.5);
+                this.ctx.stroke();
+                this.syncToDisplays();
+            }
+
+            drawFastHLine(x, y, w, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), 1);
+                this.syncToDisplays();
+            }
+
+            drawFastVLine(x, y, h, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.fillRect(Math.round(x), Math.round(y), 1, Math.round(h));
+                this.syncToDisplays();
+            }
+
+            drawRect(x, y, w, h, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.strokeStyle = this._toCSS(c);
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.max(0, Math.round(w) - 1), Math.max(0, Math.round(h) - 1));
+                this.syncToDisplays();
+            }
+
+            fillRect(x, y, w, h, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+                this.syncToDisplays();
+            }
+
+            drawRoundRect(x, y, w, h, r, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.strokeStyle = this._toCSS(c);
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                if (typeof this.ctx.roundRect === 'function') {
+                    this.ctx.roundRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.max(0, Math.round(w) - 1), Math.max(0, Math.round(h) - 1), r);
+                } else {
+                    this.ctx.rect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.max(0, Math.round(w) - 1), Math.max(0, Math.round(h) - 1));
+                }
+                this.ctx.stroke();
+                this.syncToDisplays();
+            }
+
+            fillRoundRect(x, y, w, h, r, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.beginPath();
+                if (typeof this.ctx.roundRect === 'function') {
+                    this.ctx.roundRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h), r);
+                } else {
+                    this.ctx.rect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+                }
+                this.ctx.fill();
+                this.syncToDisplays();
+            }
+
+            drawCircle(x0, y0, r, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.strokeStyle = this._toCSS(c);
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.arc(Math.round(x0), Math.round(y0), Math.max(0, Math.round(r)), 0, 2 * Math.PI);
+                this.ctx.stroke();
+                this.syncToDisplays();
+            }
+
+            fillCircle(x0, y0, r, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.beginPath();
+                this.ctx.arc(Math.round(x0), Math.round(y0), Math.max(0, Math.round(r)), 0, 2 * Math.PI);
+                this.ctx.fill();
+                this.syncToDisplays();
+            }
+
+            drawTriangle(x0, y0, x1, y1, x2, y2, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.strokeStyle = this._toCSS(c);
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(Math.round(x0), Math.round(y0));
+                this.ctx.lineTo(Math.round(x1), Math.round(y1));
+                this.ctx.lineTo(Math.round(x2), Math.round(y2));
+                this.ctx.closePath();
+                this.ctx.stroke();
+                this.syncToDisplays();
+            }
+
+            fillTriangle(x0, y0, x1, y1, x2, y2, c) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                this.ctx.fillStyle = this._toCSS(c);
+                this.ctx.beginPath();
+                this.ctx.moveTo(Math.round(x0), Math.round(y0));
+                this.ctx.lineTo(Math.round(x1), Math.round(y1));
+                this.ctx.lineTo(Math.round(x2), Math.round(y2));
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.syncToDisplays();
+            }
+
+            print(msg, precision) {
+                const str = formatSerialPrint(msg, precision);
+                this._renderString(str, false);
+            }
+
+            println(msg, precision) {
+                const str = msg !== undefined ? formatSerialPrint(msg, precision) : '';
+                this._renderString(str, true);
+            }
+
+            _renderString(text, newline) {
+                state.tftUserHasRendered = true;
+                if (!this.ctx) return;
+                const charW = 6 * this.textSize;
+                const charH = 8 * this.textSize;
+                this.ctx.font = `bold ${charH}px "Courier New", Courier, monospace`;
+                this.ctx.textBaseline = 'top';
+
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    if (ch === '\n') {
+                        this.cursorX = 0;
+                        this.cursorY += charH;
+                        continue;
+                    }
+                    if (ch === '\r') continue;
+
+                    if (this.textWrap && (this.cursorX + charW > this.w)) {
+                        this.cursorX = 0;
+                        this.cursorY += charH;
+                    }
+
+                    if (this.textBg) {
+                        this.ctx.fillStyle = this.textBg;
+                        this.ctx.fillRect(this.cursorX, this.cursorY, charW, charH);
+                    }
+
+                    this.ctx.fillStyle = this.textColor;
+                    this.ctx.fillText(ch, this.cursorX, this.cursorY);
+                    this.cursorX += charW;
+                }
+
+                if (newline) {
+                    this.cursorX = 0;
+                    this.cursorY += charH;
+                }
+
+                this.syncToDisplays();
+            }
+
+            syncToDisplays() {
+                // 1. Modal canvas
+                const modalCanvas = document.getElementById('tcTftScreenCanvas');
+                if (modalCanvas) {
+                    if (modalCanvas.width !== this.w || modalCanvas.height !== this.h) {
+                        modalCanvas.width = this.w;
+                        modalCanvas.height = this.h;
+                    }
+                    const mCtx = modalCanvas.getContext('2d');
+                    if (mCtx) {
+                        mCtx.imageSmoothingEnabled = false;
+                        mCtx.drawImage(this.canvas, 0, 0);
+                    }
+                }
+
+                // 2. On-breadboard canvas
+                state.components.filter(c => c.type === 'tft_lcd').forEach(comp => {
+                    const obCanvas = document.getElementById(`${comp.id}_screen_canvas`);
+                    if (obCanvas) {
+                        if (obCanvas.width !== this.w || obCanvas.height !== this.h) {
+                            obCanvas.width = this.w;
+                            obCanvas.height = this.h;
+                        }
+                        const obCtx = obCanvas.getContext('2d');
+                        if (obCtx) {
+                            obCtx.imageSmoothingEnabled = false;
+                            obCtx.drawImage(this.canvas, 0, 0);
+                        }
+                    }
+                });
+            }
+        }
+
+        class VirtualLiquidCrystal {
+            constructor(...pins) {
+                this.cols = 16;
+                this.rows = 2;
+                this.curCol = 0;
+                this.curRow = 0;
+                this.lines = ['', ''];
+            }
+            begin(cols, rows) {
+                this.cols = cols || 16;
+                this.rows = rows || 2;
+                this.clear();
+            }
+            clear() {
+                this.lines = new Array(this.rows).fill('').map(() => ' '.repeat(this.cols));
+                this.curCol = 0;
+                this.curRow = 0;
+                this._sync();
+            }
+            home() {
+                this.curCol = 0;
+                this.curRow = 0;
+            }
+            setCursor(col, row) {
+                this.curCol = Math.max(0, Math.min(this.cols - 1, Math.round(Number(col) || 0)));
+                this.curRow = Math.max(0, Math.min(this.rows - 1, Math.round(Number(row) || 0)));
+            }
+            print(msg, precision) {
+                const str = formatSerialPrint(msg, precision);
+                for (let i = 0; i < str.length; i++) {
+                    this.write(str[i]);
+                }
+            }
+            write(c) {
+                const ch = typeof c === 'number' ? String.fromCharCode(c) : String(c);
+                if (this.curRow >= 0 && this.curRow < this.rows) {
+                    let line = (this.lines[this.curRow] || '').padEnd(this.cols, ' ');
+                    line = line.substring(0, this.curCol) + ch + line.substring(this.curCol + 1);
+                    this.lines[this.curRow] = line.substring(0, this.cols);
+                    this.curCol++;
+                    if (this.curCol >= this.cols) {
+                        this.curCol = 0;
+                        this.curRow = (this.curRow + 1) % this.rows;
+                    }
+                }
+                this._sync();
+            }
+            backlight() {}
+            noBacklight() {}
+            _sync() {
+                state.components.filter(c => c.type === 'lcd1602' || c.type === 'lcd_i2c').forEach(comp => {
+                    const l0 = document.getElementById(`${comp.id}_line0`);
+                    const l1 = document.getElementById(`${comp.id}_line1`);
+                    if (l0 && this.lines[0] !== undefined) l0.textContent = this.lines[0];
+                    if (l1 && this.lines[1] !== undefined) l1.textContent = this.lines[1];
+                });
+            }
+        }
+
+        class VirtualLedControl {
+            constructor(din, clk, cs, numDevices) {
+                this.numDevices = numDevices || 1;
+                this.buffer = [0, 0, 0, 0, 0, 0, 0, 0];
+            }
+            shutdown(addr, status) {}
+            setIntensity(addr, intensity) {}
+            clearDisplay(addr) {
+                this.buffer = [0, 0, 0, 0, 0, 0, 0, 0];
+                this._sync();
+            }
+            setLed(addr, row, col, stateVal) {
+                if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+                    if (stateVal) this.buffer[row] |= (1 << (7 - col));
+                    else this.buffer[row] &= ~(1 << (7 - col));
+                    this._sync();
+                }
+            }
+            setRow(addr, row, val) {
+                if (row >= 0 && row < 8) {
+                    this.buffer[row] = Number(val) & 0xFF;
+                    this._sync();
+                }
+            }
+            setColumn(addr, col, val) {
+                if (col >= 0 && col < 8) {
+                    const v = Number(val) & 0xFF;
+                    for (let r = 0; r < 8; r++) {
+                        const bit = (v >> (7 - r)) & 1;
+                        if (bit) this.buffer[r] |= (1 << (7 - col));
+                        else this.buffer[r] &= ~(1 << (7 - col));
+                    }
+                    this._sync();
+                }
+            }
+            setChar(addr, digit, ch, dp) {
+                const charStr = String(ch);
+                const bmp = FONT_8X8[charStr] || FONT_8X8[charStr.toUpperCase()] || FONT_8X8[' '];
+                if (bmp) {
+                    this.buffer = [...bmp];
+                    this._sync();
+                }
+            }
+            setDigit(addr, digit, val, dp) {
+                this.setChar(addr, digit, String(val), dp);
+            }
+            _sync() {
+                state.components.filter(c => c.type === 'dot_matrix').forEach(comp => {
+                    updateDotMatrixBitmap(comp, this.buffer);
+                });
+            }
+        }
+
+        const virtualTft = new VirtualST7735(10, 9, 8);
+        const virtualLcd = new VirtualLiquidCrystal();
+        const virtualMatrix = new VirtualLedControl();
 
         const env = {
             HIGH: 1,
@@ -6288,11 +6963,13 @@ void loop() {
                 },
                 print: (msg, precision) => {
                     const str = formatSerialPrint(msg, precision);
+                    handleSerialTelemetryOutput(str);
                     appendSerial(str);
                     extractPlotterValue(str);
                 },
                 println: (msg, precision) => {
                     const str = msg !== undefined ? formatSerialPrint(msg, precision) + '\n' : '\n';
+                    handleSerialTelemetryOutput(str);
                     appendSerial(str);
                     extractPlotterValue(str);
                 },
@@ -6313,6 +6990,41 @@ void loop() {
             FALLING: 'FALLING',
             RISING: 'RISING',
             CHANGE: 'CHANGE',
+
+            Adafruit_ST7735: VirtualST7735,
+            TFT: VirtualST7735,
+            tft: virtualTft,
+            LiquidCrystal: VirtualLiquidCrystal,
+            LiquidCrystal_I2C: VirtualLiquidCrystal,
+            lcd: virtualLcd,
+            LedControl: VirtualLedControl,
+            MD_MAX72XX: VirtualLedControl,
+            matrix: virtualMatrix,
+
+            ST7735_BLACK: 0x0000,
+            ST7735_WHITE: 0xFFFF,
+            ST7735_RED: 0xF800,
+            ST7735_GREEN: 0x07E0,
+            ST7735_BLUE: 0x001F,
+            ST7735_CYAN: 0x07FF,
+            ST7735_MAGENTA: 0xF81F,
+            ST7735_YELLOW: 0xFFE0,
+            ST7735_ORANGE: 0xFD20,
+
+            INITR_GREENTAB: 0x0,
+            INITR_REDTAB: 0x1,
+            INITR_BLACKTAB: 0x2,
+            INITR_18GREENTAB: 0x0,
+            INITR_18REDTAB: 0x1,
+            INITR_18BLACKTAB: 0x2,
+
+            bitRead: (v, b) => ((v >> b) & 1),
+            bitSet: (v, b) => (v | (1 << b)),
+            bitClear: (v, b) => (v & ~(1 << b)),
+            bitWrite: (v, b, bitVal) => bitVal ? (v | (1 << b)) : (v & ~(1 << b)),
+            bit: (b) => (1 << b),
+            lowByte: (w) => (w & 0xFF),
+            highByte: (w) => ((w >> 8) & 0xFF),
 
             attachInterrupt: (pin, isr, mode) => {
                 state.hardwareValues.interruptIsr = isr;
@@ -6397,6 +7109,15 @@ void loop() {
         try {
             const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
             const runner = new AsyncFunction('__env', `
+                var tft = __env.tft;
+                var lcd = __env.lcd;
+                var lc = __env.matrix;
+                var A0 = __env.A0, A1 = __env.A1, A2 = __env.A2, A3 = __env.A3, A4 = __env.A4, A5 = __env.A5;
+                var HIGH = __env.HIGH, LOW = __env.LOW, OUTPUT = __env.OUTPUT, INPUT = __env.INPUT, INPUT_PULLUP = __env.INPUT_PULLUP, LED_BUILTIN = __env.LED_BUILTIN;
+                var ST7735_BLACK = __env.ST7735_BLACK, ST7735_WHITE = __env.ST7735_WHITE, ST7735_RED = __env.ST7735_RED, ST7735_GREEN = __env.ST7735_GREEN;
+                var ST7735_BLUE = __env.ST7735_BLUE, ST7735_CYAN = __env.ST7735_CYAN, ST7735_MAGENTA = __env.ST7735_MAGENTA, ST7735_YELLOW = __env.ST7735_YELLOW, ST7735_ORANGE = __env.ST7735_ORANGE;
+                var INITR_BLACKTAB = __env.INITR_BLACKTAB, INITR_REDTAB = __env.INITR_REDTAB, INITR_GREENTAB = __env.INITR_GREENTAB;
+                var HEX = __env.HEX, DEC = __env.DEC, BIN = __env.BIN, OCT = __env.OCT;
                 ${transpiled}
                 if (typeof setup === 'function') await setup();
                 while (__env.isRunning()) {
@@ -6478,6 +7199,21 @@ void loop() {
             });
         });
 
+        state.tftUserHasRendered = false;
+        state.userTelemetry = {};
+        const modalCanvas = document.getElementById('tcTftScreenCanvas');
+        if (modalCanvas) {
+            const ctx = modalCanvas.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+        }
+        state.components.filter(c => c.type === 'tft_lcd').forEach(comp => {
+            const obCanvas = document.getElementById(`${comp.id}_screen_canvas`);
+            if (obCanvas) {
+                const ctx = obCanvas.getContext('2d');
+                if (ctx) ctx.clearRect(0, 0, obCanvas.width, obCanvas.height);
+            }
+        });
+
         updateTftDisplay();
         updateCircuitWarning('', false);
         appendSerial('--- Simulation Terminated ---\n');
@@ -6491,12 +7227,14 @@ void loop() {
 
     function formatSerialPrint(msg, precision) {
         if (typeof msg === 'number') {
-            if (precision === 'HEX' || precision === 16) return msg.toString(16).toUpperCase();
-            if (precision === 'BIN' || precision === 2) return msg.toString(2);
-            if (precision === 'OCT' || precision === 8) return msg.toString(8);
-            if (precision === 'DEC' || precision === 10) return Math.round(msg).toString();
-            return precision !== undefined ? msg.toFixed(precision) : msg.toString();
+            if (precision === 'HEX' || (precision === 16 && Number.isInteger(msg))) return (msg >>> 0).toString(16).toUpperCase();
+            if (precision === 'BIN') return (msg >>> 0).toString(2);
+            if (precision === 'OCT' || (precision === 8 && Number.isInteger(msg))) return (msg >>> 0).toString(8);
+            if (precision === 'DEC') return Math.round(msg).toString();
+            if (typeof precision === 'number') return msg.toFixed(precision);
+            return msg.toString();
         }
+        if (msg === undefined || msg === null) return '';
         return String(msg);
     }
 
