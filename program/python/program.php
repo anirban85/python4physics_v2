@@ -194,9 +194,11 @@ require_once __DIR__ . '/../../include/navbar.php';
                                 <button class="tab-btn" id="tab_plots_btn_<?php echo $pid; ?>" onclick="switchProgramTab('<?php echo $pid; ?>', 'plots')">
                                     <i class="fa-regular fa-image"></i> Rendered Plots
                                 </button>
+                                <?php if (!empty(trim($algo ?? '')) || !empty(trim($explanation ?? ''))): ?>
                                 <button class="tab-btn" id="tab_theory_btn_<?php echo $pid; ?>" onclick="switchProgramTab('<?php echo $pid; ?>', 'theory')">
                                     <i class="fa-solid fa-square-root-variable"></i> Theory & Math
                                 </button>
+                                <?php endif; ?>
                             </div>
 
                             <!-- Console Output -->
@@ -212,20 +214,26 @@ require_once __DIR__ . '/../../include/navbar.php';
                                 </div>
                             </div>
 
-                            <!-- Theory & Algorithm Formulation -->
+                            <!-- Theory & Algorithm Formulation (Only when program has specific theoretical notes) -->
+                            <?php if (!empty(trim($algo ?? '')) || !empty(trim($explanation ?? ''))): ?>
                             <div id="panel_theory_<?php echo $pid; ?>" class="tab-content">
                                 <div class="theory-card" style="min-height: 380px; max-height: 480px; overflow-y: auto;">
+                                    <?php if (!empty(trim($algo ?? ''))): ?>
                                     <div style="margin-bottom: 1.25rem;">
                                         <h4 style="color: var(--accent); margin-bottom: 0.5rem;"><i class="fa-solid fa-diagram-project"></i> Mathematical Problem Formulation</h4>
-                                        <div><?php echo !empty(trim($algo ?? '')) ? $algo : $pedagogy['formulation']; ?></div>
+                                        <div><?php echo $algo; ?></div>
                                     </div>
+                                    <?php endif; ?>
 
+                                    <?php if (!empty(trim($explanation ?? ''))): ?>
                                     <div>
                                         <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-book-open-reader"></i> Theoretical Background & Computational Mechanics</h4>
-                                        <div><?php echo !empty(trim($explanation ?? '')) ? $explanation : $pedagogy['overview']; ?></div>
+                                        <div><?php echo $explanation; ?></div>
                                     </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </section>
