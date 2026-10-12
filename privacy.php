@@ -59,6 +59,13 @@ require_once __DIR__ . '/include/navbar.php';
                         <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.85rem;"></i> How Google Uses Information From Sites or Apps That Use Our Services</a>
                     </div>
                 </li>
+                <li><strong>Manage Consent on Python4Physics:</strong> You can inspect or update your cookie consent preferences at any time directly through our portal:
+                    <div style="margin-top: 0.75rem;">
+                        <button type="button" onclick="openCookieSettings()" class="btn-modern btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-sliders"></i> Open Cookie & Consent Preferences
+                        </button>
+                    </div>
+                </li>
             </ul>
         </section>
 

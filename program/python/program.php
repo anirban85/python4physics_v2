@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
+require_once __DIR__ . '/../../include/physics_pedagogy.php';
 include_once __DIR__ . '/menu.php';
 
 $menu_id    = isset($_GET['menu_id']) ? intval($_GET['menu_id']) : 1;
@@ -15,8 +16,11 @@ $chapter_title = $menu_titles[$menu_id] ?? "Chapter {$menu_id}";
 $submenu_list  = $sub_menu_titles[$menu_id] ?? [];
 $subtopic_title = $submenu_list[$submenu_id] ?? "Topic {$submenu_id}";
 
-$page_title = "{$chapter_title} - {$subtopic_title}";
-$page_description = "Interactive computational physics simulation for {$subtopic_title} in {$chapter_title}. Run Python code in-browser with Pyodide.";
+// Load authoritative university-grade physics pedagogy and numerical analysis
+$pedagogy = get_physics_pedagogical_guide($menu_id, $submenu_id, $chapter_title, $subtopic_title);
+
+$page_title = "{$chapter_title}: {$subtopic_title} - Computational Physics Formulation & Simulation";
+$page_description = "Theoretical principles, mathematical derivation, numerical error analysis, and interactive Python simulation for {$subtopic_title} ({$chapter_title}). Run Python in-browser with Pyodide.";
 
 // Fetch programs
 $programs = [];
@@ -190,11 +194,9 @@ require_once __DIR__ . '/../../include/navbar.php';
                                 <button class="tab-btn" id="tab_plots_btn_<?php echo $pid; ?>" onclick="switchProgramTab('<?php echo $pid; ?>', 'plots')">
                                     <i class="fa-regular fa-image"></i> Rendered Plots
                                 </button>
-                                <?php if (!empty(trim($algo ?? '')) || !empty(trim($explanation ?? ''))): ?>
                                 <button class="tab-btn" id="tab_theory_btn_<?php echo $pid; ?>" onclick="switchProgramTab('<?php echo $pid; ?>', 'theory')">
                                     <i class="fa-solid fa-square-root-variable"></i> Theory & Math
                                 </button>
-                                <?php endif; ?>
                             </div>
 
                             <!-- Console Output -->
@@ -211,30 +213,131 @@ require_once __DIR__ . '/../../include/navbar.php';
                             </div>
 
                             <!-- Theory & Algorithm Formulation -->
-                            <?php if (!empty(trim($algo ?? '')) || !empty(trim($explanation ?? ''))): ?>
                             <div id="panel_theory_<?php echo $pid; ?>" class="tab-content">
                                 <div class="theory-card" style="min-height: 380px; max-height: 480px; overflow-y: auto;">
-                                    <?php if (!empty(trim($algo ?? ''))): ?>
-                                        <div style="margin-bottom: 1.25rem;">
-                                            <h4 style="color: var(--accent); margin-bottom: 0.5rem;"><i class="fa-solid fa-diagram-project"></i> Mathematical Problem Formulation</h4>
-                                            <div><?php echo $algo; ?></div>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div style="margin-bottom: 1.25rem;">
+                                        <h4 style="color: var(--accent); margin-bottom: 0.5rem;"><i class="fa-solid fa-diagram-project"></i> Mathematical Problem Formulation</h4>
+                                        <div><?php echo !empty(trim($algo ?? '')) ? $algo : $pedagogy['formulation']; ?></div>
+                                    </div>
 
-                                    <?php if (!empty(trim($explanation ?? ''))): ?>
-                                        <div>
-                                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-book-open-reader"></i> Theoretical Background & Explanation</h4>
-                                            <div><?php echo $explanation; ?></div>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div>
+                                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-book-open-reader"></i> Theoretical Background & Computational Mechanics</h4>
+                                        <div><?php echo !empty(trim($explanation ?? '')) ? $explanation : $pedagogy['overview']; ?></div>
+                                    </div>
                                 </div>
                             </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </section>
                 <?php endforeach; ?>
             <?php endif; ?>
+
+            <!-- ========================================================================= -->
+            <!-- SCHOLARLY PHYSICS THEORY, MATHEMATICAL FORMULATION & NUMERICAL ANALYSIS  -->
+            <!-- High-Value Educational Content to Fulfill Google AdSense Policy Criteria -->
+            <!-- ========================================================================= -->
+            <article class="glass-card pedagogical-article" style="margin-top: 2rem; margin-bottom: 2.5rem; padding: 2.25rem; border-radius: var(--radius-md); border-top: 4px solid var(--accent); background: var(--card-bg);">
+                <header style="margin-bottom: 1.75rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+                        <i class="fa-solid fa-graduation-cap"></i> Theoretical Principles & Computational Physics Guide
+                    </div>
+                    <h2 style="font-size: 1.65rem; color: var(--text-color); margin: 0 0 0.5rem 0;">
+                        <?php echo htmlspecialchars($pedagogy['title']); ?>
+                    </h2>
+                    <div style="font-size: 0.85rem; color: var(--text-dim); display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <span><i class="fa-solid fa-user-pen"></i> Dr. Alorika Chatterjee & Dr. Anirban Shaw</span>
+                        <span><i class="fa-solid fa-book-bookmark"></i> University Undergraduate & Postgraduate Curriculum</span>
+                        <span><i class="fa-solid fa-laptop-code"></i> Python 3 / NumPy / SciPy</span>
+                    </div>
+                </header>
+
+                <!-- Section 1: Physical Principles -->
+                <section style="margin-bottom: 2.25rem;">
+                    <h3 style="font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.85rem;">
+                        <i class="fa-solid fa-atom"></i> 1. Physical Principles & Conceptual Framework
+                    </h3>
+                    <div class="pedagogy-text" style="line-height: 1.85; color: var(--text-color); font-size: 1.02rem;">
+                        <?php echo $pedagogy['overview']; ?>
+                    </div>
+                </section>
+
+                <!-- Section 2: Mathematical Formulation -->
+                <section style="margin-bottom: 2.25rem; background: rgba(56, 189, 248, 0.035); padding: 1.75rem; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+                    <h3 style="font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.85rem;">
+                        <i class="fa-solid fa-square-root-variable"></i> 2. Rigorous Mathematical Formulation & Boundary Constraints
+                    </h3>
+                    <div class="pedagogy-text" style="line-height: 1.85; color: var(--text-color); font-size: 1.02rem;">
+                        <?php echo $pedagogy['formulation']; ?>
+                    </div>
+                </section>
+
+                <!-- Section 3: Computational Mechanics & Error Analysis -->
+                <section style="margin-bottom: 2.25rem;">
+                    <h3 style="font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.85rem;">
+                        <i class="fa-solid fa-microchip"></i> 3. Numerical Algorithm Mechanics & Error Convergence
+                    </h3>
+                    <div class="pedagogy-text" style="line-height: 1.85; color: var(--text-color); font-size: 1.02rem;">
+                        <?php echo $pedagogy['algorithm']; ?>
+                    </div>
+                </section>
+
+                <!-- Section 4: Hands-On Exercises -->
+                <section style="margin-bottom: 2.25rem;">
+                    <h3 style="font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.85rem;">
+                        <i class="fa-solid fa-flask-vial"></i> 4. Computational Physics Laboratory Exercises
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.75rem;">
+                        <?php foreach ($pedagogy['exercises'] as $ex_idx => $exercise): ?>
+                            <div style="background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--primary); padding: 1rem 1.25rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border: 1px solid var(--card-border); border-left-width: 3px;">
+                                <strong style="color: var(--primary);">Exercise <?php echo ($ex_idx + 1); ?>:</strong>
+                                <span style="color: var(--text-color); margin-left: 0.35rem; line-height: 1.65;"><?php echo htmlspecialchars($exercise); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+
+                <!-- Section 5: Standard Academic Literature -->
+                <section style="border-top: 1px solid var(--card-border); padding-top: 1.5rem; font-size: 0.92rem; color: var(--text-muted);">
+                    <strong style="color: var(--text-color); display: block; margin-bottom: 0.5rem;"><i class="fa-solid fa-bookmark"></i> Standard Literature & References:</strong>
+                    <ul style="padding-left: 1.25rem; margin: 0; line-height: 1.75;">
+                        <?php foreach ($pedagogy['references'] as $ref): ?>
+                            <li><?php echo htmlspecialchars($ref); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            </article>
+
+            <!-- Schema.org LearningResource & TechArticle Structured Data -->
+            <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "TechArticle",
+              "headline": <?php echo json_encode($pedagogy['title']); ?>,
+              "description": <?php echo json_encode(strip_tags(substr($pedagogy['overview'], 0, 250)) . '...'); ?>,
+              "author": [
+                {
+                  "@type": "Person",
+                  "name": "Dr. Alorika Chatterjee",
+                  "jobTitle": "Assistant Professor of Physics",
+                  "affiliation": "The Heritage College, Kolkata"
+                },
+                {
+                  "@type": "Person",
+                  "name": "Dr. Anirban Shaw",
+                  "jobTitle": "Assistant Professor of Physics",
+                  "affiliation": "Dhruba Chand Halder College"
+                }
+              ],
+              "publisher": {
+                "@type": "EducationalOrganization",
+                "name": "Python4Physics",
+                "url": "https://python4physics.in"
+              },
+              "educationalLevel": "Undergraduate / Postgraduate Physics",
+              "learningResourceType": "Numerical Simulation & Computational Physics Laboratory Guide",
+              "inLanguage": "en"
+            }
+            </script>
         </main>
     </div>
 </div>

@@ -58,7 +58,6 @@ if (!isset($siteurl)) {
                     <li><a href="<?php echo $siteurl; ?>terms.php">Terms of Service</a></li>
                     <li><a href="<?php echo $siteurl; ?>disclaimer.php">Disclaimer</a></li>
                     <li><a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b;"><i class="fa-solid fa-clock-rotate-left" style="font-size: 0.78rem; margin-right: 4px;"></i> Classic v1 Archive <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i></a></li>
-                    <li><a href="<?php echo $siteurl; ?>admin/index.php"><i class="fa-solid fa-lock" style="font-size: 0.75rem;"></i> Admin Portal</a></li>
                 </ul>
             </div>
 
@@ -80,11 +79,12 @@ if (!isset($siteurl)) {
             <div>
                 &copy; <?php echo date("Y"); ?> <strong>Python4Physics</strong>. All Rights Reserved. Authored by Dr. Alorika Chatterjee & Dr. Anirban Shaw.
             </div>
-            <div style="display: flex; gap: 1.25rem; flex-wrap: wrap;">
+            <div style="display: flex; gap: 1.25rem; flex-wrap: wrap; align-items: center;">
                 <a href="<?php echo $siteurl; ?>about.php">About Us</a>
                 <a href="<?php echo $siteurl; ?>privacy.php">Privacy Policy</a>
                 <a href="<?php echo $siteurl; ?>terms.php">Terms</a>
                 <a href="<?php echo $siteurl; ?>disclaimer.php">Disclaimer</a>
+                <a href="javascript:void(0)" onclick="openCookieSettings()" style="cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-cookie-bite"></i> Cookie Preferences</a>
                 <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b;"><i class="fa-solid fa-clock-rotate-left" style="font-size: 0.8rem; margin-right: 3px;"></i> Classic v1</a>
                 <a href="<?php echo $siteurl; ?>contact.php">Contact</a>
                 <a href="<?php echo $siteurl; ?>api/docs.php">REST API</a>
@@ -92,6 +92,9 @@ if (!isset($siteurl)) {
         </div>
     </div>
 </footer>
+
+<!-- Interactive Cookie Consent Banner & Preferences Modal -->
+<?php require_once __DIR__ . '/cookie_banner.php'; ?>
 
 <!-- Include Global Search Modal on Every Page -->
 <?php include __DIR__ . '/search_modal.php'; ?>
