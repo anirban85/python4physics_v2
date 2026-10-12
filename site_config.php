@@ -42,3 +42,8 @@ $ga_enabled        = !empty($ga_measurement_id);
 // Google AdSense Configuration (Publisher ID: pub-1857733312974112)
 $adsense_client_id = getenv('ADSENSE_CLIENT_ID') ?: 'ca-pub-1857733312974112';
 $adsense_enabled   = !empty($adsense_client_id);
+
+// Infolinks Advertising Configuration (PID: 3428216)
+$infolinks_pid     = getenv('INFOLINKS_PID') ?: '3428216';
+$infolinks_wsid    = getenv('INFOLINKS_WSID') ?: '0';
+$infolinks_enabled = !empty($infolinks_pid);

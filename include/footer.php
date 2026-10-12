@@ -5,6 +5,9 @@
 if (!isset($siteurl)) {
     require_once __DIR__ . '/../site_config.php';
 }
+if (!isset($infolinks_pid)) {
+    require_once __DIR__ . '/../site_config.php';
+}
 ?>
 <footer class="site-footer">
     <div class="container">
@@ -115,6 +118,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+
+<!-- Infolinks Integration -->
+<?php if (!empty($infolinks_enabled) && !empty($infolinks_pid)): ?>
+<script type="text/javascript">
+var infolinks_pid = <?php echo (int)$infolinks_pid; ?>;
+var infolinks_wsid = <?php echo (int)$infolinks_wsid; ?>;
+</script>
+<script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
+<?php endif; ?>
 
 </body>
 </html>

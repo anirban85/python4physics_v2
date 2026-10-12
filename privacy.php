@@ -45,12 +45,13 @@ require_once __DIR__ . '/include/navbar.php';
         </section>
 
         <section>
-            <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">3. Google AdSense & Third-Party Advertising Cookies</h2>
+            <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">3. Third-Party Advertising (Google AdSense & Infolinks)</h2>
             <p>
-                We partner with <strong>Google AdSense</strong> to display relevant educational, scientific, and technical advertisements to support website hosting, domain bandwidth, and curriculum development.
+                We partner with trusted advertising networks including <strong>Google AdSense</strong> and <strong>Infolinks</strong> to display relevant educational, scientific, and contextual advertisements that support website hosting, domain bandwidth, and curriculum development.
             </p>
             <ul style="padding-left: 1.5rem; margin-top: 0.5rem;">
-                <li><strong>Third-Party Vendors:</strong> Google and other third-party vendors use cookies to serve ads based on a user's prior visits to this website or other websites on the Internet.</li>
+                <li><strong>Third-Party Vendors:</strong> Google, Infolinks, and their verified ad exchanges use cookies, beacons, and contextual scripts to serve ads based on prior visits or page topics.</li>
+                <li><strong>Contextual & Intent Advertising:</strong> Infolinks analyzes in-text and search intent keywords to deliver non-intrusive contextual ads without collecting personally identifiable information.</li>
                 <li><strong>Google's Advertising Cookies:</strong> Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visits to our site and/or other sites on the Internet.</li>
                 <li><strong>Opting Out of Personalized Advertising:</strong> Users may opt out of personalized advertising by visiting:
                     <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem;">

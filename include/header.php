@@ -102,6 +102,7 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    <link rel="dns-prefetch" href="//resources.infolinks.com">
 
     <!-- OpenGraph / Social Graph Meta Tags -->
     <meta property="og:locale" content="en_US">
