@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
+require_once __DIR__ . '/../../include/user_auth.php';
 require_once __DIR__ . '/../../include/physics_pedagogy.php';
 include_once __DIR__ . '/menu.php';
 
@@ -21,6 +22,13 @@ $pedagogy = get_physics_pedagogical_guide($menu_id, $submenu_id, $chapter_title,
 
 $page_title = "{$chapter_title}: {$subtopic_title} - Computational Physics Formulation & Simulation";
 $page_description = "Theoretical principles, mathematical derivation, numerical error analysis, and interactive Python simulation for {$subtopic_title} ({$chapter_title}). Run Python in-browser with Pyodide.";
+
+$is_user_auth = is_user_logged_in();
+$current_user = get_logged_in_user();
+
+if ($is_user_auth) {
+    log_user_activity('view_topic', null, $page_title, $menu_id, $submenu_id);
+}
 
 // Fetch programs
 $programs = [];
@@ -116,6 +124,28 @@ require_once __DIR__ . '/../../include/navbar.php';
                     </p>
                 </div>
             <?php endif; ?>
+            <?php if (!$is_user_auth): ?>
+                <!-- Member Access Gate Banner (Preserves open reading of theory for AdSense & Googlebot, while gating code execution) -->
+                <div class="glass-card" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(129, 140, 248, 0.08)); border: 1px solid rgba(56, 189, 248, 0.25); padding: 1.25rem 1.5rem; margin-bottom: 2rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.25rem; flex-shrink: 0;">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color); margin-bottom: 0.2rem;">
+                                Interactive Physics Lab & Code Access
+                            </div>
+                            <div style="font-size: 0.88rem; color: var(--text-muted);">
+                                Academic derivations and theoretical formulations are publicly readable below. Sign in with Google or GitHub to execute live Pyodide simulations, copy scripts, and export Jupyter Notebooks.
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="promptLoginModal('banner')" class="btn-modern btn-primary" style="white-space: nowrap;">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In to Run Code
+                    </button>
+                </div>
+            <?php endif; ?>
+
             <?php if (empty($programs)): ?>
                 <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
                     <i class="fa-solid fa-code fa-3x" style="color: var(--text-dim); margin-bottom: 1rem;"></i>
@@ -138,6 +168,7 @@ require_once __DIR__ . '/../../include/navbar.php';
                             <h2 style="font-size: 1.35rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?php echo htmlspecialchars($subtopic_title); ?></h2>
                         </div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <?php if ($is_user_auth): ?>
                             <button type="button" class="btn-modern btn-secondary btn-sm" onclick="copyProgramCode('code_<?php echo $pid; ?>')">
                                 <i class="fa-regular fa-copy"></i> Copy
                             </button>
@@ -147,6 +178,17 @@ require_once __DIR__ . '/../../include/navbar.php';
                             <button type="button" class="btn-modern btn-secondary btn-sm" onclick="exportProgramJupyter('<?php echo $pid; ?>', '<?php echo addslashes($subtopic_title); ?> - Program <?php echo $progNumber; ?>')">
                                 <i class="fa-solid fa-book-journal-whills"></i> .ipynb
                             </button>
+                            <?php else: ?>
+                            <button type="button" class="btn-modern btn-secondary btn-sm" onclick="promptLoginModal('copy_code')">
+                                <i class="fa-solid fa-lock" style="color: var(--accent); font-size: 0.8rem;"></i> Copy
+                            </button>
+                            <button type="button" class="btn-modern btn-secondary btn-sm" onclick="promptLoginModal('export_py')">
+                                <i class="fa-solid fa-lock" style="color: var(--accent); font-size: 0.8rem;"></i> .py
+                            </button>
+                            <button type="button" class="btn-modern btn-secondary btn-sm" onclick="promptLoginModal('export_ipynb')">
+                                <i class="fa-solid fa-lock" style="color: var(--accent); font-size: 0.8rem;"></i> .ipynb
+                            </button>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -156,7 +198,11 @@ require_once __DIR__ . '/../../include/navbar.php';
                         <div class="workspace-pane">
                             <div class="editor-header">
                                 <span class="editor-title"><i class="fa-brands fa-python" style="color: var(--accent);"></i> Python 3.11</span>
+                                <?php if ($is_user_auth): ?>
                                 <span id="status_<?php echo $pid; ?>" class="badge badge-cyan">Ready</span>
+                                <?php else: ?>
+                                <span class="badge badge-amber" style="cursor: pointer;" onclick="promptLoginModal('status')"><i class="fa-solid fa-lock"></i> Sign In to Run</span>
+                                <?php endif; ?>
                             </div>
                             <div class="editor-wrapper" id="wrapper_<?php echo $pid; ?>">
                                 <button type="button" class="fullscreen-exit-floating-btn" onclick="toggleFullscreen('wrapper_<?php echo $pid; ?>')" title="Exit Fullscreen (Esc)">
@@ -167,6 +213,7 @@ require_once __DIR__ . '/../../include/navbar.php';
                             <!-- Editor Actions -->
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
                                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                                    <?php if ($is_user_auth): ?>
                                     <button type="button" class="btn-modern btn-primary" id="run_btn_<?php echo $pid; ?>" onclick="executeProgram('<?php echo $pid; ?>')">
                                         <i class="fa-solid fa-play"></i> Run Code (Ctrl+Enter)
                                     </button>
@@ -176,6 +223,14 @@ require_once __DIR__ . '/../../include/navbar.php';
                                     <button type="button" class="btn-modern btn-secondary" onclick="resetProgramCode('<?php echo $pid; ?>')">
                                         <i class="fa-solid fa-rotate-left"></i> Reset
                                     </button>
+                                    <?php else: ?>
+                                    <button type="button" class="btn-modern btn-primary" onclick="promptLoginModal('run_code')">
+                                        <i class="fa-solid fa-lock"></i> Sign In to Run Code
+                                    </button>
+                                    <button type="button" class="btn-modern btn-secondary" onclick="promptLoginModal('reset_code')">
+                                        <i class="fa-solid fa-rotate-left"></i> Reset
+                                    </button>
+                                    <?php endif; ?>
                                 </div>
                                 <div>
                                     <button type="button" class="btn-modern btn-secondary btn-sm" onclick="toggleFullscreen('wrapper_<?php echo $pid; ?>')" title="Toggle Fullscreen">
@@ -350,12 +405,193 @@ require_once __DIR__ . '/../../include/navbar.php';
     </div>
 </div>
 
+<!-- Member Authentication Gate Modal -->
+<div id="authGateModal" class="auth-gate-modal-overlay" style="display: none;" onclick="if(event.target === this) closeAuthGateModal();">
+    <div class="auth-gate-modal-card glass-card">
+        <button type="button" class="auth-gate-close" onclick="closeAuthGateModal()" title="Close">&times;</button>
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="auth-gate-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 style="font-size: 1.35rem; margin-bottom: 0.4rem; color: var(--text-color);">Interactive Lab Access</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Academic theory and mathematical formulations are freely open. Sign in to execute live Pyodide simulations, generate figures, copy scripts, and export Jupyter Notebooks.
+            </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <a href="<?php echo $siteurl; ?>auth/google.php" class="auth-btn auth-btn-google">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </a>
+
+            <a href="<?php echo $siteurl; ?>auth/github.php" class="auth-btn auth-btn-github">
+                <i class="fa-brands fa-github fa-lg"></i>
+                <span>Continue with GitHub</span>
+            </a>
+        </div>
+
+        <?php if (!empty($auth_dev_mode)): ?>
+        <div style="background: rgba(14, 165, 233, 0.1); border: 1px dashed rgba(14, 165, 233, 0.4); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.76rem; color: var(--accent); font-weight: 700; margin-bottom: 0.45rem; letter-spacing: 0.05em;">
+                <i class="fa-solid fa-flask"></i> LOCAL DEV TESTING SIMULATION
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                <a href="<?php echo $siteurl; ?>auth/login.php?demo=google" class="btn-modern btn-secondary btn-sm" style="font-size: 0.78rem;">
+                    <i class="fa-brands fa-google"></i> Test Google Login
+                </a>
+                <a href="<?php echo $siteurl; ?>auth/login.php?demo=github" class="btn-modern btn-secondary btn-sm" style="font-size: 0.78rem;">
+                    <i class="fa-brands fa-github"></i> Test GitHub Login
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center;">
+            <i class="fa-solid fa-lock"></i> 100% Free educational resource. No spam. View our <a href="<?php echo $siteurl; ?>privacy.php" style="color: var(--accent);" target="_blank">Privacy Policy</a>.
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-gate-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+.auth-gate-modal-card {
+    max-width: 440px;
+    width: 100%;
+    position: relative;
+    padding: 2.25rem 2rem;
+    border-radius: var(--radius-lg, 16px);
+    background: var(--card-bg, #0f172a);
+    border: 1px solid var(--card-border, rgba(255, 255, 255, 0.14));
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65);
+    animation: authModalFadeIn 0.22s ease-out;
+}
+@keyframes authModalFadeIn {
+    from { opacity: 0; transform: scale(0.94) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.auth-gate-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.auth-gate-close:hover {
+    color: var(--text-color);
+}
+.auth-gate-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+.auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md, 10px);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.auth-btn-google {
+    background: #ffffff;
+    color: #1f2937 !important;
+    border: 1px solid #e5e7eb;
+}
+.auth-btn-google:hover {
+    background: #f9fafb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+.auth-btn-github {
+    background: #24292f;
+    color: #ffffff !important;
+    border: 1px solid #374151;
+}
+.auth-btn-github:hover {
+    background: #1b1f24;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+</style>
+
 <!-- Pyodide Execution Engine Script -->
 <script src="<?php echo $siteurl; ?>assets/js/pyodide-runner.js?v=<?php echo file_exists(__DIR__ . '/../../assets/js/pyodide-runner.js') ? filemtime(__DIR__ . '/../../assets/js/pyodide-runner.js') : time(); ?>"></script>
 
 <script>
 var p4pEditors = {};
 var p4pOriginalCodes = {};
+var isUserAuthenticated = <?php echo $is_user_auth ? 'true' : 'false'; ?>;
+
+function promptLoginModal(reason) {
+    var modal = document.getElementById('authGateModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeAuthGateModal() {
+    var modal = document.getElementById('authGateModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function trackActivity(action, extraData = {}) {
+    if (!isUserAuthenticated) return;
+    fetch('<?php echo $siteurl; ?>api/track_activity.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: action,
+            page_url: window.location.href,
+            page_title: document.title,
+            menu_id: extraData.menu_id || <?php echo $menu_id; ?>,
+            submenu_id: extraData.submenu_id || <?php echo $submenu_id; ?>,
+            program_id: extraData.program_id || null,
+            details: extraData.details || null
+        })
+    }).catch(function(err) {
+        console.warn('Telemetry error:', err);
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('textarea[id^="code_"]').forEach(function(textarea) {
@@ -374,8 +610,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         editor.setOption("extraKeys", {
-            "Ctrl-Enter": function() { executeProgram(pid); },
-            "Cmd-Enter": function() { executeProgram(pid); }
+            "Ctrl-Enter": function() { 
+                if (isUserAuthenticated) {
+                    executeProgram(pid); 
+                } else {
+                    promptLoginModal('run_code');
+                }
+            },
+            "Cmd-Enter": function() { 
+                if (isUserAuthenticated) {
+                    executeProgram(pid); 
+                } else {
+                    promptLoginModal('run_code');
+                }
+            }
         });
 
         p4pEditors[pid] = editor;
@@ -400,6 +648,11 @@ function toggleWorkbenchSidebar() {
 }
 
 async function executeProgram(pid) {
+    if (!isUserAuthenticated) {
+        promptLoginModal('run_code');
+        return;
+    }
+
     var editor = p4pEditors[pid];
     if (!editor) return;
 
@@ -412,10 +665,17 @@ async function executeProgram(pid) {
     var timeEl = document.getElementById('time_' + pid);
 
     if (stopBtn) stopBtn.style.display = 'inline-flex';
-    runBtn.disabled = true;
-    runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running...';
-    statusBadge.className = 'badge badge-amber';
-    statusBadge.innerText = 'Executing...';
+    if (runBtn) {
+        runBtn.disabled = true;
+        runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running...';
+    }
+    if (statusBadge) {
+        statusBadge.className = 'badge badge-amber';
+        statusBadge.innerText = 'Executing...';
+    }
+
+    // Telemetry tracking
+    trackActivity('execute_code', { program_id: pid });
 
     // If code uses plotting, switch to plots tab immediately so student sees live animation
     if (code.includes('plt.') || code.includes('matplotlib')) {
@@ -425,7 +685,7 @@ async function executeProgram(pid) {
     try {
         await window.physicsRunner.run(code, {
             pid: pid,
-            onStatus: function(msg) { statusBadge.innerText = msg; },
+            onStatus: function(msg) { if (statusBadge) statusBadge.innerText = msg; },
             onPlotsReady: function(count, isAnim, hasSliders) {
                 switchProgramTab(pid, 'plots');
                 var plotBtn = document.getElementById('tab_plots_btn_' + pid);
@@ -438,29 +698,35 @@ async function executeProgram(pid) {
                         plotBtn.innerHTML = '<i class="fa-regular fa-image"></i> Rendered Plots (' + count + ')';
                     }
                 }
-                if (hasSliders) {
-                    statusBadge.className = 'badge badge-primary';
-                    statusBadge.innerText = 'Interactive';
-                } else if (isAnim) {
-                    statusBadge.className = 'badge badge-emerald';
-                    statusBadge.innerText = 'Animating';
+                if (statusBadge) {
+                    if (hasSliders) {
+                        statusBadge.className = 'badge badge-primary';
+                        statusBadge.innerText = 'Interactive';
+                    } else if (isAnim) {
+                        statusBadge.className = 'badge badge-emerald';
+                        statusBadge.innerText = 'Animating';
+                    }
                 }
             },
             consoleEl: consoleEl,
             plotsEl: plotsEl,
             timeEl: timeEl
         });
-        if (statusBadge.innerText !== 'Animating' && statusBadge.innerText !== 'Interactive') {
+        if (statusBadge && statusBadge.innerText !== 'Animating' && statusBadge.innerText !== 'Interactive') {
             statusBadge.className = 'badge badge-emerald';
             statusBadge.innerText = 'Completed';
         }
     } catch (err) {
-        statusBadge.className = 'badge badge-purple';
-        statusBadge.innerText = 'Failed';
+        if (statusBadge) {
+            statusBadge.className = 'badge badge-purple';
+            statusBadge.innerText = 'Failed';
+        }
         if (stopBtn) stopBtn.style.display = 'none';
     } finally {
-        runBtn.disabled = false;
-        runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code (Ctrl+Enter)';
+        if (runBtn) {
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code (Ctrl+Enter)';
+        }
     }
 }
 
@@ -508,14 +774,23 @@ function switchProgramTab(pid, tab) {
 }
 
 function copyProgramCode(textareaId) {
+    if (!isUserAuthenticated) {
+        promptLoginModal('copy_code');
+        return;
+    }
     var pid = textareaId.replace('code_', '');
     var code = p4pEditors[pid] ? p4pEditors[pid].getValue() : document.getElementById(textareaId).value;
     navigator.clipboard.writeText(code).then(() => {
         showToast("Code copied to clipboard!", "success");
+        trackActivity('copy_code', { program_id: pid });
     });
 }
 
 function resetProgramCode(pid) {
+    if (!isUserAuthenticated) {
+        promptLoginModal('reset_code');
+        return;
+    }
     if (p4pEditors[pid] && p4pOriginalCodes[pid]) {
         p4pEditors[pid].setValue(p4pOriginalCodes[pid]);
         showToast("Code reset to default.", "success");
@@ -523,15 +798,25 @@ function resetProgramCode(pid) {
 }
 
 function exportProgramPy(pid, title) {
+    if (!isUserAuthenticated) {
+        promptLoginModal('export_py');
+        return;
+    }
     var code = p4pEditors[pid] ? p4pEditors[pid].getValue() : '';
     window.physicsRunner.exportPythonScript('physics_' + pid, code);
     showToast("Python script downloaded!", "success");
+    trackActivity('export_py', { program_id: pid });
 }
 
 function exportProgramJupyter(pid, title) {
+    if (!isUserAuthenticated) {
+        promptLoginModal('export_ipynb');
+        return;
+    }
     var code = p4pEditors[pid] ? p4pEditors[pid].getValue() : '';
     window.physicsRunner.exportToJupyter(title, code, "Computational Physics Program #" + pid);
     showToast("Jupyter Notebook downloaded!", "success");
+    trackActivity('export_ipynb', { program_id: pid });
 }
 
 function toggleFullscreen(wrapperId) {

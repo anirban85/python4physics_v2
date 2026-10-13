@@ -1,5 +1,5 @@
 # ==============================================================================
-# Python4Physics - Apache Web Server Optimization & SEO Configuration
+# Python4Physics - Apache Web Server Optimization, Security & Anti-Cloning Rules
 # ==============================================================================
 
 Options -Indexes
@@ -15,9 +15,21 @@ Options -Indexes
     RewriteCond %{HTTP_HOST} ^(?:www\.)?(.+)$ [NC]
     RewriteRule ^ https://%1%{REQUEST_URI} [L,NE,R=301]
 
+    # Block access to hidden files and directories (e.g. .git, .env, .gitignore)
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+
+    # Block automated offline website copiers, rippers & bulk scrapers
+    RewriteCond %{HTTP_USER_AGENT} (HTTrack|Teleport|WebCopier|Offline\ Explorer|Website\ Ripper|SiteSucker|SuperBot|WebAuto|BlackWidow|WebReaper|PageGrabber|WebSauger) [NC]
+    RewriteRule ^.*$ - [F,L]
+
     # Dynamic route for XML sitemap
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
 </IfModule>
+
+# Block direct web downloads of source control, databases, backups, scripts, and configs
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op]|env|ini|yml|yaml|bat|py|ipynb)|composer\.(json|lock)|package(-lock)?\.json|~)$">
+    Require all denied
+</FilesMatch>
 
 # MIME Types for Mathematical & Modern Web Assets
 <IfModule mod_mime.c>

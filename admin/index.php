@@ -26,6 +26,8 @@ $assign_count   = safe_count($conn, 'assignments');
 $feedback_count = safe_count($conn, 'feedback');
 $menus_count    = safe_count($conn, 'p4p_menus');
 $submenus_count = safe_count($conn, 'p4p_submenus');
+$users_count    = safe_count($conn, 'p4p_users');
+$user_acts_count = safe_count($conn, 'p4p_user_activities');
 
 // Check GNUplot binary across Windows and Linux server paths
 $possible_gp = [
@@ -73,7 +75,10 @@ try {
         <p class="admin-page-subtitle">Overview of Computational Physics programs, curricula menus, and interactive problem sets.</p>
     </div>
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-        <a href="analytics.php" class="btn-admin btn-admin-primary" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); border: none;">
+        <a href="users.php" class="btn-admin btn-admin-primary" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;">
+            <i class="fa-solid fa-users"></i> Users &amp; Telemetry
+        </a>
+        <a href="analytics.php" class="btn-admin btn-admin-secondary">
             <i class="fa-solid fa-chart-pie"></i> Traffic &amp; Telemetry
         </a>
         <a href="programs.php?action=create" class="btn-admin btn-admin-secondary">
@@ -141,6 +146,18 @@ try {
         </div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Demography, engagement &amp; simulation runs &rarr;
+        </div>
+    </a>
+
+    <a href="users.php" class="admin-stat-card" style="border-color: rgba(99, 102, 241, 0.4); text-decoration: none; display: block;">
+        <i class="fa-solid fa-users admin-stat-icon" style="color: #818cf8;"></i>
+        <div class="admin-stat-label">Registered Users</div>
+        <div class="admin-stat-value" style="color: #818cf8; font-size: 1.55rem; display: flex; align-items: center; gap: 8px;">
+            <span><?php echo number_format($users_count); ?></span>
+            <span class="admin-badge admin-badge-cyan" style="font-size: 0.72rem; padding: 2px 7px;">OAuth</span>
+        </div>
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+            <?php echo number_format($user_acts_count); ?> tracked student actions &rarr;
         </div>
     </a>
 </div>
