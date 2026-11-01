@@ -4624,6 +4624,295 @@ PY;
         ];
     }
 
+
+    // =========================================================================
+    // 19B. ELECTROMAGNETIC WAVE POLARIZATION & 3D VECTOR PROPAGATION
+    // =========================================================================
+    if (str_contains($p, 'polariz') || str_contains($p, 'em wave') || str_contains($p, 'electromagnetic wave') || (str_contains($p, 'wave') && (str_contains($p, 'transverse') || str_contains($p, 'optical') || (str_contains($p, 'electric') && str_contains($p, 'magnetic'))))) {
+        $delta_str = "np.pi / 2.0";
+        $pol_label = "Circular / Elliptical Polarization";
+        if (str_contains($p, 'linear')) {
+            $delta_str = "0.0";
+            $pol_label = "Linear Polarization";
+        } elseif (str_contains($p, 'left circular') || str_contains($p, 'lcp')) {
+            $delta_str = "-np.pi / 2.0";
+            $pol_label = "Left Circular Polarization (LCP)";
+        } elseif (str_contains($p, 'circular') || str_contains($p, 'rcp')) {
+            $delta_str = "np.pi / 2.0";
+            $pol_label = "Right Circular Polarization (RCP)";
+        } elseif (str_contains($p, 'elliptical')) {
+            $delta_str = "np.pi / 4.0";
+            $pol_label = "Elliptical Polarization";
+        }
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Electromagnetic Wave Polarization Simulation & 3D Vector Field
+# E(z, t) = E0_x * cos(kz - omega*t) * x_hat + E0_y * cos(kz - omega*t + delta) * y_hat
+
+wavelength = 1.0           # Wavelength lambda (m)
+k = 2.0 * np.pi / wavelength # Wave number
+c = 3.0e8                  # Speed of light (m/s)
+omega = c * k
+
+# Polarization Parameters
+E0x = 1.0
+E0y = 1.0
+delta = {{DELTA}}          # Phase difference between Ex and Ey
+
+# Spatial domain along z-axis (propagation direction)
+z = np.linspace(0, 2 * wavelength, 300)
+t = 0.0                    # Snapshot in time
+
+Ex = E0x * np.cos(k * z - omega * t)
+Ey = E0y * np.cos(k * z - omega * t + delta)
+
+# Stokes Parameters
+I_s = E0x**2 + E0y**2
+Q_s = E0x**2 - E0y**2
+U_s = 2 * E0x * E0y * np.cos(delta)
+V_s = 2 * E0x * E0y * np.sin(delta)
+
+print("=" * 65)
+print("ELECTROMAGNETIC WAVE POLARIZATION TELEMETRY")
+print("=" * 65)
+print(f"Amplitudes:            E0x = {E0x:.2f} V/m, E0y = {E0y:.2f} V/m")
+print(f"Phase Difference:      delta = {delta/np.pi:.2f} pi rad ({np.degrees(delta):.1f}°)")
+print(f"Stokes Parameters:     S0 = {I_s:.2f}, S1 = {Q_s:.2f}, S2 = {U_s:.2f}, S3 = {V_s:.2f}")
+if abs(V_s) > 0.95 * I_s:
+    pol_state = "Right Circular Polarization (RCP)" if V_s > 0 else "Left Circular Polarization (LCP)"
+elif abs(V_s) < 1e-4:
+    pol_state = "Linear Polarization"
+else:
+    pol_state = "Elliptical Polarization"
+print(f"Identified State:      {pol_state}")
+print("=" * 65)
+
+fig = plt.figure(figsize=(11, 4.8))
+
+# Subplot 1: 3D Spatial Trajectory of Electric Field Vector
+ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+ax1.plot(z, Ex, Ey, 'b-', lw=2.2, label=r'Electric Field $\mathbf{E}(z)$')
+ax1.plot(z, Ex, np.zeros_like(z), 'r--', lw=1.2, alpha=0.6, label=r'$E_x(z)$ Component')
+ax1.plot(z, np.zeros_like(z), Ey, 'g--', lw=1.2, alpha=0.6, label=r'$E_y(z)$ Component')
+ax1.plot(z, np.zeros_like(z), np.zeros_like(z), 'k-', lw=1.5, label='Propagation ($z$)')
+ax1.set_title(f'3D Spatial EM Wave Helix ({pol_state})', fontsize=11, fontweight='bold')
+ax1.set_xlabel('Propagation $z$ (m)', fontsize=9)
+ax1.set_ylabel('$E_x$ (V/m)', fontsize=9)
+ax1.set_zlabel('$E_y$ (V/m)', fontsize=9)
+ax1.legend(loc='upper right', fontsize=8)
+
+# Subplot 2: Transverse Plane (xy) Polarization Locus (Hodograph)
+ax2 = fig.add_subplot(1, 2, 2)
+time_cycle = np.linspace(0, 2*np.pi/omega, 200)
+Ex_t = E0x * np.cos(-omega * time_cycle)
+Ey_t = E0y * np.cos(-omega * time_cycle + delta)
+ax2.plot(Ex_t, Ey_t, 'm-', lw=2.5, label='Polarization Locus')
+ax2.scatter([Ex_t[0]], [Ey_t[0]], color='red', s=80, zorder=5, label=r'$\mathbf{E}(t=0)$')
+ax2.arrow(0, 0, Ex_t[0]*0.9, Ey_t[0]*0.9, head_width=0.08, head_length=0.08, fc='red', ec='red', lw=1.8, length_includes_head=True)
+ax2.axhline(0, color='gray', ls=':', lw=1)
+ax2.axvline(0, color='gray', ls=':', lw=1)
+ax2.set_aspect('equal')
+ax2.set_xlim(-1.5, 1.5)
+ax2.set_ylim(-1.5, 1.5)
+ax2.set_title(r'Transverse Plane Projection $(E_x, E_y)$', fontsize=11, fontweight='bold')
+ax2.set_xlabel('$E_x$ Amplitude (V/m)', fontsize=10)
+ax2.set_ylabel('$E_y$ Amplitude (V/m)', fontsize=10)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='upper right', fontsize=8)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{DELTA}}', $delta_str, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Electromagnetic Wave Polarization & 3D Vector Propagation ({$pol_label})",
+            'code' => $code,
+            'explanation' => "Simulates transverse electromagnetic wave propagation $\\mathbf{E}(z, t) = E_{0x}\\cos(kz-\\omega t)\\hat{i} + E_{0y}\\cos(kz-\\omega t + \\delta)\\hat{j}$. Computes Stokes parameters $(S_0, S_1, S_2, S_3)$ and visualizes both the 3D helical wave trajectory along the propagation axis and the transverse hodograph locus.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Vary the phase difference delta from 0 to pi to trace the full transition from linear to circular to elliptical polarization.',
+                'Compute the Poynting vector S = (1 / mu_0) * (E x B) and verify time-averaged energy flux.',
+                'Model the passage of circularly polarized light through a quarter-wave plate (QWP).'
+            ]
+        ];
+    }
+
+
+    // =========================================================================
+    // 19C. FLUID DYNAMICS: HAGEN-POISEUILLE FLOW & BERNOULLI PRINCIPLE
+    // =========================================================================
+    if (str_contains($p, 'poiseuille') || str_contains($p, 'bernoulli') || str_contains($p, 'pipe flow') || str_contains($p, 'laminar flow') || (str_contains($p, 'fluid') && (str_contains($p, 'flow') || str_contains($p, 'viscosity') || str_contains($p, 'pressure')))) {
+        $radius_pipe = 0.05; // 5 cm
+        $viscosity = 0.001;  // Water ~ 1e-3 Pa*s
+        $dp = 50.0;          // Pressure gradient Pa/m
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Fluid Dynamics: Hagen-Poiseuille Laminar Viscous Flow in a Cylindrical Pipe
+# Governing Equation: v(r) = (Delta P / (4 * eta * L)) * (R^2 - r^2)
+# Flow Rate:          Q = (pi * Delta P * R^4) / (8 * eta * L)
+
+R = {{RADIUS}}         # Pipe radius (m)
+eta = {{VISCOSITY}}    # Dynamic viscosity (Pa·s)
+dp_L = {{DP}}          # Pressure gradient Delta P / L (Pa/m)
+
+# Maximum centerline velocity at r = 0
+v_max = (dp_L / (4.0 * eta)) * R**2
+# Total volumetric flow rate Q
+Q = (np.pi * dp_L * R**4) / (8.0 * eta)
+v_mean = v_max / 2.0
+
+print("=" * 65)
+print("HAGEN-POISEUILLE LAMINAR FLUID FLOW TELEMETRY")
+print("=" * 65)
+print(f"Pipe Radius (R):               {R * 100:.2f} cm")
+print(f"Fluid Viscosity (eta):         {eta:.4e} Pa·s")
+print(f"Pressure Gradient (dP/L):      {dp_L:.2f} Pa/m")
+print(f"Centerline Peak Velocity (v0): {v_max:.4f} m/s")
+print(f"Mean Flow Velocity (v_mean):   {v_mean:.4f} m/s")
+print(f"Volumetric Flow Rate (Q):      {Q:.6e} m^3/s ({Q * 1000 * 60:.2f} L/min)")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Parabolic Velocity Profile across Pipe Diameter
+r = np.linspace(-R, R, 200)
+v_r = (dp_L / (4.0 * eta)) * (R**2 - r**2)
+
+ax1.plot(v_r, r * 100, 'b-', lw=2.2, label=r'Parabolic Velocity $v(r)$')
+ax1.axhline(0, color='gray', ls=':', lw=1, label='Centerline')
+ax1.axhline(R * 100, color='black', lw=2, label='Pipe Wall')
+ax1.axhline(-R * 100, color='black', lw=2)
+ax1.fill_betweenx(r * 100, 0, v_r, color='cyan', alpha=0.25)
+ax1.set_title('Cross-Sectional Laminar Velocity Profile', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Velocity $v(r)$ (m/s)', fontsize=11)
+ax1.set_ylabel('Radial Position $r$ (cm)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Volumetric Flow Rate Scaling with Radius R^4 (Poiseuille Law)
+r_sweep = np.linspace(0.01, R * 1.5, 100)
+Q_sweep = (np.pi * dp_L * r_sweep**4) / (8.0 * eta)
+ax2.plot(r_sweep * 100, Q_sweep * 1000 * 60, 'm-', lw=2, label=r'$Q \propto R^4$')
+ax2.scatter([R * 100], [Q * 1000 * 60], color='red', s=80, zorder=5, label=f'Current: {Q*1000*60:.1f} L/min')
+ax2.set_title(r'Nonlinear Flow Rate Scaling ($Q \propto R^4$)', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Pipe Radius $R$ (cm)', fontsize=11)
+ax2.set_ylabel('Discharge Flow Rate (L/min)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{RADIUS}}', '{{VISCOSITY}}', '{{DP}}'], [(string)$radius_pipe, (string)$viscosity, (string)$dp], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Fluid Dynamics: Hagen-Poiseuille Laminar Viscous Flow (Radius = {$radius_pipe} m)",
+            'code' => $code,
+            'explanation' => "Solves the Navier-Stokes momentum balance for steady, laminar, axisymmetric Newtonian fluid flow in a circular conduit. Derives the parabolic velocity profile \$v(r) = \\frac{\\Delta P}{4\\eta L}(R^2 - r^2)\$ and fourth-power aperture scaling \$Q \\propto R^4\$.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Compute the Reynolds number Re = rho * v_mean * (2*R) / eta to verify laminar criterion Re < 2000.',
+                'Model the hydrodynamic entrance length L_e ≈ 0.06 * Re * (2*R) before fully developed flow.',
+                'Apply Bernoulli\'s principle with Darcy-Weisbach frictional head loss.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 19D. DOPPLER EFFECT FOR ACOUSTIC & ELECTROMAGNETIC WAVES
+    // =========================================================================
+    if (str_contains($p, 'doppler') || (str_contains($p, 'frequency shift') && (str_contains($p, 'sound') || str_contains($p, 'source') || str_contains($p, 'observer')))) {
+        $f0 = 440.0; // 440 Hz (Concert A)
+        $vs = 30.0;  // Source velocity 30 m/s (~ 108 km/h)
+        $v_sound = 343.0; // Speed of sound at 20 C
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Wave Mechanics: Acoustic Doppler Effect for Moving Source and Observer
+# General Formulation: f' = f_0 * (v_wave +- v_observer) / (v_wave -+ v_source)
+
+f0 = {{F0}}           # Emitted frequency (Hz)
+v_sound = {{VSOUND}}  # Speed of sound in medium (m/s)
+v_source = {{VSOURCE}}# Velocity of source (m/s)
+
+# Approach and Recede observed frequencies (stationary observer)
+f_approach = f0 * (v_sound / (v_sound - v_source))
+f_recede = f0 * (v_sound / (v_sound + v_source))
+mach_number = v_source / v_sound
+
+print("=" * 65)
+print("ACOUSTIC DOPPLER EFFECT TELEMETRY")
+print("=" * 65)
+print(f"Emitted Base Frequency (f0):   {f0:.2f} Hz")
+print(f"Speed of Sound in Medium:      {v_sound:.1f} m/s")
+print(f"Source Velocity (v_source):    {v_source:.1f} m/s ({v_source * 3.6:.1f} km/h, Mach {mach_number:.3f})")
+print(f"Approaching Frequency (f'):    {f_approach:.2f} Hz (Shift: +{f_approach - f0:.2f} Hz)")
+print(f"Receding Frequency (f''):      {f_recede:.2f} Hz (Shift: -{f0 - f_recede:.2f} Hz)")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Observed Frequency as a Function of Source Velocity
+v_sweep = np.linspace(0, v_sound * 0.9, 200)
+f_app_sweep = f0 * (v_sound / (v_sound - v_sweep))
+f_rec_sweep = f0 * (v_sound / (v_sound + v_sweep))
+
+ax1.plot(v_sweep, f_app_sweep, 'b-', lw=2.2, label='Approaching Source')
+ax1.plot(v_sweep, f_rec_sweep, 'r--', lw=2.0, label='Receding Source')
+ax1.axhline(f0, color='gray', ls=':', label=rf'Base $f_0 = {f0:.0f}$ Hz')
+ax1.scatter([v_source], [f_approach], color='blue', s=70, zorder=5)
+ax1.scatter([v_source], [f_recede], color='red', s=70, zorder=5)
+ax1.set_title('Doppler Frequency Shift vs Source Speed', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Source Speed (m/s)', fontsize=11)
+ax1.set_ylabel('Observed Frequency $f\'$ (Hz)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Temporal Frequency Profile during Flyby (Impact parameter d = 10 m)
+d = 10.0 # Closest approach distance (m)
+x_pos = np.linspace(-150, 150, 300) # Source position along trajectory
+time_s = x_pos / v_source
+cos_theta = x_pos / np.sqrt(x_pos**2 + d**2) # Direction cosine to observer
+f_flyby = f0 * (v_sound / (v_sound - v_source * cos_theta))
+
+ax2.plot(time_s, f_flyby, 'm-', lw=2.5, label='Flyby Signal')
+ax2.axvline(0, color='black', ls='--', alpha=0.7, label='Point of Closest Approach')
+ax2.set_title('Acoustic Flyby Pitch Transition Profile', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Time $t$ (seconds)', fontsize=11)
+ax2.set_ylabel('Perceived Frequency (Hz)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{F0}}', '{{VSOUND}}', '{{VSOURCE}}'], [(string)$f0, (string)$v_sound, (string)$vs], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Wave Mechanics: Acoustic Doppler Effect & Flyby Pitch Transition (f0 = {$f0} Hz)",
+            'code' => $code,
+            'explanation' => "Formulates the classic acoustic Doppler frequency shift \$f' = f_0 \\frac{v}{v \\mp v_s}\$ for supersonic and subsonic kinematic relative motion. Illustrates pitch decay dynamics during an observer flyby trajectory.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Model the relativistic Doppler effect for optical frequencies f\' = f_0 * sqrt((1 - beta) / (1 + beta)).',
+                'Compute the Mach angle of the conical shock wave cone sin(mu) = 1 / M for M > 1.',
+                'Analyze the Doppler broadening of spectral lines due to thermal Maxwellian velocity distributions.'
+            ]
+        ];
+    }
+
     // =========================================================================
     // 20. WAVE EQUATION (1D Vibrating String PDE)
     // =========================================================================

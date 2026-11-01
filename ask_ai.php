@@ -286,28 +286,50 @@ async function generateCodeFromPage() {
     errorEl.style.display = 'none';
     resultsEl.style.display = 'none';
 
-    try {
-        var response = await fetch('<?php echo $siteurl; ?>api/generate_code.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                problem: problemText,
-                gemini_api_key: apiKey,
-                include_plot: includePlot
-            })
-        });
+    var data = null;
 
-        var data = await response.json();
+    // 1. If user provided a Gemini API Key, attempt direct client-side call to Google Gemini
+    if (apiKey) {
+        try {
+            data = await callGeminiClientDirectly(apiKey, problemText, includePlot);
+        } catch (geminiErr) {
+            console.warn('Direct client-side Gemini API call failed, falling back to server engine:', geminiErr);
+        }
+    }
 
-        loader.style.display = 'none';
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Python Code';
+    // 2. Fall back to backend computational physics engine if no API key or direct call was bypassed
+    if (!data || !data.success) {
+        try {
+            var response = await fetch('<?php echo $siteurl; ?>api/generate_code.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    problem: problemText,
+                    gemini_api_key: apiKey,
+                    include_plot: includePlot
+                })
+            });
 
-        if (!data || !data.success || !data.code) {
-            errorEl.innerText = (data && data.error) ? data.error : 'Failed to generate solution. Please try again.';
+            data = await response.json();
+        } catch (err) {
+            loader.style.display = 'none';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Python Code';
+            errorEl.innerText = 'Network error: ' + err.message;
             errorEl.style.display = 'block';
             return;
         }
+    }
+
+    loader.style.display = 'none';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Python Code';
+
+    if (!data || !data.success || !data.code) {
+        errorEl.innerText = (data && data.error) ? data.error : 'Failed to generate solution. Please try again.';
+        errorEl.style.display = 'block';
+        return;
+    }
 
         generatedCodeText = data.code;
         document.getElementById('pagePromptEcho').innerText = data.user_prompt || problemText;
@@ -426,6 +448,88 @@ function editPagePrompt() {
         promptEl.focus();
         promptEl.select();
     }
+}
+
+async function callGeminiClientDirectly(apiKey, problemText, includePlot) {
+    var systemInstruction = "You are an expert computational physicist, numerical mathematician, and senior Python scientific developer for Python4Physics. " +
+        "The user will describe a physics, mathematical, or scientific programming problem. " +
+        "Generate fully runnable, self-contained, high-quality Python 3 code using standard libraries, NumPy, SciPy, and Matplotlib (plt.show()). " +
+        "The code must execute seamlessly in a browser environment via Pyodide. " +
+        "Do NOT require external file downloads or local file paths. " +
+        "Provide your answer strictly as a JSON object with this schema:\n" +
+        "{\n" +
+        "  \"title\": \"Clear descriptive title of the solution\",\n" +
+        "  \"code\": \"Executable Python code string with clear comments\",\n" +
+        "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics\",\n" +
+        "  \"complexity\": \"Time and memory complexity (e.g. O(N log N))\",\n" +
+        "  \"exercises\": [\"Exercise 1 for student\", \"Exercise 2\", \"Exercise 3\"]\n" +
+        "}";
+
+    var userPrompt = "Problem Description: " + problemText + "\n" +
+        "Include Graphical Matplotlib Visualization: " + (includePlot ? "YES" : "NO") + "\n" +
+        "Please output strictly the JSON object without markdown code blocks.";
+
+    var models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    var lastError = null;
+
+    for (var i = 0; i < models.length; i++) {
+        var model = models[i];
+        try {
+            var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(apiKey);
+            var res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        role: 'user',
+                        parts: [{ text: systemInstruction + "\n\n" + userPrompt }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        maxOutputTokens: 2500,
+                        responseMimeType: 'application/json'
+                    }
+                })
+            });
+
+            if (res.ok) {
+                var json = await res.json();
+                var text = json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0] ? json.candidates[0].content.parts[0].text : '';
+                text = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+                var parsed = JSON.parse(text);
+                if (parsed && parsed.code) {
+                    var doc = '"""\n' +
+                        '='.repeat(78) + '\n' +
+                        'Python4Physics - Ask AI Generated Solution\n' +
+                        'User Prompt: ' + problemText.replace(/[\r\n]+/g, ' ') + '\n' +
+                        'Physical Domain: ' + (parsed.title || 'Gemini 2.0 AI Synthesis') + '\n' +
+                        'Complexity: ' + (parsed.complexity || 'O(N)') + '\n' +
+                        '='.repeat(78) + '\n' +
+                        '"""\n\n';
+                    return {
+                        success: true,
+                        source: 'gemini_ai',
+                        title: parsed.title || 'Computational Physics Solution',
+                        code: doc + parsed.code.trim(),
+                        explanation: parsed.explanation || '',
+                        complexity: parsed.complexity || 'O(N)',
+                        exercises: parsed.exercises || [
+                            'Modify simulation parameters and observe parameter sensitivity.',
+                            'Compare numerical convergence with smaller discretization steps.',
+                            'Extend the computational model with additional physical interactions.'
+                        ],
+                        user_prompt: problemText
+                    };
+                }
+            } else {
+                var errData = await res.json().catch(function() { return {}; });
+                lastError = (errData && errData.error && errData.error.message) ? errData.error.message : ('HTTP ' + res.status);
+            }
+        } catch (e) {
+            lastError = e.message;
+        }
+    }
+    throw new Error(lastError || 'Gemini API call failed');
 }
 
 function escapeHtml(text) {
