@@ -1,6 +1,6 @@
 <?php
 $page_title = "Developer REST API & Integrations";
-$page_description = "Complete API documentation for Python4Physics: programmatically search, retrieve, and export 500+ computational physics algorithms in JSON, Python, and Jupyter Notebook formats.";
+$page_description = "Complete API documentation for Python4Physics: programmatically search, retrieve, and export computational physics algorithms in JSON, Python, and Jupyter Notebook formats.";
 require_once __DIR__ . '/../include/header.php';
 require_once __DIR__ . '/../include/navbar.php';
 ?>
@@ -11,7 +11,7 @@ require_once __DIR__ . '/../include/navbar.php';
         <span class="badge badge-cyan" style="margin-bottom: 1rem;"><i class="fa-solid fa-code"></i> Developer Platform</span>
         <h1 style="font-size: 2.8rem; margin-bottom: 1rem;">Python4Physics <span class="gradient-text">REST API</span></h1>
         <p style="font-size: 1.15rem; line-height: 1.6;">
-            Programmatically access over 500+ computational physics codes, mathematical algorithms, and scientific simulations. Integrate directly with JupyterLab, Python clients, and research platforms.
+            Programmatically access computational physics codes, mathematical algorithms, and scientific simulations. Integrate directly with JupyterLab, Python clients, and research platforms.
         </p>
     </div>
 
@@ -22,7 +22,7 @@ require_once __DIR__ . '/../include/navbar.php';
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
             <h3>1. Global Search API</h3>
-            <p>Full-text instant search across 345 Python algorithms, 49 GNUplot visualizations, and 115 LaTeX formulations.</p>
+            <p>Full-text instant search across Python algorithms, GNUplot visualizations, and LaTeX formulations.</p>
             <code>GET /api/search.php?q=Runge</code>
         </div>
 

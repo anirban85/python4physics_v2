@@ -79,7 +79,7 @@
   }
 
   async function executeSearch(query) {
-    resultsContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Searching across 500+ physics algorithms...</div>';
+    resultsContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Searching computational physics algorithms...</div>';
 
     try {
       const baseUrl = window.p4p_siteurl || '';

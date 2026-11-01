@@ -72,7 +72,7 @@
                     </label>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 4px;">
-                    Helps us understand which physics algorithms and assignments are most frequently studied by university students. Anonymized IP addresses are used.
+                    Helps us understand which physics algorithms and assignments are most frequently studied by science learners. Anonymized IP addresses are used.
                 </p>
             </div>
 

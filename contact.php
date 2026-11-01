@@ -110,7 +110,7 @@ require_once __DIR__ . '/include/navbar.php';
     <section class="glass-card highlight" style="text-align: center; padding: 3rem 2rem;">
         <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">Educational & Research Collaboration</h3>
         <p style="max-width: 720px; margin: 0 auto 1.5rem auto; font-size: 1.05rem;">
-            Interested in adopting the Python4Physics curriculum for your university department, proposing new physics computational algorithms, or contributing problem sets?
+            Interested in adopting Python4Physics for your physics coursework or study group, proposing new computational algorithms, or contributing scientific problem sets?
         </p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="<?php echo $siteurl; ?>feedback.php" class="btn-modern btn-primary">

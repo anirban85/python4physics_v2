@@ -19,7 +19,7 @@ if (!isset($infolinks_pid)) {
                     <span>Python<span style="color: var(--accent);">4</span>Physics</span>
                 </a>
                 <p style="font-size: 0.92rem; max-width: 380px; line-height: 1.6;">
-                    An open, globally accessible computational physics portal for undergraduate and postgraduate students, researchers, and educators worldwide.
+                    An open, globally accessible computational physics portal for all science learners, particularly physics students, computational researchers, and educators worldwide.
                 </p>
                 <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
                     <a href="https://github.com/anirbanshaw/python4physics" target="_blank" rel="noopener" class="btn-modern btn-secondary btn-sm" aria-label="GitHub Repository">
@@ -101,6 +101,9 @@ if (!isset($infolinks_pid)) {
 
 <!-- Include Global Search Modal on Every Page -->
 <?php include __DIR__ . '/search_modal.php'; ?>
+
+<!-- Include Ask AI Modal on Every Page -->
+<?php include __DIR__ . '/ask_ai_modal.php'; ?>
 
 <!-- KaTeX Auto-Render Initializer -->
 <script>

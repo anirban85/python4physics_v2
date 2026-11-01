@@ -8,7 +8,7 @@ require_once __DIR__ . '/db.php';
 include_once __DIR__ . '/program/python/menu.php';
 
 $page_title = "Computational Physics with Python, GNUplot, LaTeX, Arduino";
-$page_description = "The premier computational physics portal: 345+ Python scripts, 49+ GNUplot visualizations, 115+ LaTeX formulations, interactive problem sets, and Arduino lab simulations.";
+$page_description = "The premier open computational physics portal: interactive Python scripts, GNUplot scientific visualizations, LaTeX mathematical formulations, problem sets, and Arduino lab simulations for all science and physics learners.";
 
 require_once __DIR__ . '/include/header.php';
 require_once __DIR__ . '/include/navbar.php';
@@ -53,13 +53,13 @@ require_once __DIR__ . '/include/navbar.php';
         </h1>
 
         <p style="font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.6; max-width: 820px; margin: 0 auto 2.5rem auto; color: var(--text-muted);">
-            An open academic portal of over <strong>500+ verified computational physics programs</strong>: classical mechanics, coupled differential equations, electrodynamics, quantum state simulations, and Arduino hardware interfacing running natively in your browser.
+            An open computational science portal with verified computational physics programs: classical mechanics, coupled differential equations, electrodynamics, quantum state simulations, and Arduino hardware interfacing running natively in your browser.
         </p>
 
         <!-- Main Action Buttons -->
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3.5rem;">
             <a href="<?php echo $siteurl; ?>program/python/index.php" class="btn-modern btn-primary btn-lg">
-                <i class="fa-brands fa-python"></i> Explore 345+ Python Programs
+                <i class="fa-brands fa-python"></i> Explore Python Programs
             </a>
             <a href="#liveSandboxSection" class="btn-modern btn-secondary btn-lg">
                 <i class="fa-solid fa-wave-square"></i> Live Oscillation Sandbox
@@ -94,7 +94,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="p4p-pillar-chips">
                         <span class="p4p-mini-chip">Symplectic Verlet</span>
                         <span class="p4p-mini-chip">NumPy · SciPy</span>
-                        <span class="p4p-mini-chip">345+ Programs</span>
+                        <span class="p4p-mini-chip">Interactive Python</span>
                     </div>
                 </div>
 
@@ -135,7 +135,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="p4p-pillar-chips">
                         <span class="p4p-mini-chip">Phase Space</span>
                         <span class="p4p-mini-chip">Equipotentials</span>
-                        <span class="p4p-mini-chip">49+ Curves</span>
+                        <span class="p4p-mini-chip">GNUplot Scripts</span>
                     </div>
                 </div>
 
@@ -168,7 +168,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="p4p-pillar-chips">
                         <span class="p4p-mini-chip">Hamiltonian</span>
                         <span class="p4p-mini-chip">TikZ Vector</span>
-                        <span class="p4p-mini-chip">115+ Papers</span>
+                        <span class="p4p-mini-chip">LaTeX Documents</span>
                     </div>
                 </div>
 
@@ -430,7 +430,7 @@ plt.show()
             <div>
                 <span class="badge badge-cyan">Full Syllabus Catalog</span>
                 <h2 style="font-size: 2.2rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">All 21 Python Physics Chapters</h2>
-                <p style="margin: 0;">Comprehensive computational modules matching university physics curricula.</p>
+                <p style="margin: 0;">Comprehensive computational modules for all science and physics learners.</p>
             </div>
             <a href="<?php echo $siteurl; ?>program/python/index.php" class="btn-modern btn-secondary">
                 View Full Catalog &rarr;

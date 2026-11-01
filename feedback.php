@@ -103,7 +103,7 @@ require_once __DIR__ . '/include/navbar.php';
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">Email Address *</label>
-                    <input type="email" name="email" required class="search-input" style="width: 100%; border: 1px solid var(--card-border); background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm);" placeholder="e.g. name@university.edu">
+                    <input type="email" name="email" required class="search-input" style="width: 100%; border: 1px solid var(--card-border); background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm);" placeholder="e.g. yourname@domain.com">
                 </div>
             </div>
 
@@ -115,7 +115,7 @@ require_once __DIR__ . '/include/navbar.php';
                         <option value="Code Request">Request New Physics Algorithm</option>
                         <option value="Bug Report">Report Script / Math Bug</option>
                         <option value="Curriculum Suggestion">Curriculum & Syllabus Suggestion</option>
-                        <option value="Academic Adoption">University / College Adoption</option>
+                        <option value="Educational Adoption">Institutional / Educational Adoption</option>
                     </select>
                 </div>
                 <div>

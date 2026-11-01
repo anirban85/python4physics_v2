@@ -1648,3 +1648,337 @@ code, pre, kbd, samp {
 .card-latex .p4p-pillar-action { color: #c084fc; }
 .card-arduino .p4p-pillar-action { color: #10b981; }
 
+/* ==========================================================================
+   Pointwise & Graphical Physics Pedagogy Guide Styles
+   ========================================================================== */
+.pedagogical-article {
+  background: var(--card-bg, rgba(15, 23, 42, 0.75)) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border) !important;
+  border-top: 4px solid var(--accent) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.pedagogy-pointwise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 0.85rem 0 1.25rem 0;
+}
+
+.pedagogy-point-item {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.15rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+[data-theme="light"] .pedagogy-point-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  border-left-color: var(--accent);
+}
+
+.pedagogy-point-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.math-box {
+  background: rgba(56, 189, 248, 0.04);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.5rem;
+  margin: 0.85rem 0 1.25rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.pedagogy-flow-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.step-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--card-border);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 0.82rem;
+}
+
+.pedagogy-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pedagogy-list li {
+  position: relative;
+  padding-left: 1.75rem;
+  line-height: 1.65;
+  color: var(--text);
+  font-size: 0.96rem;
+}
+
+.pedagogy-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0.25rem;
+  top: 0;
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.exercise-card-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+[data-theme="light"] .exercise-card-box {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  border-left-color: var(--primary);
+}
+
+.exercise-card-box:hover {
+  background: rgba(56, 189, 248, 0.03);
+  border-left-color: var(--accent);
+}
+
+.exercise-level-badge {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Ask AI UI & Code Generator Styles
+   ========================================================================== */
+.btn-ai {
+  background: linear-gradient(135deg, #0284c7, #6366f1, #a855f7) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.btn-ai:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
+  filter: brightness(1.1);
+}
+
+.btn-ai i {
+  color: #fef08a;
+  animation: p4pAiSparkle 2.5s infinite ease-in-out;
+}
+
+@keyframes p4pAiSparkle {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  50% { transform: rotate(15deg) scale(1.18); opacity: 0.85; }
+}
+
+.nav-link-ai {
+  background: rgba(99, 102, 241, 0.12) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  color: #a5b4fc !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.35rem 0.75rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.nav-link-ai:hover {
+  background: rgba(99, 102, 241, 0.25) !important;
+  border-color: #818cf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+}
+
+/* Ask AI Modal Styles */
+.ai-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: p4pFadeIn 0.2s ease forwards;
+}
+
+.ai-modal-dialog {
+  background: var(--bg-secondary, #0f172a);
+  border: 1px solid var(--card-border, #334155);
+  border-radius: var(--radius-lg, 16px);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.25);
+  animation: p4pScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes p4pFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes p4pScaleUp {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.ai-modal-header {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ai-modal-body {
+  padding: 1.5rem 1.75rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex-grow: 1;
+}
+
+.ai-modal-footer {
+  padding: 1rem 1.75rem;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ai-prompt-area {
+  width: 100%;
+  min-height: 110px;
+  max-height: 220px;
+  background: var(--bg-tertiary, #0b1120);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  resize: vertical;
+  line-height: 1.55;
+  box-sizing: border-box;
+}
+
+.ai-prompt-area:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.ai-preset-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.ai-preset-chip {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-preset-chip:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #818cf8;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.ai-code-preview-box {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.ai-code-preview-header {
+  background: #161b22;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #30363d;
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+.ai-code-preview-content {
+  padding: 1rem;
+  margin: 0;
+  max-height: 380px;
+  overflow-y: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #e6edf3;
+  tab-size: 4;
+}
+

@@ -90,7 +90,7 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">5. Academic Analytics & Google Analytics 4 (GA4)</h2>
             <p>
-                To understand which computational physics algorithms, numerical solvers, and assignments are most frequently studied by university students, we use <strong>Google Analytics 4 (GA4)</strong>. We have implemented:
+                To understand which computational physics algorithms, numerical solvers, and assignments are most frequently studied by science learners and researchers, we use <strong>Google Analytics 4 (GA4)</strong>. We have implemented:
             </p>
             <ul style="padding-left: 1.5rem; margin-top: 0.5rem;">
                 <li><strong>Mandatory IP Anonymization</strong> (<code>anonymize_ip: true</code>) to prevent geographic tracking of specific individuals.</li>
@@ -140,7 +140,7 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">9. Children's Online Privacy Protection (COPPA)</h2>
             <p>
-                Python4Physics is directed towards university undergraduate and postgraduate students, researchers, and adult educators. We do not knowingly collect personal identifiable information from children under the age of 13. If you believe a child under 13 has submitted personal information on our portal, please contact us immediately, and we will promptly purge such data from our records.
+                Python4Physics is directed towards science and physics learners, researchers, and educators. We do not knowingly collect personal identifiable information from children under the age of 13. If you believe a child under 13 has submitted personal information on our portal, please contact us immediately, and we will promptly purge such data from our records.
             </p>
         </section>
 

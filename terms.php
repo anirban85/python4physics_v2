@@ -77,7 +77,7 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">6. Third-Party Links & Advertising Partners</h2>
             <p>
-                This website may contain links to external collegiate websites, academic repositories (e.g., GitHub, University of Calcutta), and third-party tools. We do not endorse or assume liability for the content, privacy policies, or practices of any external third-party sites.
+                This website may contain links to external educational websites, open-source repositories (e.g., GitHub), and third-party tools. We do not endorse or assume liability for the content, privacy policies, or practices of any external third-party sites.
             </p>
             <p>
                 To support server hosting, bandwidth, and maintenance of this free portal, we display advertisements provided by <strong>Google AdSense</strong>. Google and its advertising partners serve contextual and non-intrusive ads in accordance with Google's Program Policies.
@@ -87,7 +87,7 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">7. Limitation of Liability & Warranty Disclaimer</h2>
             <p>
-                Python4Physics is provided on an "AS IS" and "AS AVAILABLE" basis without warranties of any kind, either express or implied. In no event shall the authors, their respective collegiate institutions (The Heritage College or Dhruba Chand Halder College), or affiliated contributors be liable for any direct, indirect, incidental, or consequential damages arising from the use or inability to use the scripts, algorithms, or content on this website.
+                Python4Physics is provided on an "AS IS" and "AS AVAILABLE" basis without warranties of any kind, either express or implied. In no event shall the authors, their respective academic institutions (The Heritage College or Dhruba Chand Halder College), or affiliated contributors be liable for any direct, indirect, incidental, or consequential damages arising from the use or inability to use the scripts, algorithms, or content on this website.
             </p>
         </section>
 

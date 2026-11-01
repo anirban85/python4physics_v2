@@ -222,10 +222,10 @@ $SLIDER_CONFIG = [
             Interactive Physics <span class="gradient-text">Assignments & Labs</span>
         </h1>
         <p style="font-size: 1.15rem; line-height: 1.6; color: var(--text-muted);">
-            Graduate and undergraduate computational physics problem sets matching premier university curricula: 
+            Comprehensive computational physics problem sets and interactive lab explorations: 
             <strong>Newton's Laws & Rotation</strong>, <strong>Potential Theory</strong>, <strong>System of Particles</strong>,
-            <strong>Central Force (8)</strong>, <strong>Two-Body Scattering (2)</strong>, <strong>Continuum Mechanics (6)</strong>, 
-            Electrodynamics, and Quantum Mechanics. Experiment interactively with real-time parameter sliders.
+            <strong>Central Force</strong>, <strong>Two-Body Scattering</strong>, <strong>Continuum Mechanics</strong>, 
+            Electrodynamics, and Quantum Mechanics for all science and physics learners. Experiment interactively with real-time parameter sliders.
         </p>
     </div>
 

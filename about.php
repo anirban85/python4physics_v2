@@ -7,7 +7,7 @@ require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
 $page_title = "About Us - Academic Mission, Faculty & Editorial Standards";
-$page_description = "Learn about Python4Physics: an open-access computational physics initiative founded by Dr. Alorika Chatterjee and Dr. Anirban Shaw for university students, educators, and researchers worldwide.";
+$page_description = "Learn about Python4Physics: an open-access computational physics initiative founded by Dr. Alorika Chatterjee and Dr. Anirban Shaw for science learners, educators, and researchers worldwide.";
 
 require_once __DIR__ . '/include/header.php';
 require_once __DIR__ . '/include/navbar.php';
@@ -21,7 +21,7 @@ require_once __DIR__ . '/include/navbar.php';
             About <span class="gradient-text">Python4Physics</span>
         </h1>
         <p style="font-size: 1.15rem; line-height: 1.6; color: var(--text-muted);">
-            An open-access educational initiative conceived, authored, and maintained by collegiate physics faculty to bridge the gap between theoretical physics formulations and modern scientific computation.
+            An open-access educational initiative conceived, authored, and maintained by physics faculty and researchers to bridge the gap between theoretical physics formulations and modern scientific computation.
         </p>
     </div>
 
@@ -34,13 +34,13 @@ require_once __DIR__ . '/include/navbar.php';
             <h2 style="font-size: 1.75rem; margin: 0;">Our Pedagogical Mission</h2>
         </div>
         <p>
-            Computational physics has become an indispensable third pillar of modern physical inquiry alongside theoretical deduction and experimental observation. However, undergraduate and postgraduate students often face significant hurdles when transitioning from abstract mathematical equations to clean, robust, and reproducible computer simulations.
+            Computational physics has become an indispensable third pillar of modern physical inquiry alongside theoretical deduction and experimental observation. However, students, researchers, and science learners often face significant hurdles when transitioning from abstract mathematical equations to clean, robust, and reproducible computer simulations.
         </p>
         <p>
-            Founded in West Bengal, India, <strong>Python4Physics</strong> (accessible at <a href="<?php echo $siteurl; ?>">python4physics.in</a>) provides free, ad-supported, and open-access educational material. The portal hosts <strong>over 500+ verified computational physics programs, numerical solvers, GNUplot visual scripts, and LaTeX research templates</strong>. Our curriculum is tailored specifically for Bachelor of Science (B.Sc.) Honours, Master of Science (M.Sc.), and integrated research scholars in Physics and Applied Mathematics.
+            Founded in West Bengal, India, <strong>Python4Physics</strong> (accessible at <a href="<?php echo $siteurl; ?>">python4physics.in</a>) provides free, ad-supported, and open-access educational material. The portal hosts <strong>verified computational physics programs, numerical solvers, GNUplot visual scripts, and LaTeX research templates</strong>. Our curriculum is tailored for all science learners, particularly physics students, computational researchers, and educators worldwide.
         </p>
         <p>
-            The original collegiate release of the platform remains permanently preserved for reference at our <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Python4Physics Classic v1 Archive <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i></a>, while this modernized architecture delivers instantaneous in-browser WebAssembly execution, parameter exploration, and responsive scientific typography.
+            The original release of the platform remains permanently preserved for reference at our <a href="https://v1.python4physics.in/" target="_blank" rel="noopener" style="color: #f59e0b; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Python4Physics Classic v1 Archive <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i></a>, while this modernized architecture delivers instantaneous in-browser WebAssembly execution, parameter exploration, and responsive scientific typography.
         </p>
     </div>
 
@@ -50,7 +50,7 @@ require_once __DIR__ . '/include/navbar.php';
             <span class="badge badge-amber"><i class="fa-solid fa-user-graduate"></i> Academic Leadership</span>
             <h2 style="font-size: 2.2rem; margin-top: 0.5rem;">Founders & Editorial Curators</h2>
             <p style="color: var(--text-dim); max-width: 600px; margin: 0 auto;">
-                Python4Physics is independently conceived, peer-reviewed, and developed by active collegiate physics educators.
+                Python4Physics is independently conceived, peer-reviewed, and developed by active physics educators and computational researchers.
             </p>
         </div>
 
@@ -143,9 +143,9 @@ require_once __DIR__ . '/include/navbar.php';
                 <div style="color: var(--accent); font-size: 1.5rem; margin-bottom: 1rem;">
                     <i class="fa-solid fa-scroll"></i>
                 </div>
-                <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem;">University Curriculum Aligned</h3>
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem;">Comprehensive Scientific Standards</h3>
                 <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin: 0;">
-                    All computational algorithms, numerical methods, and laboratory exercises comply directly with university curricula including UGC CBCS (Choice Based Credit System), NEP 2020 syllabus recommendations, University of Calcutta, and international computational physics syllabi.
+                    All computational algorithms, numerical methods, and laboratory exercises comply directly with international computational physics standards, open educational guidelines, and advanced scientific curricula.
                 </p>
             </div>
 
@@ -184,9 +184,9 @@ require_once __DIR__ . '/include/navbar.php';
 
     <!-- Institutional Collaboration Callout -->
     <div class="glass-card highlight" style="text-align: center; padding: 3rem 2rem;">
-        <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">Adopt Python4Physics in Your Department</h3>
+        <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">Adopt Python4Physics for Computational Learning</h3>
         <p style="max-width: 720px; margin: 0 auto 1.5rem auto; font-size: 1.05rem; color: var(--text-muted);">
-            Colleges, universities, and physics departments are encouraged to incorporate our interactive problem sets, Python simulations, and Arduino laboratory interfacing modules into their coursework.
+            Educational institutions, research labs, and science educators are encouraged to incorporate our interactive problem sets, Python simulations, and Arduino laboratory interfacing modules into their coursework and study groups.
         </p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="<?php echo $siteurl; ?>contact.php" class="btn-modern btn-primary">

@@ -36,7 +36,7 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">2. Advertising & Google AdSense Disclosure</h2>
             <p>
-                Python4Physics partners with <strong>Google AdSense</strong> to display advertisements across certain pages. These advertisements allow us to maintain web hosting servers, domain registrations, bandwidth, and open-source infrastructure free of charge for university students and educators globally.
+                Python4Physics partners with <strong>Google AdSense</strong> to display advertisements across certain pages. These advertisements allow us to maintain web hosting servers, domain registrations, bandwidth, and open-source infrastructure free of charge for science learners, researchers, and educators globally.
             </p>
             <ul style="padding-left: 1.5rem; margin-top: 0.5rem;">
                 <li>The presence of any third-party advertisement on this portal does <strong>not</strong> constitute an endorsement, sponsorship, or recommendation by the authors, The Heritage College, or Dhruba Chand Halder College.</li>
@@ -48,7 +48,7 @@ require_once __DIR__ . '/include/navbar.php';
         <section>
             <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">3. External Links Disclaimer</h2>
             <p>
-                This website contains hyperlinks to external resources including GitHub, university portals, scientific libraries (NumPy, SciPy, Matplotlib), and official collegiate department pages. These external links are provided strictly as an academic convenience. We have no editorial control over the content, availability, or privacy policies of third-party platforms.
+                This website contains hyperlinks to external resources including GitHub, scientific documentation, open-source libraries (NumPy, SciPy, Matplotlib), and official academic repositories. These external links are provided strictly as an educational convenience. We have no editorial control over the content, availability, or privacy policies of third-party platforms.
             </p>
         </section>
 

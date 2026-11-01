@@ -7,7 +7,7 @@ if (!isset($siteurl)) {
 }
 
 $page_title_text = isset($page_title) ? $page_title . " | Python4Physics" : "Python4Physics - Computational Physics with Python, GNUplot, LaTeX, Arduino";
-$page_desc_text = isset($page_description) ? $page_description : "Explore 500+ interactive computational physics algorithms, numerical simulations, GNUplot scientific graphs, and LaTeX document templates by Dr. Alorika Chatterjee and Dr. Anirban Shaw.";
+$page_desc_text = isset($page_description) ? $page_description : "Explore interactive computational physics algorithms, numerical simulations, GNUplot scientific graphs, and LaTeX document templates by Dr. Alorika Chatterjee and Dr. Anirban Shaw for all science learners.";
 
 $page_keywords_text = isset($page_keywords) 
     ? $page_keywords . ", computational physics, python for physics, numerical methods" 
@@ -130,7 +130,7 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
           "@id": "<?php echo rtrim($siteurl, '/'); ?>/#website",
           "url": "<?php echo rtrim($siteurl, '/'); ?>/",
           "name": "Python4Physics",
-          "description": "500+ Computational Physics Algorithms, Numerical Solvers & Scientific Telemetry",
+          "description": "Computational Physics Algorithms, Numerical Solvers & Scientific Telemetry",
           "publisher": {
             "@id": "<?php echo rtrim($siteurl, '/'); ?>/#organization"
           },

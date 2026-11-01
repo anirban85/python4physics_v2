@@ -3,8 +3,8 @@ require_once __DIR__ . '/../../site_config.php';
 require_once __DIR__ . '/../../db.php';
 include_once __DIR__ . '/menu.php';
 
-$page_title = "Python for Physics - 21 Chapters & 353+ Computational Algorithms";
-$page_description = "Browse all 21 chapters and 353+ interactive computational physics programs in Python, covering Kinematics, NumPy, Pandas Data Analysis, ODEs, PDEs, Quantum Mechanics, and Numerical Integration.";
+$page_title = "Python for Physics - 21 Core Chapters & Computational Algorithms";
+$page_description = "Browse all 21 chapters of interactive computational physics programs in Python, covering Kinematics, NumPy, Pandas Data Analysis, ODEs, PDEs, Quantum Mechanics, and Numerical Integration.";
 
 require_once __DIR__ . '/../../include/header.php';
 require_once __DIR__ . '/../../include/navbar.php';
@@ -14,14 +14,14 @@ require_once __DIR__ . '/../../include/navbar.php';
     <!-- Page Header -->
     <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
         <span class="badge badge-cyan"><i class="fa-brands fa-python"></i> Computational Physics</span>
-        <h1 style="font-size: 2.6rem; margin-top: 0.75rem; margin-bottom: 0.75rem;">Python Physics <span class="gradient-text">Curriculum & Chapters</span></h1>
+        <h1 style="font-size: 2.6rem; margin-top: 0.75rem; margin-bottom: 0.75rem;">Python Physics <span class="gradient-text">Modules & Chapters</span></h1>
         <p style="font-size: 1.1rem; line-height: 1.6;">
-            Explore over <strong>353 interactive Python scripts</strong> across 21 university physics modules. Run simulations directly in your browser with NumPy, Pandas, and Matplotlib.
+            Explore interactive Python scripts across 21 computational physics modules. Run simulations directly in your browser with NumPy, Pandas, and Matplotlib.
         </p>
 
         <div style="max-width: 500px; margin: 1.5rem auto 0 auto;">
             <button type="button" class="btn-modern btn-secondary trigger-global-search" style="width: 100%; justify-content: space-between; padding: 0.8rem 1.25rem;">
-                <span><i class="fa-solid fa-magnifying-glass" style="color: var(--accent); margin-right: 8px;"></i> Search within 353+ Python algorithms...</span>
+                <span><i class="fa-solid fa-magnifying-glass" style="color: var(--accent); margin-right: 8px;"></i> Search within Python algorithms...</span>
                 <kbd>Ctrl+K</kbd>
             </button>
         </div>

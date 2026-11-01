@@ -46,7 +46,7 @@ require_once __DIR__ . '/include/navbar.php';
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "All (Modern Web Browser)",
       "browserRequirements": "Requires HTML5, Canvas and JavaScript support",
-      "description": "Professional browser-based electronics CAD & SPICE simulation environment with dual-trace oscilloscope (CRO), digital multimeter (DMM), and 21 standard university electronics curriculum presets.",
+      "description": "Professional browser-based electronics CAD & SPICE simulation environment with dual-trace oscilloscope (CRO), digital multimeter (DMM), and 21 standard electronics and physics presets.",
       "featureList": [
         "Real-time SPICE Modified Nodal Analysis (MNA) solver for DC, AC and Transient responses",
         "Schematic CAD workbench with orthogonal net routing and grid snapping",
@@ -90,10 +90,10 @@ require_once __DIR__ . '/include/navbar.php';
         },
         {
           "@type": "Question",
-          "name": "Is the circuit simulator free for students and university educators?",
+          "name": "Is the circuit simulator free for science students and educators?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Python4Physics is completely free and open for educational use, scientific learning, and university coursework worldwide."
+            "text": "Yes, Python4Physics is completely free and open for educational use, scientific learning, and coursework worldwide."
           }
         }
       ]
