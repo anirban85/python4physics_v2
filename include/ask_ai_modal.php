@@ -105,6 +105,19 @@
 
             <!-- Results Output Area -->
             <div id="aiResultsArea" style="display: none; flex-direction: column; gap: 1.25rem;">
+                <!-- User Prompt Banner -->
+                <div id="aiUserPromptCard" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.28); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); font-weight: 700; margin-bottom: 0.2rem;">
+                            <i class="fa-solid fa-terminal"></i> Your Prompt:
+                        </div>
+                        <div id="aiPromptEcho" style="font-size: 0.92rem; font-weight: 600; color: #fff; line-height: 1.4; font-family: 'JetBrains Mono', monospace;"></div>
+                    </div>
+                    <button type="button" class="btn-modern btn-secondary btn-sm" onclick="editModalPrompt()" style="flex-shrink: 0; padding: 0.25rem 0.65rem; font-size: 0.75rem;">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                    </button>
+                </div>
+
                 <!-- Result Header & Actions -->
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <div>
@@ -281,6 +294,8 @@ async function submitAskAI() {
 
         // Populate results
         window.p4pAiState.generatedCode = data.code;
+        var promptEcho = document.getElementById('aiPromptEcho');
+        if (promptEcho) promptEcho.innerText = data.user_prompt || problemText;
         document.getElementById('aiResultTitle').innerText = data.title || 'Computational Physics Solution';
         document.getElementById('aiResultComplexityBadge').innerText = data.complexity || 'O(N)';
         document.getElementById('aiResultSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini 2.0 AI' : 'Physics Synthesizer';
@@ -377,6 +392,14 @@ function loadAiCodeIntoWorkbench() {
         sessionStorage.setItem('p4p_injected_code', window.p4pAiState.generatedCode);
         closeAskAIModal();
         window.location.href = '<?php echo $siteurl; ?>program/python/program.php?menu_id=1&submenu_id=1&auto_run=1';
+    }
+}
+
+function editModalPrompt() {
+    var input = document.getElementById('aiProblemInput');
+    if (input) {
+        input.focus();
+        input.select();
     }
 }
 

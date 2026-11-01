@@ -108,7 +108,20 @@ require_once __DIR__ . '/include/navbar.php';
         <div id="pageError" style="display: none; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: var(--radius-sm); padding: 1rem 1.25rem; color: #ef4444; margin-bottom: 1.5rem;"></div>
 
         <!-- Output Results Container -->
-        <div id="pageResults" style="display: none; flex-direction: column; gap: 1.5rem;">
+        <div id="pageResults" style="display: none; flex-direction: column; gap: 1.25rem;">
+            <!-- User Prompt Banner -->
+            <div id="pageUserPromptCard" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.3); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); font-weight: 700; margin-bottom: 0.3rem;">
+                        <i class="fa-solid fa-terminal"></i> User Prompt (Exact Request):
+                    </div>
+                    <div id="pagePromptEcho" style="font-size: 1.05rem; font-weight: 600; color: #fff; line-height: 1.5; font-family: 'JetBrains Mono', monospace;"></div>
+                </div>
+                <button type="button" class="btn-modern btn-secondary btn-sm" onclick="editPagePrompt()" style="flex-shrink: 0; padding: 0.4rem 0.85rem; font-size: 0.82rem;">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Prompt
+                </button>
+            </div>
+
             <!-- Output Title Bar -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem;">
                 <div>
@@ -297,9 +310,10 @@ async function generateCodeFromPage() {
         }
 
         generatedCodeText = data.code;
+        document.getElementById('pagePromptEcho').innerText = data.user_prompt || problemText;
         document.getElementById('pageResultTitle').innerText = data.title || 'Computational Physics Solution';
         document.getElementById('pageComplexityBadge').innerText = data.complexity || 'O(N)';
-        document.getElementById('pageSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini 2.0 AI' : 'Physics Synthesizer';
+        document.getElementById('pageSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini 2.0 AI' : (data.source === 'curriculum_library' ? 'Curriculum Engine' : 'Physics Synthesizer');
         document.getElementById('pageSourceBadge').className = data.source === 'gemini_ai' ? 'badge badge-primary' : 'badge badge-cyan';
 
         if (pageCodeMirror) {
@@ -403,6 +417,15 @@ function copyPageCode() {
     navigator.clipboard.writeText(code).then(function() {
         alert('Python script copied to clipboard!');
     });
+}
+
+function editPagePrompt() {
+    var promptEl = document.getElementById('pageAiPrompt');
+    if (promptEl) {
+        promptEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        promptEl.focus();
+        promptEl.select();
+    }
 }
 
 function escapeHtml(text) {

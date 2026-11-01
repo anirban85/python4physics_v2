@@ -89,6 +89,8 @@ if (empty($problem)) {
 if (!empty($apiKey)) {
     $geminiResponse = callGeminiAPI($apiKey, $problem, $includePlot, $topicHint);
     if ($geminiResponse !== null && !empty($geminiResponse['code'])) {
+        $geminiResponse['user_prompt'] = $problem;
+        $geminiResponse['code'] = prependUserPromptDocstring($geminiResponse['code'], $problem, $geminiResponse['title'], $geminiResponse['complexity'] ?? 'O(N)');
         echo json_encode($geminiResponse);
         exit;
     }
@@ -96,6 +98,8 @@ if (!empty($apiKey)) {
 
 // 3. Tier 2, 3 & 4: Specialized Solvers, Curriculum Database & Dynamic Synthesizer
 $response = generateIntelligentPhysicsCode($problem, $includePlot, $topicHint);
+$response['user_prompt'] = $problem;
+$response['code'] = prependUserPromptDocstring($response['code'], $problem, $response['title'], $response['complexity'] ?? 'O(N)');
 echo json_encode($response);
 exit;
 
@@ -247,8 +251,1008 @@ function callGeminiAPI($apiKey, $problem, $includePlot, $topicHint) {
  * Intelligent Multi-Tier Code Generator:
  * Matches specialized physics solvers, verified database programs, or dynamic synthesizers.
  */
+
+/**
+ * Automatically prepend standard user prompt metadata docstring to Python code
+ */
+function prependUserPromptDocstring($code, $problem, $title, $complexity) {
+    $cleanPrompt = trim(preg_replace('/[\r\n]+/', ' ', $problem));
+    $cleanTitle = trim(preg_replace('/[\r\n]+/', ' ', $title));
+    $cleanComplexity = trim(preg_replace('/[\r\n]+/', ' ', $complexity));
+    
+    if (str_contains(substr($code, 0, 300), 'Python4Physics - Ask AI Generated Solution')) {
+        return $code;
+    }
+
+    $header = "\"\"\"\n" .
+        str_repeat('=', 78) . "\n" .
+        "Python4Physics - Ask AI Generated Solution\n" .
+        "User Prompt: " . $cleanPrompt . "\n" .
+        "Physical Domain: " . $cleanTitle . "\n" .
+        "Complexity: " . $cleanComplexity . "\n" .
+        str_repeat('=', 78) . "\n" .
+        "\"\"\"\n\n";
+
+    return $header . ltrim($code);
+}
+
 function generateIntelligentPhysicsCode($problem, $includePlot, $topicHint) {
     $p = strtolower($problem . ' ' . $topicHint);
+
+    // =========================================================================
+    // 0A. PARITY & EVEN / ODD NUMBER CLASSIFICATION
+    // =========================================================================
+    if (preg_match('/\b(even|odd|parity)\b/i', $p) && !str_contains($p, 'bose') && !str_contains($p, 'fermi') && !str_contains($p, 'spin') && !str_contains($p, 'function')) {
+        $num = 15;
+        if (preg_match('/(?:number|for|check|is|n\s*=)\s*(-?\d+)/i', $problem, $m)) {
+            $num = (int)$m[1];
+        } elseif (preg_match('/\b(-?\d+)\b/', $problem, $m)) {
+            $num = (int)$m[1];
+        }
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parity Analysis & Even/Odd Classification
+# Definition: An integer n is even if n % 2 == 0; odd if n % 2 != 0
+
+def check_parity(n):
+    return "Even" if n % 2 == 0 else "Odd"
+
+target_n = {{NUM}}
+status = check_parity(target_n)
+
+# Range Analysis for consecutive numbers
+N = max(10, min(50, abs(target_n) * 2 if abs(target_n) > 0 else 20))
+numbers = np.arange(1, N + 1)
+evens = [x for x in numbers if x % 2 == 0]
+odds = [x for x in numbers if x % 2 != 0]
+
+print("=" * 65)
+print(f"PARITY & EVEN/ODD CLASSIFICATION REPORT")
+print("=" * 65)
+print(f"Target Number:         {target_n} is {status.upper()}")
+print(f"Tested Integer Domain: 1 to {N}")
+print(f"Total Even Integers:   {len(evens)} (Sum = {sum(evens)})")
+print(f"Total Odd Integers:    {len(odds)} (Sum = {sum(odds)})")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Parity sequence oscillation (-1)^n
+display_limit = min(20, N)
+ax1.stem(numbers[:display_limit], (-1)**numbers[:display_limit], linefmt='b-', markerfmt='bo', basefmt='k-')
+ax1.set_title(r'Parity Alternation Factor $(-1)^n$', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Integer $n$', fontsize=11)
+ax1.set_ylabel(r'$(-1)^n$ (+1 Even, -1 Odd)', fontsize=11)
+ax1.set_yticks([-1, 1])
+ax1.set_yticklabels(['Odd (-1)', 'Even (+1)'])
+ax1.grid(True, alpha=0.3)
+
+# Plot 2: Count comparison
+ax2.bar(['Even Numbers', 'Odd Numbers'], [len(evens), len(odds)], color=['#0ea5e9', '#f59e0b'], width=0.5)
+ax2.set_title(f'Even vs Odd Distribution (Domain 1 to {N})', fontsize=12, fontweight='bold')
+ax2.set_ylabel('Count', fontsize=11)
+for i, count in enumerate([len(evens), len(odds)]):
+    ax2.text(i, count * 0.5, str(count), ha='center', va='center', color='white', fontweight='bold', fontsize=12)
+ax2.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{NUM}}', (string)$num, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Even / Odd Number Classification & Parity Analysis (n = {$num})",
+            'code' => $code,
+            'explanation' => "Determines parity via the modulo operator `n % 2 == 0`. Evaluates discrete distribution across the integer domain and illustrates the alternating parity factor \$(-1)^n\$.",
+            'complexity' => 'Time: O(1) single check, O(N) range analysis; Space: O(1)',
+            'exercises' => [
+                'Implement a bitwise parity check using `(n & 1) == 0`.',
+                'Demonstrate that the product of two odd numbers is always odd.',
+                'Generalize parity to check divisibility by arbitrary modulus k.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0B. SUM OF DIGITS & DIGITAL ROOT
+    // =========================================================================
+    if (str_contains($p, 'sum of digit') || str_contains($p, 'sum of the digit') || str_contains($p, 'digital root') || (str_contains($p, 'digit') && str_contains($p, 'sum'))) {
+        $num = 987654;
+        if (preg_match('/(?:number|for|of|is|n\s*=)\s*(\d+)/i', $problem, $m)) {
+            $num = (int)$m[1];
+        } elseif (preg_match('/\b(\d+)\b/', $problem, $m)) {
+            $num = (int)$m[1];
+        }
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sum of Digits & Digital Root Calculation
+# Digital Root: The single-digit value obtained through iterative digit summing
+
+def sum_of_digits(n):
+    """Compute sum of digits using arithmetic operations."""
+    n = abs(int(n))
+    total = 0
+    while n > 0:
+        total += n % 10
+        n //= 10
+    return total
+
+def digital_root(n):
+    """Compute repeated digit sum until a single digit (base-10 digital root)."""
+    while n >= 10:
+        n = sum_of_digits(n)
+    return n
+
+target = {{NUM}}
+digit_sum = sum_of_digits(target)
+d_root = digital_root(target)
+
+digits = [int(d) for d in str(abs(target))]
+
+print("=" * 65)
+print(f"DIGIT ANALYSIS FOR INTEGER: {target}")
+print("=" * 65)
+print(f"Constituent Digits:   {digits}")
+print(f"Sum of Digits:        {' + '.join(map(str, digits))} = {digit_sum}")
+print(f"Digital Root:         {d_root} (Mod-9 property: {target % 9 if target % 9 != 0 else 9})")
+print("=" * 65)
+
+# Benchmark across sequence 1 to 100
+test_seq = np.arange(1, 101)
+roots_seq = [digital_root(x) for x in test_seq]
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Digit Frequencies in Target Number
+unique_d, counts = np.unique(digits, return_counts=True)
+ax1.bar(unique_d, counts, color='#38bdf8', edgecolor='black', width=0.6)
+ax1.set_title(f'Digit Frequency in {target}', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Digit Value (0-9)', fontsize=11)
+ax1.set_ylabel('Frequency', fontsize=11)
+ax1.set_xticks(range(10))
+ax1.grid(True, alpha=0.3, axis='y')
+
+# Plot 2: Digital Root Periodic Modulation (Modulo 9 wave)
+ax2.plot(test_seq, roots_seq, 'r.-', lw=1.2, markersize=4, label='Digital Root')
+ax2.set_title('Digital Root Periodic Modulation (1 to 100)', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Integer $n$', fontsize=11)
+ax2.set_ylabel('Digital Root', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{NUM}}', (string)$num, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Sum of Digits & Digital Root (n = {$num})",
+            'code' => $code,
+            'explanation' => "Calculates the digit sum via remainder extraction `n % 10` and floor division `n // 10`. Evaluates the modulo-9 digital root recurrence and periodic pattern across consecutive integers.",
+            'complexity' => 'Time: O(log10(N)), Space: O(1)',
+            'exercises' => [
+                'Prove that a number is divisible by 9 if and only if its sum of digits is divisible by 9.',
+                'Implement recursive digit summation `sum_digits(n) = n if n < 10 else n % 10 + sum_digits(n // 10)`.',
+                'Compute the average sum of digits for all 3-digit integers [100, 999].'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0C. PYTHON CONDITIONALS (if, elif, else)
+    // =========================================================================
+    if (str_contains($p, 'conditional') || str_contains($p, 'if elif') || str_contains($p, 'if-elif') || (str_contains($p, 'if') && str_contains($p, 'else') && (str_contains($p, 'python') || str_contains($p, 'statement') || str_contains($p, 'branch')))) {
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Python Decision Control: if, elif, else Branching
+# Physical Application: Phase State of Water as a Function of Temperature at 1 atm
+
+def classify_state_of_matter(temp_celsius):
+    """Classify physical phase state using multi-way if-elif-else branching."""
+    if temp_celsius < 0.0:
+        return "Solid (Ice)", "#38bdf8"
+    elif temp_celsius == 0.0:
+        return "Solid-Liquid Equilibrium (Melting Point)", "#0ea5e9"
+    elif 0.0 < temp_celsius < 100.0:
+        return "Liquid (Water)", "#2563eb"
+    elif temp_celsius == 100.0:
+        return "Liquid-Gas Equilibrium (Boiling Point)", "#f59e0b"
+    elif 100.0 < temp_celsius < 10000.0:
+        return "Gaseous (Steam)", "#ef4444"
+    else:
+        return "Ionized Plasma State", "#a855f7"
+
+# Test samples
+test_temps = [-20, 0, 25, 100, 150, 15000]
+print("=" * 65)
+print("PYTHON CONDITIONALS (if, elif, else) EXECUTION TRACE")
+print("=" * 65)
+for t in test_temps:
+    state, _ = classify_state_of_matter(t)
+    print(f"Temperature: {t:>6}°C  -->  Classification: {state}")
+print("=" * 65)
+
+# Visualizing Decision Boundaries across [-40, 140]°C
+temps = np.linspace(-40, 140, 400)
+
+fig, ax = plt.subplots(figsize=(10, 4.2))
+ax.axvspan(-40, 0, color='#38bdf8', alpha=0.3, label='Solid (Ice) [T < 0°C]')
+ax.axvspan(0, 100, color='#2563eb', alpha=0.25, label='Liquid (Water) [0°C < T < 100°C]')
+ax.axvspan(100, 140, color='#ef4444', alpha=0.3, label='Gaseous (Steam) [T > 100°C]')
+
+ax.axvline(0, color='#0284c7', ls='--', lw=2, label='Melting Point (0°C)')
+ax.axvline(100, color='#d97706', ls='--', lw=2, label='Boiling Point (100°C)')
+
+for t in [-20, 50, 120]:
+    state, col = classify_state_of_matter(t)
+    ax.scatter([t], [0.5], color=col, s=120, edgecolors='black', zorder=5)
+    ax.annotate(f"{t}°C: {state.split()[0]}", xy=(t, 0.5), xytext=(t-5, 0.65),
+                arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=6))
+
+ax.set_ylim(0, 1)
+ax.set_yticks([])
+ax.set_title(r'Python Conditional Branching: Water State Classification $[T < 0, 0 \leq T \leq 100, T > 100]$', fontsize=12, fontweight='bold')
+ax.set_xlabel('Temperature (°C)', fontsize=11)
+ax.grid(True, alpha=0.3, axis='x')
+ax.legend(loc='upper left', framealpha=0.9)
+
+plt.tight_layout()
+plt.show()
+PY;
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Python Conditionals: Multi-Way Decision Control (if, elif, else)",
+            'code' => $template,
+            'explanation' => "Illustrates structured sequential conditional evaluation using `if`, `elif`, and `else` blocks applied to thermodynamic phase transitions. Visualizes decision boundaries and state partition regions.",
+            'complexity' => 'Time: O(1), Space: O(1)',
+            'exercises' => [
+                'Add pressure as a second parameter to model phase boundaries using the Clausius-Clapeyron equation.',
+                'Refactor the branching logic using Python 3.10+ `match / case` pattern matching.',
+                'Implement nested conditionals to handle sub-cooling and super-heating states.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0D. GREATEST COMMON DIVISOR (GCD / HCF) & LCM (EUCLIDEAN ALGORITHM)
+    // =========================================================================
+    if (str_contains($p, 'gcd') || str_contains($p, 'hcf') || str_contains($p, 'greatest common divisor') || str_contains($p, 'highest common factor') || str_contains($p, 'euclidean algorithm') || (str_contains($p, 'lcm') && !str_contains($p, 'rlc'))) {
+        $a = 48;
+        $b = 18;
+        if (preg_match_all('/(\d+)/', $problem, $matches)) {
+            if (!empty($matches[1][0])) $a = (int)$matches[1][0];
+            if (!empty($matches[1][1])) $b = (int)$matches[1][1];
+        }
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Euclidean Algorithm: Greatest Common Divisor (GCD) & Least Common Multiple (LCM)
+# Mathematical Formulation:
+# gcd(a, b) = gcd(b, a % b) with base case gcd(a, 0) = a
+# lcm(a, b) = abs(a * b) / gcd(a, b)
+
+def compute_gcd_steps(a, b):
+    steps = []
+    a_orig, b_orig = a, b
+    while b != 0:
+        q = a // b
+        r = a % b
+        steps.append((a, b, q, r))
+        a, b = b, r
+    gcd_val = a
+    lcm_val = abs(a_orig * b_orig) // gcd_val if gcd_val != 0 else 0
+    return gcd_val, lcm_val, steps
+
+a, b = {{A}}, {{B}}
+gcd_val, lcm_val, steps = compute_gcd_steps(a, b)
+
+print("=" * 65)
+print(f"EUCLIDEAN ALGORITHM TRACE FOR gcd({a}, {b})")
+print("=" * 65)
+print(f"{'Step':<6} {'a':<10} {'b':<10} {'Quotient':<12} {'Remainder':<10}")
+print("-" * 65)
+for idx, (x, y, q, r) in enumerate(steps, 1):
+    print(f"{idx:<6} {x:<10} {y:<10} {q:<12} {r:<10}")
+print("=" * 65)
+print(f"Greatest Common Divisor (GCD): {gcd_val}")
+print(f"Least Common Multiple (LCM):   {lcm_val}")
+print("=" * 65)
+
+# Plot: Remainder sequence decay (Logarithmic convergence)
+remainders = [s[3] for s in steps]
+step_indices = list(range(1, len(remainders) + 1))
+
+fig, ax = plt.subplots(figsize=(9, 4.2))
+ax.plot(step_indices, remainders, 'bo-', lw=2, markersize=8, label='Remainder $r_k$')
+ax.axhline(0, color='red', ls='--', label='Termination ($r = 0$)')
+for k, r in zip(step_indices, remainders):
+    ax.annotate(f'r={r}', xy=(k, r), xytext=(k, r + max(remainders)*0.06),
+                ha='center', fontweight='bold', fontsize=9)
+ax.set_title(rf'Euclidean Algorithm Remainder Decay for $\gcd({a}, {b}) = {gcd_val}$', fontsize=12, fontweight='bold')
+ax.set_xlabel('Division Step $k$', fontsize=11)
+ax.set_ylabel('Remainder Value $r_k$', fontsize=11)
+ax.set_xticks(step_indices)
+ax.grid(True, alpha=0.3)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{A}}', '{{B}}'], [(string)$a, (string)$b], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Euclidean Algorithm: GCD & LCM (a = {$a}, b = {$b})",
+            'code' => $code,
+            'explanation' => "Computes the greatest common divisor using the Euclidean division theorem \$a = qb + r\$, guaranteeing rapid logarithmic convergence in \$O(\\log(\\min(a, b)))\$ steps. Derives the least common multiple via \$\\text{lcm}(a, b) = |ab| / \\gcd(a, b)\$.",
+            'complexity' => 'Time: O(log(min(a, b))), Space: O(1)',
+            'exercises' => [
+                'Implement the Extended Euclidean Algorithm to find Bezout coefficients x and y such that a*x + b*y = gcd(a, b).',
+                'Compute the modular multiplicative inverse of a mod m using the Euclidean algorithm.',
+                'Prove Lame\'s theorem: the number of division steps never exceeds 5 times the number of digits in the smaller integer.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0E. GRAVITATIONAL POTENTIAL ENERGY (U = mgh) & FREE FALL CONSERVATION
+    // =========================================================================
+    if ((str_contains($p, 'gravitational potential') || (str_contains($p, 'potential energy') && (str_contains($p, 'gravity') || str_contains($p, 'gravitat') || str_contains($p, 'height') || str_contains($p, 'mgh') || str_contains($p, 'free fall')))) && !str_contains($p, 'kepler') && !str_contains($p, 'orbit') && !str_contains($p, 'two body')) {
+        $mass = 5.0;
+        $height = 20.0;
+        if (preg_match('/(?:mass|m)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) {
+            $mass = (float)$m[1];
+        }
+        if (preg_match('/(?:height|h)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) {
+            $height = (float)$m[1];
+        }
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Gravitational Potential Energy & Mechanical Energy Conservation
+# Formulations:
+# Gravitational Potential Energy: U(y) = m * g * y
+# Kinetic Energy:                K(y) = 0.5 * m * v(y)^2
+# Conservation of Energy:        E_total = U(y) + K(y) = m * g * h_0 = const
+
+mass = {{MASS}}      # Mass of object (kg)
+height = {{HEIGHT}}  # Initial drop height (m)
+g = 9.81             # Acceleration due to gravity (m/s^2)
+
+U_initial = mass * g * height
+v_impact = np.sqrt(2 * g * height)
+t_fall = np.sqrt(2 * height / g)
+
+print("=" * 65)
+print(f"GRAVITATIONAL POTENTIAL ENERGY & CONSERVATION (m = {mass} kg, h = {height} m)")
+print("=" * 65)
+print(f"Initial Potential Energy (U0):  {U_initial:.4f} Joules")
+print(f"Total Mechanical Energy (E):    {U_initial:.4f} Joules")
+print(f"Impact Velocity at Ground (v):  {v_impact:.4f} m/s ({v_impact * 3.6:.2f} km/h)")
+print(f"Free Fall Duration (t_fall):    {t_fall:.4f} seconds")
+print("=" * 65)
+
+# Height progression from h_0 down to 0
+y = np.linspace(height, 0, 200)
+U_profile = mass * g * y
+K_profile = U_initial - U_profile
+v_profile = np.sqrt(2 * g * (height - y))
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Energy Exchange vs Altitude y
+ax1.plot(y, U_profile, 'b-', lw=2.2, label=r'Potential Energy $U(y) = mgy$')
+ax1.plot(y, K_profile, 'r-', lw=2.2, label=r'Kinetic Energy $K(y) = \frac{1}{2}mv^2$')
+ax1.plot(y, U_profile + K_profile, 'g--', lw=1.8, label=r'Total Energy $E = U + K$')
+ax1.set_title(r'Mechanical Energy Conservation ($E = U + K$)', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Height $y$ (m)', fontsize=11)
+ax1.set_ylabel('Energy (Joules)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Velocity vs Height
+ax2.plot(y, v_profile, 'm-', lw=2.0, label=r'$v(y) = \sqrt{2g(h_0 - y)}$')
+ax2.scatter([0], [v_impact], color='red', s=80, zorder=5, label=f'Impact $v = {v_impact:.2f}$ m/s')
+ax2.set_title('Velocity Acquisition during Free Fall', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Height $y$ (m)', fontsize=11)
+ax2.set_ylabel('Downward Velocity (m/s)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{MASS}}', '{{HEIGHT}}'], [(string)$mass, (string)$height], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Gravitational Potential Energy & Free Fall Conservation (m = {$mass} kg, h = {$height} m)",
+            'code' => $code,
+            'explanation' => "Models conservative mechanical energy conversion from gravitational potential energy \$U = mgh\$ to kinetic energy \$K = \\frac{1}{2}mv^2\$. Validates total mechanical energy invariance \$E = U + K = \\text{const}\$.",
+            'complexity' => 'Time: O(1), Space: O(1)',
+            'exercises' => [
+                'Incorporate aerodynamic quadratic drag F_drag = -0.5 * rho * C_d * A * v^2 to compute terminal velocity.',
+                'Contrast the near-Earth linear approximation U = mgh with Newton\'s universal gravitation U(r) = -G * M * m / r.',
+                'Compute the bounce height and mechanical coefficient of restitution e = v_after / v_before.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0F. SPRING-MASS HARMONIC OSCILLATOR (SHM, DAMPED & PHASE SPACE)
+    // =========================================================================
+    if (str_contains($p, 'spring') || str_contains($p, 'spring-mass') || str_contains($p, 'spring mass') || (str_contains($p, 'harmonic oscillator') && !str_contains($p, 'pendulum') && !str_contains($p, 'quantum'))) {
+        $m_val = 1.0;
+        $k_val = 25.0;
+        $b_val = 0.4;
+        if (preg_match('/(?:mass|m)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) $m_val = (float)$m[1];
+        if (preg_match('/(?:k|spring\s*constant)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) $k_val = (float)$m[1];
+        if (preg_match('/(?:damping|b|gamma)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) $b_val = (float)$m[1];
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Harmonic Oscillator: Spring-Mass System (SHM, Damping & Phase Space)
+# Governing Equation: m * d^2x/dt^2 + b * dx/dt + k * x = 0
+# Angular Frequency: omega_0 = sqrt(k / m)
+# Damping Ratio:     zeta = b / (2 * sqrt(m * k))
+
+m = {{MASS}}      # Mass (kg)
+k = {{K}}         # Spring constant (N/m)
+b = {{B}}         # Damping coefficient (N·s/m)
+x0 = 0.2          # Initial displacement (m)
+v0 = 0.0          # Initial velocity (m/s)
+
+omega_0 = np.sqrt(k / m)
+zeta = b / (2.0 * np.sqrt(m * k))
+T_period = 2.0 * np.pi / omega_0
+
+# Time array
+t_max = 5.0 * T_period
+dt = 0.005
+t = np.arange(0, t_max, dt)
+steps = len(t)
+
+# State arrays: x (position), v (velocity)
+x = np.zeros(steps)
+v = np.zeros(steps)
+x[0] = x0
+v[0] = v0
+
+# RK4 Numerical Integration
+def deriv(pos, vel):
+    acc = -(k / m) * pos - (b / m) * vel
+    return vel, acc
+
+for i in range(steps - 1):
+    xi, vi = x[i], v[i]
+    k1_x, k1_v = deriv(xi, vi)
+    k2_x, k2_v = deriv(xi + 0.5 * dt * k1_x, vi + 0.5 * dt * k1_v)
+    k3_x, k3_v = deriv(xi + 0.5 * dt * k2_x, vi + 0.5 * dt * k2_v)
+    k4_x, k4_v = deriv(xi + dt * k3_x, vi + dt * k3_v)
+    
+    x[i + 1] = xi + (dt / 6.0) * (k1_x + 2*k2_x + 2*k3_x + k4_x)
+    v[i + 1] = vi + (dt / 6.0) * (k1_v + 2*k2_v + 2*k3_v + k4_v)
+
+# Energies: Kinetic and Potential
+T_kinetic = 0.5 * m * v**2
+V_potential = 0.5 * k * x**2
+E_total = T_kinetic + V_potential
+
+print("=" * 65)
+print(f"SPRING-MASS HARMONIC OSCILLATOR REPORT (m = {m} kg, k = {k} N/m)")
+print("=" * 65)
+print(f"Natural Angular Frequency (omega_0): {omega_0:.4f} rad/s")
+print(f"Natural Oscillation Period (T):     {T_period:.4f} seconds")
+print(f"Damping Ratio (zeta):                {zeta:.4f} ({'Underdamped' if zeta < 1 else ('Critically Damped' if zeta == 1 else 'Overdamped')})")
+print(f"Initial Mechanical Energy:           {E_total[0]:.4f} Joules")
+print(f"Final Mechanical Energy:             {E_total[-1]:.4f} Joules")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Position and Velocity vs Time
+ax1.plot(t, x, 'b-', lw=1.8, label=r'Displacement $x(t)$ (m)')
+ax1.plot(t, v / omega_0, 'r--', lw=1.5, label=r'Normalized Velocity $v/\omega_0$')
+ax1.set_title(rf'Spring-Mass SHM: $\omega_0 = {omega_0:.2f}$ rad/s, $\zeta = {zeta:.2f}$', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Time $t$ (s)', fontsize=11)
+ax1.set_ylabel('Amplitude', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Phase Space Trajectory (x vs v)
+ax2.plot(x, v, 'm-', lw=1.5, label='Phase Portrait')
+ax2.scatter([x[0]], [v[0]], color='green', s=70, zorder=5, label='Start')
+ax2.scatter([x[-1]], [v[-1]], color='red', s=70, zorder=5, label='End')
+ax2.set_title('Phase Space Portrait $(x, v)$', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Displacement $x$ (m)', fontsize=11)
+ax2.set_ylabel('Velocity $v$ (m/s)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{MASS}}', '{{K}}', '{{B}}'], [(string)$m_val, (string)$k_val, (string)$b_val], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Spring-Mass Harmonic Oscillator & Phase Space (m = {$m_val} kg, k = {$k_val} N/m)",
+            'code' => $code,
+            'explanation' => "Simulates linear harmonic motion with viscous damping \$m\\ddot{x} + b\\dot{x} + kx = 0\$ using 4th-order Runge-Kutta integration. Traces position, velocity, and phase space orbit attractor decay.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Set damping b = 0 to verify exact analytical energy conservation E = 0.5 * k * x_0^2.',
+                'Find the critical damping coefficient b_crit = 2 * sqrt(m * k) and demonstrate non-oscillatory return.',
+                'Add a harmonic driving force F_0 * cos(omega_d * t) and plot the Lorentzian resonance amplitude peak.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0G. ELECTROSTATICS: POINT CHARGE ELECTRIC FIELD & POTENTIAL
+    // =========================================================================
+    if (str_contains($p, 'point charge') || str_contains($p, 'coulomb') || (str_contains($p, 'electric') && (str_contains($p, 'charge') || (str_contains($p, 'field') && !str_contains($p, 'magnetic')) || (str_contains($p, 'potential') && !str_contains($p, 'gravit') && !str_contains($p, 'well'))))) {
+        $q_val = 1e-9;
+        $r_val = 0.05;
+        if (preg_match('/(?:charge|q)\s*=?\s*(-?\d+(?:\.\d+)?(?:e-?\d+)?)/i', $problem, $m)) {
+            $q_val = (float)$m[1];
+        }
+        if (preg_match('/(?:distance|radius|r)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:cm|m)?/i', $problem, $m)) {
+            $r_val = (float)$m[1];
+            if (str_contains(strtolower($m[0]), 'cm')) $r_val /= 100.0;
+        }
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Electrostatics: Point Charge Coulomb Field & Electric Potential
+# Formulations:
+# Coulomb's Constant: k_e = 1 / (4 * pi * epsilon_0) ≈ 8.98755e9 N·m^2/C^2
+# Electric Field:     E(r) = (k_e * |q| / r^2) * r_hat
+# Electric Potential: V(r) = k_e * q / r
+
+k_e = 8.98755e9   # Coulomb constant (N·m^2/C^2)
+q = {{CHARGE}}    # Charge in Coulombs
+r_ref = {{R}}     # Target distance (m)
+
+E_at_r = k_e * abs(q) / r_ref**2
+V_at_r = k_e * q / r_ref
+
+print("=" * 65)
+print(f"ELECTROSTATIC TELEMETRY FOR POINT CHARGE q = {q:.3e} C")
+print("=" * 65)
+print(f"Distance from Charge (r):      {r_ref:.4f} m ({r_ref*100:.2f} cm)")
+print(f"Electric Field Magnitude (E):  {E_at_r:.4e} N/C (or V/m)")
+print(f"Electric Potential (V):        {V_at_r:.4f} Volts")
+print("=" * 65)
+
+# 1. Radial Decay Curves
+r = np.linspace(0.01, max(0.5, r_ref * 2.5), 300)
+E_radial = k_e * abs(q) / r**2
+V_radial = k_e * q / r
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: 1/r^2 Electric Field & 1/r Potential Decay
+ax1.plot(r * 100, E_radial, 'b-', lw=2, label=r'Electric Field $E(r) \propto 1/r^2$')
+ax1.plot(r * 100, V_radial, 'r--', lw=1.8, label=r'Potential $V(r) \propto 1/r$')
+ax1.scatter([r_ref * 100], [E_at_r], color='blue', s=80, zorder=5, label=f'E({r_ref*100:.1f}cm)')
+ax1.scatter([r_ref * 100], [V_at_r], color='red', s=80, zorder=5, label=f'V({r_ref*100:.1f}cm)')
+ax1.set_title('Radial Decay of Electric Field & Potential', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Radial Distance $r$ (cm)', fontsize=11)
+ax1.set_ylabel('Magnitude (SI Units)', fontsize=11)
+ax1.set_yscale('log')
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: 2D Field Lines & Equipotential Contours
+L = max(0.2, r_ref * 2.0)
+grid = np.linspace(-L, L, 100)
+X, Y = np.meshgrid(grid, grid)
+R = np.sqrt(X**2 + Y**2)
+R[R < 0.01] = 0.01
+
+Ex = k_e * q * X / R**3
+Ey = k_e * q * Y / R**3
+V_2d = k_e * q / R
+
+ax2.streamplot(X, Y, Ex, Ey, color='navy', density=1.0, linewidth=0.8, arrowsize=1.0)
+contours = ax2.contour(X, Y, V_2d, levels=8, cmap='coolwarm', alpha=0.7)
+ax2.clabel(contours, inline=True, fontsize=7)
+ax2.scatter([0], [0], color='red' if q > 0 else 'blue', s=120, edgecolors='black', zorder=10, label=f'q = {q:.1e} C')
+ax2.set_aspect('equal')
+ax2.set_title('2D Electric Field Lines & Equipotential Rings', fontsize=12, fontweight='bold')
+ax2.set_xlabel('$x$ (m)', fontsize=11)
+ax2.set_ylabel('$y$ (m)', fontsize=11)
+ax2.legend(loc='upper right')
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{CHARGE}}', '{{R}}'], [(string)$q_val, (string)$r_val], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Electrostatics: Point Charge Electric Field & Potential (q = " . sprintf('%.1e', $q_val) . " C, r = {$r_val} m)",
+            'code' => $code,
+            'explanation' => "Formulates Coulomb's law electrostatics: electric field \$E(r) = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r^2}\$ and scalar potential \$V(r) = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r}\$. Visualizes logarithmic radial decay and 2D vector stream lines with equipotential surfaces.",
+            'complexity' => 'Time: O(N^2) grid field, Space: O(N^2)',
+            'exercises' => [
+                'Add a second point charge to compute the dipole field E = E_1 + E_2 by vector superposition.',
+                'Compute Gauss\'s law electric flux through a spherical surface of radius R.',
+                'Calculate the electrostatic work required to move a test charge from infinity to r.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0H. LINEAR ALGEBRA: MATRIX ADDITION, SUBTRACTION & MULTIPLICATION
+    // =========================================================================
+    if (str_contains($p, 'matrix') && (str_contains($p, 'addition') || str_contains($p, 'subtraction') || str_contains($p, 'multiplication') || str_contains($p, 'multiply') || str_contains($p, 'add') || str_contains($p, 'product'))) {
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Computational Linear Algebra: Matrix Arithmetic & Matrix Multiplication
+# Operations:
+# 1. Addition:       C = A + B       (C_ij = A_ij + B_ij)
+# 2. Subtraction:    D = A - B       (D_ij = A_ij - B_ij)
+# 3. Multiplication: M = A @ B       (M_ij = \sum_k A_ik * B_kj)
+
+A = np.array([
+    [2.0, 1.0, 3.0],
+    [1.0, 4.0, 2.0],
+    [3.0, 2.0, 5.0]
+])
+
+B = np.array([
+    [1.0, 0.0, 2.0],
+    [3.0, 2.0, 1.0],
+    [0.0, 1.0, 4.0]
+])
+
+# Matrix Operations
+C_add = A + B
+D_sub = A - B
+M_mul = A @ B
+det_A = np.linalg.det(A)
+inv_A = np.linalg.inv(A)
+
+print("=" * 65)
+print("COMPUTATIONAL MATRIX ARITHMETIC REPORT")
+print("=" * 65)
+print("Matrix A (3x3):\n", A)
+print("\nMatrix B (3x3):\n", B)
+print("\nMatrix Addition (A + B):\n", C_add)
+print("\nMatrix Subtraction (A - B):\n", D_sub)
+print("\nMatrix Product (A @ B):\n", M_mul)
+print(f"\nDeterminant det(A): {det_A:.4f}")
+print("Matrix Inverse A^(-1):\n", np.round(inv_A, 4))
+print("=" * 65)
+
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10, 8))
+
+def plot_mat(ax, mat, title, cmap):
+    im = ax.imshow(mat, cmap=cmap, aspect='auto')
+    ax.set_title(title, fontsize=11, fontweight='bold')
+    for i in range(mat.shape[0]):
+        for j in range(mat.shape[1]):
+            ax.text(j, i, f'{mat[i, j]:.1f}', ha='center', va='center',
+                    color='white' if abs(mat[i, j]) > np.max(np.abs(mat))*0.5 else 'black',
+                    fontweight='bold', fontsize=10)
+    plt.colorbar(im, ax=ax, shrink=0.8)
+
+plot_mat(ax1, A, 'Input Matrix A', 'Blues')
+plot_mat(ax2, B, 'Input Matrix B', 'Oranges')
+plot_mat(ax3, C_add, 'Addition (A + B)', 'Greens')
+plot_mat(ax4, M_mul, 'Multiplication (A @ B)', 'Purples')
+
+plt.tight_layout()
+plt.show()
+PY;
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Computational Linear Algebra: Matrix Addition, Subtraction & Multiplication",
+            'code' => $template,
+            'explanation' => "Computes fundamental matrix operations: element-wise addition \$A+B\$, subtraction \$A-B\$, dot product matrix multiplication \$A \\cdot B\$, determinant \$\\det(A)\$, and inverse \$A^{-1}\$. Heatmaps visualize matrix entries and transformation results.",
+            'complexity' => 'Addition: O(N^2), Multiplication: O(N^3)',
+            'exercises' => [
+                'Verify non-commutativity by comparing A @ B with B @ A.',
+                'Compute the trace of matrix A and show that Tr(A + B) = Tr(A) + Tr(B).',
+                'Demonstrate that (A @ B).T = B.T @ A.T.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0I. OPTICS: SNELL'S LAW OF REFRACTION & CRITICAL ANGLE
+    // =========================================================================
+    if (str_contains($p, 'snell') || str_contains($p, 'refraction') || str_contains($p, 'critical angle') || str_contains($p, 'total internal reflection')) {
+        $n1 = 1.0;
+        $n2 = 1.5;
+        $theta1 = 30.0;
+        if (preg_match('/n1\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) $n1 = (float)$m[1];
+        if (preg_match('/n2\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) $n2 = (float)$m[1];
+        if (preg_match('/(?:angle|theta|at)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:deg|degree|°)?/i', $problem, $m)) $theta1 = (float)$m[1];
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Wave Optics: Snell's Law of Refraction & Total Internal Reflection
+# Formulation: n1 * sin(theta_1) = n2 * sin(theta_2)
+# Critical Angle (n1 > n2): theta_c = arcsin(n2 / n1)
+
+n1 = {{N1}}         # Refractive index of medium 1
+n2 = {{N2}}         # Refractive index of medium 2
+theta1_deg = {{THETA1}} # Angle of incidence (degrees)
+
+theta1_rad = np.radians(theta1_deg)
+
+# Check critical angle
+critical_angle_deg = None
+if n1 > n2:
+    critical_angle_deg = np.degrees(np.arcsin(n2 / n1))
+
+sin_theta2 = (n1 / n2) * np.sin(theta1_rad)
+if sin_theta2 <= 1.0:
+    theta2_deg = np.degrees(np.arcsin(sin_theta2))
+    tir = False
+else:
+    theta2_deg = None
+    tir = True
+
+print("=" * 65)
+print(f"SNELL'S LAW OF REFRACTION REPORT (n1 = {n1}, n2 = {n2})")
+print("=" * 65)
+print(f"Angle of Incidence (theta_1):  {theta1_deg:.2f}°")
+if tir:
+    print(f"Condition:                     TOTAL INTERNAL REFLECTION (TIR)")
+    print(f"Critical Angle (theta_c):      {critical_angle_deg:.2f}°")
+else:
+    print(f"Angle of Refraction (theta_2): {theta2_deg:.2f}°")
+    if critical_angle_deg:
+        print(f"Critical Angle (theta_c):      {critical_angle_deg:.2f}°")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Snell's Law Curve (theta2 vs theta1)
+theta_in = np.linspace(0, 90, 300)
+theta_in_rad = np.radians(theta_in)
+sin_t2 = (n1 / n2) * np.sin(theta_in_rad)
+valid = sin_t2 <= 1.0
+
+ax1.plot(theta_in[valid], np.degrees(np.arcsin(sin_t2[valid])), 'b-', lw=2.2, label=r'$\theta_2(\theta_1)$')
+if critical_angle_deg:
+    ax1.axvline(critical_angle_deg, color='red', ls='--', label=rf'Critical $\theta_c = {critical_angle_deg:.1f}^\circ$')
+if not tir:
+    ax1.scatter([theta1_deg], [theta2_deg], color='gold', s=100, edgecolors='black', zorder=5, label=f'Current: {theta2_deg:.1f}°')
+ax1.set_title(rf"Snell's Law: $n_1={n1} \to n_2={n2}$", fontsize=12, fontweight='bold')
+ax1.set_xlabel('Angle of Incidence $\\theta_1$ (deg)', fontsize=11)
+ax1.set_ylabel('Angle of Refraction $\\theta_2$ (deg)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: 2D Optical Ray Diagram at Interface
+ax2.axhline(0, color='black', lw=2)
+ax2.fill_between([-1, 1], 0, 1, color='lightcyan', alpha=0.4, label=f'Medium 1 (n={n1})')
+ax2.fill_between([-1, 1], -1, 0, color='lightskyblue', alpha=0.4, label=f'Medium 2 (n={n2})')
+ax2.axvline(0, color='gray', ls=':', lw=1.5, label='Normal Line')
+
+# Incident Ray
+ray_len = 0.8
+x_inc = -ray_len * np.sin(theta1_rad)
+y_inc = ray_len * np.cos(theta1_rad)
+ax2.plot([x_inc, 0], [y_inc, 0], 'r-', lw=2.5, label='Incident Ray')
+
+if tir:
+    ax2.plot([0, ray_len * np.sin(theta1_rad)], [0, ray_len * np.cos(theta1_rad)], 'g--', lw=2, label='TIR Reflected Ray')
+else:
+    t2_rad = np.radians(theta2_deg)
+    x_ref = ray_len * np.sin(t2_rad)
+    y_ref = -ray_len * np.cos(t2_rad)
+    ax2.plot([0, x_ref], [0, y_ref], 'g-', lw=2.5, label='Refracted Ray')
+
+ax2.set_xlim(-1, 1)
+ax2.set_ylim(-1, 1)
+ax2.set_aspect('equal')
+ax2.set_title('Ray Trajectory Across Interface', fontsize=12, fontweight='bold')
+ax2.legend(loc='upper right', fontsize=8)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{N1}}', '{{N2}}', '{{THETA1}}'], [(string)$n1, (string)$n2, (string)$theta1], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Optics: Snell's Law of Refraction & Critical Angle (n1 = {$n1}, n2 = {$n2})",
+            'code' => $code,
+            'explanation' => "Formulates optical boundary refraction using Snell's law \$n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2\$. Computes the critical angle \$\\theta_c = \\arcsin(n_2/n_1)\$ for total internal reflection and renders a 2D ray trajectory.",
+            'complexity' => 'Time: O(1), Space: O(1)',
+            'exercises' => [
+                'Compute Brewster\'s polarizing angle theta_B = arctan(n2 / n1).',
+                'Calculate Fresnel reflectance coefficients R_s and R_p for TE and TM polarizations.',
+                'Model refraction through a triangular glass prism and determine the angle of minimum deviation.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0J. OPTICS: THIN LENS FORMULA & RAY TRACING
+    // =========================================================================
+    if (str_contains($p, 'lens') || str_contains($p, 'thin lens') || str_contains($p, 'lens maker')) {
+        $f_val = 15.0;
+        $u_val = -30.0;
+        if (preg_match('/(?:focal|f)\s*=?\s*(-?\d+(?:\.\d+)?)/i', $problem, $m)) $f_val = (float)$m[1];
+        if (preg_match('/(?:object|u)\s*=?\s*(-?\d+(?:\.\d+)?)/i', $problem, $m)) $u_val = -abs((float)$m[1]);
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Geometrical Optics: Thin Lens Formula & Ray Tracing
+# Gaussian Thin Lens Equation: 1/f = 1/v - 1/u
+# Magnification:                m = v / u = h_i / h_o
+
+f = {{F}}        # Focal length in cm
+u = {{U}}        # Object distance in cm (negative convention)
+h_o = 4.0        # Object height in cm
+
+# Image distance v
+v = 1.0 / (1.0 / f + 1.0 / u)
+m = v / u
+h_i = m * h_o
+
+print("=" * 65)
+print(f"THIN LENS OPTICS REPORT (f = {f} cm, u = {u} cm)")
+print("=" * 65)
+print(f"Image Distance (v):        {v:.2f} cm ({'Real (Right)' if v > 0 else 'Virtual (Left)'})")
+print(f"Transverse Magnification:  {m:.3f}")
+print(f"Image Height (h_i):        {h_i:.2f} cm ({'Inverted' if h_i < 0 else 'Erect'})")
+print("=" * 65)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+# Optical Axis & Lens Plane
+ax.axhline(0, color='black', lw=1.2)
+ax.axvline(0, color='blue', lw=2.5, ls='-', label='Thin Lens')
+
+# Focal Points
+ax.scatter([-f, f], [0, 0], color='red', s=60, zorder=5)
+ax.text(-f, -0.6, f'F1 (-{abs(f)})', ha='center', fontweight='bold', fontsize=9)
+ax.text(f, -0.6, f'F2 (+{abs(f)})', ha='center', fontweight='bold', fontsize=9)
+
+# Object Arrow
+ax.arrow(u, 0, 0, h_o, head_width=1.5, head_length=0.6, fc='green', ec='green', lw=2.5, length_includes_head=True)
+ax.text(u, h_o + 0.4, f'Object (h={h_o}cm)', ha='center', color='green', fontweight='bold', fontsize=9)
+
+# Image Arrow
+ax.arrow(v, 0, 0, h_i, head_width=1.5, head_length=0.6 * np.sign(h_i), fc='purple', ec='purple', lw=2.5, length_includes_head=True)
+ax.text(v, h_i + (0.4 if h_i > 0 else -0.8), f'Image (h={h_i:.1f}cm)', ha='center', color='purple', fontweight='bold', fontsize=9)
+
+# Principal Rays
+ax.plot([u, 0, v], [h_o, h_o, h_i], 'r--', lw=1.5, label='Ray 1: Parallel to Focus')
+ax.plot([u, v], [h_o, h_i], 'orange', ls='--', lw=1.5, label='Ray 2: Central Ray')
+
+ax.set_title(rf'Thin Lens Ray Diagram: $f={f}$ cm, $u={u}$ cm $\implies v={v:.1f}$ cm ($m={m:.2f}$)', fontsize=12, fontweight='bold')
+ax.set_xlabel('Optical Axis $x$ (cm)', fontsize=11)
+ax.set_ylabel('Height $y$ (cm)', fontsize=11)
+ax.grid(True, alpha=0.3)
+ax.legend(loc='upper right')
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(['{{F}}', '{{U}}'], [(string)$f_val, (string)$u_val], $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Thin Lens Equation & Optical Ray Tracing (f = {$f_val} cm, u = {$u_val} cm)",
+            'code' => $code,
+            'explanation' => "Formulates Gaussian geometrical optics \$\\frac{1}{f} = \\frac{1}{v} - \\frac{1}{u}\$ and computes transverse magnification \$m = \\frac{v}{u}\$. Plots geometric principal ray paths and image formation.",
+            'complexity' => 'Time: O(1), Space: O(1)',
+            'exercises' => [
+                'Model a concave divergent lens with f < 0 and demonstrate virtual image formation.',
+                'Simulate a two-lens compound microscope and compute total angular magnification.',
+                'Compute chromatic aberration arising from dispersion n(lambda) across wavelengths.'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 0K. MODERN PHYSICS: BOHR MODEL OF HYDROGEN ATOM & SPECTRAL SERIES
+    // =========================================================================
+    if (str_contains($p, 'bohr') || str_contains($p, 'hydrogen atom') || str_contains($p, 'rydberg') || str_contains($p, 'spectral series') || str_contains($p, 'balmer')) {
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Quantum Physics: Bohr Model of Hydrogen Atom & Spectral Series
+# Energy Levels: E_n = -13.606 / n^2 eV
+# Orbital Radii: r_n = n^2 * a_0 (a_0 ≈ 0.529 Angstrom)
+# Rydberg Formula: 1 / lambda = R_H * (1 / n1^2 - 1 / n2^2)
+
+R_H = 1.097373e7   # Rydberg constant (m^-1)
+a_0 = 0.529177     # Bohr radius (Angstroms)
+
+ns = np.arange(1, 7)
+energies = -13.606 / ns**2
+radii = ns**2 * a_0
+
+print("=" * 65)
+print("BOHR HYDROGEN ATOM ENERGY LEVELS & SPECTRAL SERIES")
+print("=" * 65)
+for n, E, r in zip(ns, energies, radii):
+    print(f"State n = {n}:  Energy = {E:>7.3f} eV  |  Orbital Radius = {r:>7.3f} Å")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Energy Level Diagram & Transitions
+for n, E in zip(ns, energies):
+    ax1.axhline(E, color='navy', lw=2)
+    ax1.text(0.1, E + 0.2, f'n = {n} ({E:.2f} eV)', fontweight='bold', fontsize=9)
+
+# Balmer Series transitions (n2 -> 2)
+balmer_colors = ['red', 'cyan', 'blue', 'violet']
+for idx, n2 in enumerate([3, 4, 5, 6]):
+    w_inv = R_H * (1.0/4.0 - 1.0/n2**2)
+    w_nm = (1.0 / w_inv) * 1e9
+    x_pos = 0.4 + idx * 0.12
+    ax1.annotate('', xy=(x_pos, -13.606/4), xytext=(x_pos, -13.606/n2**2),
+                 arrowprops=dict(facecolor=balmer_colors[idx], shrink=0.05, width=1.5, headwidth=6))
+    ax1.text(x_pos, -13.606/n2**2 + 0.3, f'{w_nm:.0f}nm', ha='center', fontsize=8, color=balmer_colors[idx], fontweight='bold')
+
+ax1.set_xlim(0, 1)
+ax1.set_ylim(-14.5, 0.5)
+ax1.set_xticks([])
+ax1.set_title('Bohr Energy Levels & Balmer Emission (n > 2 to 2)', fontsize=12, fontweight='bold')
+ax1.set_ylabel('Energy $E_n$ (eV)', fontsize=11)
+ax1.grid(True, alpha=0.3, axis='y')
+
+# Plot 2: Orbital Radii Scaling (Quadratic n^2)
+ax2.plot(ns, radii, 'bo-', lw=2, markersize=7, label=r'Radius $r_n = n^2 a_0$')
+ax2.set_title(r'Bohr Orbit Radii Growth ($r_n \propto n^2$)', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Principal Quantum Number $n$', fontsize=11)
+ax2.set_ylabel('Orbital Radius $r_n$ (Å)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Quantum Mechanics: Bohr Model of Hydrogen Atom & Spectral Series",
+            'code' => $template,
+            'explanation' => "Formulates quantized angular momentum \$L = n\\hbar\$, deriving hydrogen energy levels \$E_n = -\\frac{13.6}{n^2}\$ eV and orbital radii \$r_n = n^2 a_0\$. Calculates Rydberg emission wavelengths for the Balmer visible spectral series.",
+            'complexity' => 'Time: O(1), Space: O(1)',
+            'exercises' => [
+                'Compute transition wavelengths for the ultraviolet Lyman series (n1 = 1).',
+                'Calculate the ionization energy required to liberate an electron from the ground state.',
+                'Incorporate reduced mass mu = m_e * M_p / (m_e + M_p) to model Deuterium isotope spectral shifts.'
+            ]
+        ];
+    }
+
 
     // =========================================================================
     // 1. FACTORIAL (Pure Factorial calculation, iterative, recursive, Stirling)
@@ -420,9 +1424,93 @@ PY;
     // 3. PRIME NUMBERS & SIEVE OF ERATOSTHENES
     // =========================================================================
     if (str_contains($p, 'prime') || str_contains($p, 'sieve') || str_contains($p, 'eratosthenes') || str_contains($p, 'primality')) {
+        if (preg_match('/(?:first|initial)\s*(\d+)\s*primes?/i', $problem, $fm)) {
+            $count = min(1000, max(1, (int)$fm[1]));
+            $templateFirstN = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Prime Number Generation: First N Primes Algorithm
+# Computes the exact first N prime numbers sequentially
+
+def generate_first_n_primes(n):
+    """Generate the exact first n prime numbers."""
+    if n <= 0:
+        return []
+    primes = [2]
+    cand = 3
+    while len(primes) < n:
+        is_p = True
+        limit = int(np.isqrt(cand))
+        for p in primes:
+            if p > limit:
+                break
+            if cand % p == 0:
+                is_p = False
+                break
+        if is_p:
+            primes.append(cand)
+        cand += 2
+    return primes
+
+N = {{COUNT}}
+primes = generate_first_n_primes(N)
+
+print("=" * 65)
+print(f"FIRST {N} PRIME NUMBERS REPORT")
+print("=" * 65)
+print(f"Count of Primes:      {len(primes)}")
+print(f"List of First {N} Primes:\n{primes}")
+print(f"The {N}th Prime:       {primes[-1]}")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Prime Value Growth p_n vs Index n
+indices = np.arange(1, len(primes) + 1)
+ax1.plot(indices, primes, 'bo-', lw=1.8, markersize=5, label=r'Exact Prime $p_n$')
+if len(primes) > 1:
+    approx_pn = indices * np.log(np.maximum(2, indices))
+    ax1.plot(indices, approx_pn, 'r--', lw=1.5, label=r"PNT Asymptotic $n \ln(n)$")
+ax1.set_title(rf'Growth of First {N} Primes ($p_n$ vs $n$)', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Index $n$', fontsize=11)
+ax1.set_ylabel(r'Prime Value $p_n$', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Prime Gaps (Differences between consecutive primes)
+if len(primes) > 1:
+    gaps = np.diff(primes)
+    ax2.bar(indices[:-1], gaps, color='#38bdf8', edgecolor='navy', width=0.8)
+    ax2.set_title('Prime Gaps $g_n = p_{n+1} - p_n$', fontsize=12, fontweight='bold')
+    ax2.set_xlabel('Index $n$', fontsize=11)
+    ax2.set_ylabel('Gap Size', fontsize=11)
+    ax2.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+PY;
+            $code = str_replace('{{COUNT}}', (string)$count, $templateFirstN);
+            return [
+                'success' => true,
+                'source' => 'physics_engine',
+                'title' => "First {$count} Prime Numbers & Prime Gap Sequence",
+                'code' => $code,
+                'explanation' => "Generates the exact first \$N = {$count}\$ prime numbers sequentially using trial division up to \$\sqrt{k}\$ against previously discovered primes. Benchmarks prime growth against the Prime Number Theorem asymptotic \$p_n \sim n \ln(n)\$.",
+                'complexity' => 'Time: O(N * sqrt(p_N)), Space: O(N)',
+                'exercises' => [
+                    'Analyze the distribution of prime gaps g_n = p_{n+1} - p_n to identify twin primes (g_n = 2).',
+                    'Test the Hardy-Littlewood conjecture on the frequency of prime pairs.',
+                    'Compare execution time against the segmented sieve algorithm.'
+                ]
+            ];
+        }
+
         $limit = 200;
-        if (preg_match('/\b(\d+)\b/', $problem, $m)) {
-            $limit = min(2000, max(20, (int)$m[1]));
+        if (preg_match('/(?:up to|limit|to|n\s*=)\s*(\d+)/i', $problem, $m)) {
+            $limit = min(5000, max(2, (int)$m[1]));
+        } elseif (preg_match('/\b(\d+)\b/', $problem, $m)) {
+            $limit = min(5000, max(2, (int)$m[1]));
         }
         $template = <<<'PY'
 import numpy as np
@@ -2021,9 +3109,94 @@ PY;
     }
 
     // =========================================================================
+    // 8C. PHOTOELECTRIC EFFECT & EINSTEIN WORK FUNCTION
+    // =========================================================================
+    if (str_contains($p, 'photoelectric') || str_contains($p, 'work function') || str_contains($p, 'stopping potential') || str_contains($p, 'photocell')) {
+        $phi_eV = 2.2;
+        if (preg_match('/(?:work\s*function|phi)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:ev)?/i', $problem, $m)) {
+            $phi_eV = (float)$m[1];
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*ev\b/i', $problem, $m)) {
+            $phi_eV = (float)$m[1];
+        }
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Quantum Physics: Einstein's Photoelectric Effect & Planck's Constant
+# Einstein Relation: K_max = h * nu - Phi = e * V_0
+# Stopping Potential: V_0 = (h / e) * nu - (Phi / e)
+
+h = 6.62607e-34     # Planck's constant (J·s)
+e = 1.60218e-19     # Elementary charge (C)
+c = 2.99792e8       # Speed of light (m/s)
+
+phi_eV = {{PHI}}    # Work function in eV
+phi_joules = phi_eV * e
+
+# Threshold frequency & wavelength
+nu_0 = phi_joules / h
+lambda_0_nm = (c / nu_0) * 1e9
+
+print("=" * 65)
+print(f"PHOTOELECTRIC EFFECT TELEMETRY (Work Function Phi = {phi_eV:.2f} eV)")
+print("=" * 65)
+print(f"Threshold Optical Frequency (nu_0): {nu_0:.4e} Hz")
+print(f"Threshold Wavelength (lambda_0):    {lambda_0_nm:.2f} nm ({'UV' if lambda_0_nm < 400 else ('Visible' if lambda_0_nm <= 700 else 'IR')})")
+print(f"Theoretical Slope (h/e):            {h / e:.4e} V·s")
+print("=" * 65)
+
+# Optical Frequencies sweep from 0.8 * nu_0 to 2.5 * nu_0
+nu = np.linspace(0.8 * nu_0, 2.5 * nu_0, 200)
+K_max_eV = np.maximum(0, (h * nu - phi_joules) / e)
+V_stopping = (h * nu - phi_joules) / e
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Stopping Potential vs Frequency (Yielding h/e slope)
+ax1.plot(nu * 1e-14, V_stopping, 'b-', lw=2.2, label=r'Stopping Potential $V_0(\nu)$')
+ax1.axhline(0, color='gray', ls=':', lw=1)
+ax1.axvline(nu_0 * 1e-14, color='red', ls='--', label=rf'Threshold $\nu_0 = {nu_0*1e-14:.2f}\times 10^{{14}}$ Hz')
+ax1.set_title(r"Einstein's Relation: $V_0 = \frac{h}{e}\nu - \frac{\Phi}{e}$", fontsize=12, fontweight='bold')
+ax1.set_xlabel(r'Optical Frequency $\nu$ ($10^{14}$ Hz)', fontsize=11)
+ax1.set_ylabel('Stopping Potential $V_0$ (Volts)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Kinetic Energy vs Wavelength lambda
+wavelengths = np.linspace(150, lambda_0_nm * 1.2, 200)
+K_vs_lambda = np.maximum(0, (h * c / (wavelengths * 1e-9) - phi_joules) / e)
+ax2.plot(wavelengths, K_vs_lambda, 'r-', lw=2.0, label=r'$K_{\max}(\lambda)$')
+ax2.axvline(lambda_0_nm, color='black', ls='--', label=rf'Cutoff $\lambda_0 = {lambda_0_nm:.1f}$ nm')
+ax2.set_title(r'Max Photoelectron Kinetic Energy vs Wavelength', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Wavelength $\lambda$ (nm)', fontsize=11)
+ax2.set_ylabel(r'$K_{\max}$ (eV)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{PHI}}', (string)$phi_eV, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Photoelectric Effect: Stopping Potential & Work Function (Phi = {$phi_eV} eV)",
+            'code' => $code,
+            'explanation' => "Formulates Einstein's photoelectric equation \$K_{\max} = e V_0 = h\nu - \Phi\$. Demonstrates threshold frequency \$\nu_0 = \Phi / h\$ cutoff and linear dependence of stopping potential on optical frequency, validating Planck's quantum hypothesis.",
+            'complexity' => 'Time: O(1), Space: O(1)',
+            'exercises' => [
+                'Determine Planck\'s constant from the slope of stopping potential vs frequency: h = e * (Delta V_0 / Delta nu).',
+                'Calculate the maximum speed of emitted photoelectrons v_max = sqrt(2 * K_max / m_e).',
+                'Analyze the effect of increasing light intensity (amplitude) vs increasing photon frequency.'
+            ]
+        ];
+    }
+
+    // =========================================================================
     // 8B. COMPTON SCATTERING & QUANTUM OPTICS
     // =========================================================================
-    if (str_contains($p, 'compton') || (str_contains($p, 'wavelength') && str_contains($p, 'shift')) || str_contains($p, 'photoelectric') || str_contains($p, 'work function') || str_contains($p, 'stopping potential')) {
+    if ((str_contains($p, 'compton') || (str_contains($p, 'wavelength') && str_contains($p, 'shift'))) && !str_contains($p, 'photoelectric') && !str_contains($p, 'stopping potential')) {
         $angleDeg = 60.0;
         if (preg_match('/(?:angle|at|theta)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:deg|degree|°)?/i', $problem, $m)) {
             $angleDeg = (float)$m[1];
@@ -2307,7 +3480,7 @@ PY;
     // =========================================================================
     // 11. KEPLER PLANETARY ORBITS
     // =========================================================================
-    if (str_contains($p, 'kepler') || str_contains($p, 'orbit') || str_contains($p, 'planetary') || str_contains($p, 'gravitat') || str_contains($p, 'two body')) {
+    if ((str_contains($p, 'kepler') || str_contains($p, 'orbit') || str_contains($p, 'planetary') || str_contains($p, 'two body')) && !str_contains($p, 'potential energy')) {
         $code = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -3991,18 +5164,19 @@ function searchDatabaseForProgramSmart($problem) {
             }
         }
 
-        // Targeted SQL search on algo title ONLY (never raw content with generic words)
+        // Targeted SQL search on algo title ONLY when title is short and highly specific
+        // Ignore long HTML explanations to prevent false positive keyword collisions
         $placeholders = [];
         $params = [];
         foreach ($keywords as $kw) {
-            if (strlen($kw) >= 4) {
+            if (strlen($kw) >= 4 && !in_array($kw, ['code', 'python', 'point', 'charge', 'field', 'data', 'series', 'system', 'equation', 'method', 'program', 'function'])) {
                 $placeholders[] = "algo LIKE ?";
                 $params[] = "%$kw%";
             }
         }
 
         if (!empty($placeholders)) {
-            $sql = "SELECT id, menu_id, submenu_id, program_id, algo, content, explanation FROM python WHERE (" . implode(" OR ", $placeholders) . ") AND content IS NOT NULL LIMIT 20";
+            $sql = "SELECT id, menu_id, submenu_id, program_id, algo, content, explanation FROM python WHERE (" . implode(" OR ", $placeholders) . ") AND content IS NOT NULL AND LENGTH(algo) < 120 LIMIT 15";
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $candidates = $stmt->fetchAll();
@@ -4019,13 +5193,12 @@ function searchDatabaseForProgramSmart($problem) {
                         $matchCount++;
                     }
                 }
-                // Require at least two distinct keywords to match algo
-                if ($matchCount >= 2 && $cScore > $bestCandScore) {
+                if ($matchCount >= 3 && $cScore > $bestCandScore) {
                     $bestCandScore = $cScore;
                     $bestCand = $cand;
                 }
             }
-            if ($bestCandScore >= 70 && $bestCand !== null && !empty($bestCand['content'])) {
+            if ($bestCandScore >= 95 && $bestCand !== null && !empty($bestCand['content'])) {
                 return $bestCand;
             }
         }
