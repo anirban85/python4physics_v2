@@ -234,7 +234,55 @@ document.addEventListener('DOMContentLoaded', function() {
         setPagePrompt(q);
         generateCodeFromPage();
     }
+
+    // Typeset any initial formulas in Theory & Method panel
+    var initialTheory = document.getElementById('panel_page_theory');
+    if (initialTheory) {
+        typesetMathInElement(initialTheory);
+    }
 });
+
+function typesetMathInElement(container) {
+    if (!container) return;
+
+    var doRender = function() {
+        if (typeof window.renderMathInElement === 'function') {
+            try {
+                window.renderMathInElement(container, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '\\[', right: '\\]', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false }
+                    ],
+                    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    throwOnError: false
+                });
+            } catch (err) {
+                console.warn('[KaTeX Render Error]:', err);
+            }
+        } else if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([container]).catch(function(e) {
+                console.warn('[MathJax Render Error]:', e);
+            });
+        }
+    };
+
+    if (typeof window.renderMathInElement === 'function' || (window.MathJax && window.MathJax.typesetPromise)) {
+        doRender();
+    } else {
+        var attempts = 0;
+        var interval = setInterval(function() {
+            attempts++;
+            if (typeof window.renderMathInElement === 'function' || (window.MathJax && window.MathJax.typesetPromise)) {
+                clearInterval(interval);
+                doRender();
+            } else if (attempts >= 25) {
+                clearInterval(interval);
+            }
+        }, 120);
+    }
+}
 
 function savePageApiKey(val) {
     if (val && val.trim()) {
@@ -259,6 +307,13 @@ function switchPageTab(tabName) {
         if (btn) btn.classList.toggle('active', t === tabName);
         if (panel) panel.classList.toggle('active', t === tabName);
     });
+
+    if (tabName === 'theory') {
+        var theoryPanel = document.getElementById('panel_page_theory');
+        if (theoryPanel) {
+            typesetMathInElement(theoryPanel);
+        }
+    }
 }
 
 async function generateCodeFromPage() {
@@ -364,6 +419,12 @@ async function generateCodeFromPage() {
             document.getElementById('pageExercisesBlock').style.display = 'none';
         }
 
+        // Typeset mathematical equations in Theory & Method panel
+        var theoryPanel = document.getElementById('panel_page_theory');
+        if (theoryPanel) {
+            typesetMathInElement(theoryPanel);
+        }
+
         resultsEl.style.display = 'flex';
 
         // Auto run if plotting is expected
@@ -452,7 +513,7 @@ async function callGeminiClientDirectly(apiKey, problemText, includePlot) {
         "{\n" +
         "  \"title\": \"Clear descriptive title of the solution\",\n" +
         "  \"code\": \"Executable Python code string with clear comments\",\n" +
-        "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics\",\n" +
+        "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics with LaTeX mathematical equations ($...$ or $$...$$)\",\n" +
         "  \"complexity\": \"Time and memory complexity (e.g. O(N log N))\",\n" +
         "  \"exercises\": [\"Exercise 1 for student\", \"Exercise 2\", \"Exercise 3\"]\n" +
         "}";

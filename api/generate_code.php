@@ -159,7 +159,7 @@ function callGeminiAPI($apiKey, $problem, $includePlot, $topicHint) {
             "{\n" .
             "  \"title\": \"Clear descriptive title of the solution\",\n" .
             "  \"code\": \"Executable Python code string with clear comments\",\n" .
-            "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics\",\n" .
+            "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics with LaTeX mathematical equations ($...$ or $$...$$)\",\n" .
             "  \"complexity\": \"Time and memory complexity (e.g. O(N log N))\",\n" .
             "  \"exercises\": [\"Exercise 1 for student\", \"Exercise 2\", \"Exercise 3\"]\n" .
             "}";

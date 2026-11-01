@@ -192,6 +192,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+function typesetMathInElement(container) {
+    if (!container) return;
+
+    var doRender = function() {
+        if (typeof window.renderMathInElement === 'function') {
+            try {
+                window.renderMathInElement(container, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '\\[', right: '\\]', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false }
+                    ],
+                    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    throwOnError: false
+                });
+            } catch (err) {
+                console.warn('[KaTeX Render Error]:', err);
+            }
+        } else if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([container]).catch(function(e) {
+                console.warn('[MathJax Render Error]:', e);
+            });
+        }
+    };
+
+    if (typeof window.renderMathInElement === 'function' || (window.MathJax && window.MathJax.typesetPromise)) {
+        doRender();
+    } else {
+        var attempts = 0;
+        var interval = setInterval(function() {
+            attempts++;
+            if (typeof window.renderMathInElement === 'function' || (window.MathJax && window.MathJax.typesetPromise)) {
+                clearInterval(interval);
+                doRender();
+            } else if (attempts >= 25) {
+                clearInterval(interval);
+            }
+        }, 120);
+    }
+}
+
 function saveAiApiKey(val) {
     if (val && val.trim()) {
         localStorage.setItem('p4p_gemini_api_key', val.trim());
@@ -352,6 +394,9 @@ async function submitAskAI() {
 
         resultsArea.style.display = 'flex';
 
+        // Typeset mathematical equations in Theory & Exercises
+        typesetMathInElement(resultsArea);
+
         // Scroll to results
         setTimeout(function() {
             resultsArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -428,7 +473,7 @@ if (typeof callGeminiClientDirectly !== 'function') {
             "{\n" +
             "  \"title\": \"Clear descriptive title of the solution\",\n" +
             "  \"code\": \"Executable Python code string with clear comments\",\n" +
-            "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics\",\n" +
+            "  \"explanation\": \"Pointwise concise theoretical overview and algorithm mechanics with LaTeX mathematical equations ($...$ or $$...$$)\",\n" +
             "  \"complexity\": \"Time and memory complexity (e.g. O(N log N))\",\n" +
             "  \"exercises\": [\"Exercise 1 for student\", \"Exercise 2\", \"Exercise 3\"]\n" +
             "}";
