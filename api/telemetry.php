@@ -64,7 +64,9 @@ $salt = 'p4p_telemetry_secure_salt_2026';
 $ipHash = hash('sha256', $salt . $clientIp);
 
 $uaDetails = parse_user_agent_details($_SERVER['HTTP_USER_AGENT'] ?? '');
-$location = resolve_client_location();
+$clientTz = trim($payload['timezone'] ?? '');
+$clientLang = trim($payload['language'] ?? ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? ''));
+$location = resolve_client_location($clientIp, $clientTz, $clientLang, $conn);
 
 try {
     switch ($action) {

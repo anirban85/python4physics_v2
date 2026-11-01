@@ -156,6 +156,15 @@
   function init() {
     updateScrollDepth();
 
+    let clientTimezone = '';
+    try {
+      if (window.Intl && typeof Intl.DateTimeFormat === 'function') {
+        clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      }
+    } catch (e) {}
+
+    let clientLang = navigator.language || navigator.userLanguage || '';
+
     // 1. Initial Page View
     sendTelemetry({
       action: 'page_view',
@@ -163,7 +172,9 @@
       url: window.location.href,
       title: document.title,
       referrer: document.referrer || '',
-      screen_res: (window.screen ? (window.screen.width + 'x' + window.screen.height) : '')
+      screen_res: (window.screen ? (window.screen.width + 'x' + window.screen.height) : ''),
+      timezone: clientTimezone,
+      language: clientLang
     }, false);
 
     // 2. Tab Visibility Listener

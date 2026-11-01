@@ -49,6 +49,7 @@ $dayOfWeekBreakdown = $analytics['dayOfWeekBreakdown'];
 $peakDay            = $analytics['peakDay'];
 $topCountries       = $analytics['topCountries'];
 $topCities          = $analytics['topCities'];
+$demographySummary  = $analytics['demographySummary'];
 $deviceBreakdown    = $analytics['deviceBreakdown'];
 $osBreakdown        = $analytics['osBreakdown'];
 $browserBreakdown   = $analytics['browserBreakdown'];
@@ -949,22 +950,88 @@ require_once __DIR__ . '/layout_top.php';
      TAB 4: DEMOGRAPHY & GEOLOCATION
      ==================================================================== -->
 <div id="tab-demography" class="analytics-tab-content">
+    <!-- Demography Executive KPI Strip -->
+    <div class="admin-grid-stats" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 1.75rem;">
+        <div class="admin-stat-card">
+            <i class="fa-solid fa-earth-asia admin-stat-icon" style="color: #38bdf8;"></i>
+            <div class="admin-stat-label">Sovereign Nations</div>
+            <div class="admin-stat-value" style="color: #38bdf8;"><?php echo count($topCountries); ?></div>
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+                Leading: <strong><?php echo htmlspecialchars($demographySummary['top_country'] ?? 'India'); ?></strong>
+            </div>
+        </div>
+
+        <div class="admin-stat-card">
+            <i class="fa-solid fa-city admin-stat-icon" style="color: #10b981;"></i>
+            <div class="admin-stat-label">Urban Hubs &amp; Metros</div>
+            <div class="admin-stat-value" style="color: #34d399;"><?php echo count($topCities); ?></div>
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+                Top Hub: <strong><?php echo htmlspecialchars($demographySummary['top_city'] ?? 'Kolkata'); ?></strong>
+            </div>
+        </div>
+
+        <div class="admin-stat-card">
+            <i class="fa-solid fa-location-arrow admin-stat-icon" style="color: #f59e0b;"></i>
+            <div class="admin-stat-label">Domestic Audience (India)</div>
+            <div class="admin-stat-value" style="color: #fbbf24;"><?php echo $demographySummary['india_share_pct'] ?? 0; ?>%</div>
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+                <?php echo number_format($demographySummary['india_views'] ?? 0); ?> domestic impressions
+            </div>
+        </div>
+
+        <div class="admin-stat-card">
+            <i class="fa-solid fa-globe admin-stat-icon" style="color: #a855f7;"></i>
+            <div class="admin-stat-label">Global International Reach</div>
+            <div class="admin-stat-value" style="color: #c084fc;"><?php echo $demographySummary['international_share_pct'] ?? 0; ?>%</div>
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
+                <?php echo number_format($demographySummary['international_views'] ?? 0); ?> overseas impressions
+            </div>
+        </div>
+    </div>
+
+    <!-- Demography Charts Row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Country Share Donut -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-card-title"><i class="fa-solid fa-chart-pie" style="color: #38bdf8;"></i> Country Volume Share</h2>
+            </div>
+            <div class="chart-box-donut">
+                <canvas id="countryDonutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Cities Bar Chart -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-card-title"><i class="fa-solid fa-chart-column" style="color: #10b981;"></i> Top Metropolitan Hubs Traffic</h2>
+            </div>
+            <div class="chart-box-donut">
+                <canvas id="cityBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row: Sovereign Nations & Metropolitan Cities -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem;">
         <!-- Top Countries Table -->
         <div class="admin-card">
             <div class="admin-card-header">
-                <h2 class="admin-card-title"><i class="fa-solid fa-earth-asia" style="color: var(--admin-accent);"></i> International Demography</h2>
+                <div>
+                    <h2 class="admin-card-title"><i class="fa-solid fa-earth-asia" style="color: var(--admin-accent);"></i> International Demography</h2>
+                    <p class="admin-page-subtitle" style="font-size: 0.8rem; margin-top: 0.2rem;">Country-level audience volume, unique sessions, and average dwell time in IST.</p>
+                </div>
                 <span class="admin-badge admin-badge-cyan"><?php echo count($topCountries); ?> Sovereign Nations</span>
             </div>
             <div class="admin-table-container">
-                <table class="admin-table">
+                <table class="admin-table" id="countriesTable">
                     <thead>
                         <tr>
                             <th>Country</th>
                             <th style="text-align: right;">Impressions</th>
                             <th style="text-align: right;">Sessions</th>
                             <th style="text-align: right;">Share</th>
-                            <th style="text-align: right;">Avg Time</th>
+                            <th style="text-align: right;">Avg Time (IST)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -974,25 +1041,25 @@ require_once __DIR__ . '/layout_top.php';
                             <?php foreach ($topCountries as $c): ?>
                                 <tr>
                                     <td>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="font-size: 1.25rem;"><?php echo $c['flag']; ?></span>
+                                        <div style="display: flex; align-items: center; gap: 9px;">
+                                            <span style="font-size: 1.35rem; line-height: 1;"><?php echo $c['flag']; ?></span>
                                             <div>
-                                                <strong><?php echo htmlspecialchars($c['country_name']); ?></strong>
-                                                <div style="font-size: 0.72rem; color: var(--admin-text-muted); font-family: monospace;"><?php echo htmlspecialchars($c['country_code']); ?></div>
+                                                <strong style="color: #fff; font-size: 0.9rem;"><?php echo htmlspecialchars($c['country_name']); ?></strong>
+                                                <div style="font-size: 0.72rem; color: var(--admin-text-muted); font-family: 'JetBrains Mono', monospace;"><?php echo htmlspecialchars($c['country_code']); ?></div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="text-align: right; font-weight: 700;"><?php echo number_format($c['views']); ?></td>
-                                    <td style="text-align: right;"><?php echo number_format($c['sessions']); ?></td>
+                                    <td style="text-align: right; font-weight: 800; color: #38bdf8; font-size: 0.95rem;"><?php echo number_format($c['views']); ?></td>
+                                    <td style="text-align: right; font-weight: 600; color: var(--admin-text-muted);"><?php echo number_format($c['sessions']); ?></td>
                                     <td style="text-align: right;">
                                         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
-                                            <div style="width: 45px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                                                <div style="width: <?php echo min(100, $c['share_pct']); ?>%; height: 100%; background: #38bdf8;"></div>
+                                            <div style="width: 48px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                                                <div style="width: <?php echo min(100, $c['share_pct']); ?>%; height: 100%; background: linear-gradient(90deg, #0ea5e9, #38bdf8);"></div>
                                             </div>
-                                            <span style="font-size: 0.78rem;"><?php echo $c['share_pct']; ?>%</span>
+                                            <span style="font-size: 0.8rem; font-family: monospace; font-weight: 600;"><?php echo $c['share_pct']; ?>%</span>
                                         </div>
                                     </td>
-                                    <td style="text-align: right; font-family: monospace; color: #34d399; font-size: 0.82rem;">
+                                    <td style="text-align: right; font-family: 'JetBrains Mono', monospace; color: #34d399; font-size: 0.82rem; font-weight: 600;">
                                         <?php echo format_seconds_duration($c['avg_dur']); ?>
                                     </td>
                                 </tr>
@@ -1006,41 +1073,57 @@ require_once __DIR__ . '/layout_top.php';
         <!-- Top Cities Table -->
         <div class="admin-card">
             <div class="admin-card-header">
-                <h2 class="admin-card-title"><i class="fa-solid fa-city" style="color: var(--admin-accent);"></i> Top Metropolitan Cities &amp; Hubs</h2>
-                <span class="admin-badge admin-badge-green"><?php echo count($topCities); ?> Urban Regions</span>
+                <div>
+                    <h2 class="admin-card-title"><i class="fa-solid fa-city" style="color: #10b981;"></i> Top Metropolitan Cities &amp; Hubs</h2>
+                    <p class="admin-page-subtitle" style="font-size: 0.8rem; margin-top: 0.2rem;">Urban centers, technology corridors, and physics research hubs.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="text" id="citySearchInput" class="table-filter-input" style="width: 170px; padding: 5px 10px; font-size: 0.78rem;" placeholder="Filter city..." onkeyup="filterCitiesTable()">
+                    <span class="admin-badge admin-badge-green"><?php echo count($topCities); ?> Urban Hubs</span>
+                </div>
             </div>
             <div class="admin-table-container">
-                <table class="admin-table">
+                <table class="admin-table" id="citiesTable">
                     <thead>
                         <tr>
-                            <th>City / Metro</th>
-                            <th>Country</th>
+                            <th>City / Urban Center</th>
+                            <th>Nation</th>
                             <th style="text-align: right;">Impressions</th>
                             <th style="text-align: right;">Sessions</th>
+                            <th style="text-align: right;">Share</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($topCities)): ?>
-                            <tr><td colspan="4" style="text-align: center; color: var(--admin-text-muted);">No urban city data recorded.</td></tr>
+                            <tr><td colspan="5" style="text-align: center; color: var(--admin-text-muted);">No urban city data recorded in this period.</td></tr>
                         <?php else: ?>
                             <?php foreach ($topCities as $city): ?>
                                 <tr>
                                     <td>
                                         <div style="display: flex; align-items: center; gap: 8px;">
-                                            <i class="fa-solid fa-location-dot" style="color: #ec4899;"></i>
-                                            <strong><?php echo htmlspecialchars($city['city']); ?></strong>
+                                            <i class="fa-solid fa-location-dot" style="color: #ec4899; font-size: 0.9rem;"></i>
+                                            <strong style="color: #fff; font-size: 0.9rem;"><?php echo htmlspecialchars($city['city']); ?></strong>
                                         </div>
                                     </td>
                                     <td>
-                                        <span style="font-size: 0.85rem; color: var(--admin-text-muted);">
-                                            <?php echo get_country_flag_emoji($city['country_code']); ?> <?php echo htmlspecialchars($city['country_name']); ?>
+                                        <span style="font-size: 0.82rem; color: var(--admin-text-muted); display: inline-flex; align-items: center; gap: 5px;">
+                                            <span style="font-size: 1.1rem; line-height: 1;"><?php echo $city['flag']; ?></span>
+                                            <span><?php echo htmlspecialchars($city['country_name']); ?></span>
                                         </span>
                                     </td>
-                                    <td style="text-align: right; font-weight: 700; color: #38bdf8;">
+                                    <td style="text-align: right; font-weight: 800; color: #34d399; font-size: 0.95rem;">
                                         <?php echo number_format($city['views']); ?>
                                     </td>
-                                    <td style="text-align: right; color: var(--admin-text-muted);">
+                                    <td style="text-align: right; font-weight: 600; color: var(--admin-text-muted);">
                                         <?php echo number_format($city['sessions']); ?>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                                            <div style="width: 42px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                                                <div style="width: <?php echo min(100, $city['share_pct']); ?>%; height: 100%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
+                                            </div>
+                                            <span style="font-size: 0.78rem; font-family: monospace;"><?php echo $city['share_pct']; ?>%</span>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -1496,6 +1579,21 @@ function filterPagesTable() {
     }
 }
 
+// Table Filter for Metropolitan Cities
+function filterCitiesTable() {
+    const input = document.getElementById('citySearchInput');
+    if (!input) return;
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('citiesTable');
+    if (!table) return;
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const text = tr[i].textContent || tr[i].innerText;
+        tr[i].style.display = text.toLowerCase().includes(filter) ? '' : 'none';
+    }
+}
+
 // Auto-Refresh Realtime Stream
 let autoRefreshTimer = null;
 const autoRefreshCheckbox = document.getElementById('autoRefreshCheckbox');
@@ -1770,6 +1868,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 cutout: '68%',
                 plugins: {
                     legend: { position: 'bottom', labels: { color: textColor, font: { weight: 600 } } }
+                }
+            }
+        });
+    }
+
+    // 6. Country Demography Donut Chart
+    const countryCtx = document.getElementById('countryDonutChart');
+    if (countryCtx) {
+        const cData = <?php echo json_encode(array_slice($topCountries, 0, 7)); ?>;
+        new Chart(countryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: cData.map(c => c.country_name),
+                datasets: [{
+                    data: cData.map(c => c.views),
+                    backgroundColor: ['#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#64748b'],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#111827' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: textColor, font: { weight: 600 } } }
+                }
+            }
+        });
+    }
+
+    // 7. Top Metropolitan Cities Bar Chart
+    const cityCtx = document.getElementById('cityBarChart');
+    if (cityCtx) {
+        const cityData = <?php echo json_encode(array_slice($topCities, 0, 8)); ?>;
+        new Chart(cityCtx, {
+            type: 'bar',
+            data: {
+                labels: cityData.map(c => c.city),
+                datasets: [{
+                    label: 'Page Views',
+                    data: cityData.map(c => c.views),
+                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }
                 }
             }
         });
