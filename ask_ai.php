@@ -286,20 +286,20 @@ async function generateCodeFromPage() {
     errorEl.style.display = 'none';
     resultsEl.style.display = 'none';
 
-    var data = null;
+    try {
+        var data = null;
 
-    // 1. If user provided a Gemini API Key, attempt direct client-side call to Google Gemini
-    if (apiKey) {
-        try {
-            data = await callGeminiClientDirectly(apiKey, problemText, includePlot);
-        } catch (geminiErr) {
-            console.warn('Direct client-side Gemini API call failed, falling back to server engine:', geminiErr);
+        // 1. If user provided a Gemini API Key, attempt direct client-side call to Google Gemini
+        if (apiKey) {
+            try {
+                data = await callGeminiClientDirectly(apiKey, problemText, includePlot);
+            } catch (geminiErr) {
+                console.warn('Direct client-side Gemini API call failed, falling back to server engine:', geminiErr);
+            }
         }
-    }
 
-    // 2. Fall back to backend computational physics engine if no API key or direct call was bypassed
-    if (!data || !data.success) {
-        try {
+        // 2. Fall back to backend computational physics engine if no API key or direct call was bypassed
+        if (!data || !data.success) {
             var response = await fetch('<?php echo $siteurl; ?>api/generate_code.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -311,25 +311,17 @@ async function generateCodeFromPage() {
             });
 
             data = await response.json();
-        } catch (err) {
-            loader.style.display = 'none';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Python Code';
-            errorEl.innerText = 'Network error: ' + err.message;
+        }
+
+        loader.style.display = 'none';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Python Code';
+
+        if (!data || !data.success || !data.code) {
+            errorEl.innerText = (data && data.error) ? data.error : 'Failed to generate solution. Please try again.';
             errorEl.style.display = 'block';
             return;
         }
-    }
-
-    loader.style.display = 'none';
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Python Code';
-
-    if (!data || !data.success || !data.code) {
-        errorEl.innerText = (data && data.error) ? data.error : 'Failed to generate solution. Please try again.';
-        errorEl.style.display = 'block';
-        return;
-    }
 
         generatedCodeText = data.code;
         document.getElementById('pagePromptEcho').innerText = data.user_prompt || problemText;
