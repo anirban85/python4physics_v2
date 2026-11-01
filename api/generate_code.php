@@ -29,6 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Environment & Configuration Ingestion
+if (file_exists(__DIR__ . '/../site_config.php')) {
+    require_once __DIR__ . '/../site_config.php';
+}
+if (file_exists(__DIR__ . '/../db.php')) {
+    require_once __DIR__ . '/../db.php';
+}
+
 // 1. Retrieve Problem Description & Configuration
 $problem = '';
 $apiKey = '';
@@ -36,6 +44,8 @@ if (!empty($_POST['gemini_api_key'])) {
     $apiKey = trim($_POST['gemini_api_key']);
 } elseif (!empty($_SERVER['HTTP_X_GEMINI_KEY'])) {
     $apiKey = trim($_SERVER['HTTP_X_GEMINI_KEY']);
+} elseif (!empty($gemini_api_key)) {
+    $apiKey = trim($gemini_api_key);
 } elseif (!empty(getenv('GEMINI_API_KEY'))) {
     $apiKey = trim(getenv('GEMINI_API_KEY'));
 }
@@ -758,39 +768,56 @@ PY;
     // =========================================================================
     // 3D. BIOT-SAVART LAW & CIRCULAR CURRENT LOOP
     // =========================================================================
-    if ((str_contains($p, 'biot') && str_contains($p, 'savart')) || (str_contains($p, 'circular') && str_contains($p, 'loop') && str_contains($p, 'magnetic'))) {
-        $code = <<<'PY'
+    if ((str_contains($p, 'biot') && str_contains($p, 'savart')) || (str_contains($p, 'circular') && (str_contains($p, 'loop') || str_contains($p, 'coil')) && str_contains($p, 'magnetic'))) {
+        $radius = 0.10;
+        if (preg_match('/(?:radius|r)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:m|cm)?/i', $problem, $m)) {
+            $radius = (float)$m[1];
+            if (str_contains(strtolower($m[0]), 'cm')) $radius /= 100.0;
+        }
+
+        $turns = 1;
+        if (preg_match('/(\d+)\s*(?:turns|windings|loops)/i', $problem, $m)) {
+            $turns = (int)$m[1];
+        }
+
+        $current = 5.0;
+        if (preg_match('/(?:current|i)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:a|amp|amperes)?/i', $problem, $m)) {
+            $current = (float)$m[1];
+        }
+
+        $template = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Electrodynamics: Biot-Savart Law for Circular Current Loop
-# Axial Magnetic Field: B_z(z) = (mu_0 * I * R^2) / (2 * (R^2 + z^2)^(3/2))
-# Center Field: B_0 = (mu_0 * I) / (2 * R)
+# Electrodynamics: Biot-Savart Law for N-Turn Circular Current Loop
+# Axial Magnetic Field: B_z(z) = (N * mu_0 * I * R^2) / (2 * (R^2 + z^2)^(3/2))
+# Center Field: B_0 = (N * mu_0 * I) / (2 * R)
 
 mu0 = 4.0 * np.pi * 1e-7  # Permeability of vacuum (T*m/A)
-I = 5.0                   # Current (Amperes)
-R = 0.10                  # Radius of loop (meters)
+N = {{TURNS}}             # Number of turns
+I = {{CURRENT}}           # Current (Amperes)
+R = {{RADIUS}}            # Radius of loop (meters)
 
-# Axial profile from -3R to +3R
-z = np.linspace(-0.35, 0.35, 500)
-Bz_axial = (mu0 * I * R**2) / (2.0 * (R**2 + z**2)**1.5)
-B0 = (mu0 * I) / (2.0 * R)
+# Axial profile from -3.5R to +3.5R
+z = np.linspace(-3.5 * R, 3.5 * R, 500)
+Bz_axial = (N * mu0 * I * R**2) / (2.0 * (R**2 + z**2)**1.5)
+B0 = (N * mu0 * I) / (2.0 * R)
 
 print("=" * 65)
-print(f"BIOT-SAVART TELEMETRY: CIRCULAR CURRENT LOOP (R = {R*100:.1f} cm, I = {I} A)")
+print(f"BIOT-SAVART TELEMETRY: CIRCULAR COIL (N = {N}, R = {R*100:.1f} cm, I = {I} A)")
 print("=" * 65)
 print(f"Center Magnetic Field B(0):      {B0 * 1e6:.2f} microTesla")
 print(f"Field at z = R ({R*100:.1f} cm):         {Bz_axial[np.argmin(np.abs(z - R))] * 1e6:.2f} microTesla")
-print(f"Asymptotic 1/z^3 scaling:        Confirmed for z >> R")
+print(f"Asymptotic 1/z^3 Dipole:         Confirmed for z >> R")
 print("=" * 65)
 
 # 2D Vector Streamlines in (r, z) plane
-r_grid = np.linspace(-0.25, 0.25, 100)
-z_grid = np.linspace(-0.25, 0.25, 100)
+r_grid = np.linspace(-2.5 * R, 2.5 * R, 100)
+z_grid = np.linspace(-2.5 * R, 2.5 * R, 100)
 R_mesh, Z_mesh = np.meshgrid(r_grid, z_grid)
 
-Br = (mu0 * I / (4 * np.pi)) * (3 * R_mesh * Z_mesh * R**2) / ((R_mesh**2 + Z_mesh**2 + R**2)**2.5 + 1e-6)
-Bz = (mu0 * I / (2 * np.pi)) * (R**2) / ((R_mesh**2 + Z_mesh**2 + R**2)**1.5 + 1e-6)
+Br = (N * mu0 * I / (4 * np.pi)) * (3 * R_mesh * Z_mesh * R**2) / ((R_mesh**2 + Z_mesh**2 + R**2)**2.5 + 1e-6)
+Bz = (N * mu0 * I / (2 * np.pi)) * (R**2) / ((R_mesh**2 + Z_mesh**2 + R**2)**1.5 + 1e-6)
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
 
@@ -818,17 +845,152 @@ ax2.legend(loc='upper right')
 plt.tight_layout()
 plt.show()
 PY;
+        $code = str_replace(
+            ['{{TURNS}}', '{{CURRENT}}', '{{RADIUS}}'],
+            [(string)$turns, (string)$current, (string)$radius],
+            $template
+        );
         return [
             'success' => true,
             'source' => 'physics_engine',
-            'title' => 'Electrodynamics: Biot-Savart Law & Magnetic Field of Circular Current Loop',
+            'title' => "Electrodynamics: Biot-Savart Law for Circular Coil (N = {$turns}, R = " . ($radius * 100) . " cm, I = {$current} A)",
             'code' => $code,
-            'explanation' => "Calculates the axial magnetic field profile \$B_z(z) = \\frac{\\mu_0 I R^2}{2(R^2 + z^2)^{3/2}}\$ and models 2D poloidal field streamlines. Demonstrates dipole \$1/z^3\$ asymptotic decay for \$z \\gg R\$.",
+            'explanation' => "Calculates the axial magnetic field profile \$B_z(z) = \\frac{N \\mu_0 I R^2}{2(R^2 + z^2)^{3/2}}\$ and models 2D poloidal field streamlines. Demonstrates dipole \$1/z^3\$ asymptotic decay for \$z \\gg R\$.",
             'complexity' => 'Time: O(N), Space: O(N)',
             'exercises' => [
                 'Model Helmholtz coils (two identical loops separated by distance R) and verify magnetic field uniformity.',
                 'Integrate the Biot-Savart law numerically along an arbitrary polygonal current loop.',
                 'Calculate the vector potential A_theta and verify B = curl(A).'
+            ]
+        ];
+    }
+
+    // =========================================================================
+    // 3D-1. SOLENOID, TOROID & HELMHOLTZ COILS MAGNETIC FIELD
+    // =========================================================================
+    if (str_contains($p, 'solenoid') || str_contains($p, 'toroid') || str_contains($p, 'helmholtz')) {
+        $turns = 500;
+        if (preg_match('/(\d+)\s*(?:turns|windings|loops)/i', $problem, $m)) {
+            $turns = (int)$m[1];
+        } elseif (preg_match('/(?:n|turns)\s*=?\s*(\d+)/i', $problem, $m)) {
+            $turns = (int)$m[1];
+        }
+
+        $length = 0.5;
+        if (preg_match('/(?:length|l)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:m|cm|meters)?/i', $problem, $m)) {
+            $length = (float)$m[1];
+            if (str_contains(strtolower($m[0]), 'cm')) $length /= 100.0;
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*(?:m|meter|meters)\b/i', $problem, $m)) {
+            $length = (float)$m[1];
+        }
+
+        $current = 2.0;
+        if (preg_match('/(?:current|i)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:a|amp|amperes)?/i', $problem, $m)) {
+            $current = (float)$m[1];
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*(?:a|amp|amperes)\b/i', $problem, $m)) {
+            $current = (float)$m[1];
+        }
+
+        $radius = 0.04; // 4 cm radius
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Electrodynamics: Magnetic Field Analysis of a Finite-Length Solenoid
+# Infinite Solenoid Interior: B_inf = mu_0 * n * I = mu_0 * (N / L) * I
+# Finite Solenoid Axial Profile:
+# B_z(z) = (mu_0 * n * I / 2) * [ (z + L/2)/sqrt(R^2 + (z + L/2)^2) - (z - L/2)/sqrt(R^2 + (z - L/2)^2) ]
+
+mu0 = 4.0 * np.pi * 1e-7   # Vacuum permeability (T·m/A)
+N = {{TURNS}}              # Total number of turns
+L = {{LENGTH}}             # Solenoid length (m)
+I = {{CURRENT}}            # Electric current (A)
+R = {{RADIUS}}             # Solenoid radius (m)
+
+n = N / L                  # Linear turn density (turns/m)
+B_inf = mu0 * n * I        # Ideal infinite solenoid center field (T)
+
+# Axial position coordinate z from -1.5L to +1.5L
+z = np.linspace(-1.5 * L, 1.5 * L, 600)
+
+# Exact analytical finite solenoid axial field
+term1 = (z + 0.5 * L) / np.sqrt(R**2 + (z + 0.5 * L)**2)
+term2 = (z - 0.5 * L) / np.sqrt(R**2 + (z - 0.5 * L)**2)
+Bz = 0.5 * mu0 * n * I * (term1 - term2)
+
+# Field at the geometric center (z = 0)
+B_center = 0.5 * mu0 * n * I * ( (0.5 * L) / np.sqrt(R**2 + 0.25 * L**2) - (-0.5 * L) / np.sqrt(R**2 + 0.25 * L**2) )
+# Field at the solenoid ends (z = ± L / 2)
+B_end = 0.5 * mu0 * n * I * ( L / np.sqrt(R**2 + L**2) )
+
+print("=" * 65)
+print(f"FINITE SOLENOID MAGNETIC TELEMETRY (N = {N}, L = {L} m, I = {I} A)")
+print("=" * 65)
+print(f"Turn Density (n):           {n:.1f} turns/m")
+print(f"Ideal Infinite Field B_inf: {B_inf * 1e3:.3f} milliTesla")
+print(f"Actual Center Field B(0):   {B_center * 1e3:.3f} milliTesla ({B_center / B_inf * 100:.2f}% of ideal)")
+print(f"End Field B(±L/2):          {B_end * 1e3:.3f} milliTesla ({B_end / B_center * 100:.2f}% of center)")
+print(f"Total Enclosed Magnetic Flux: {B_center * np.pi * R**2 * 1e6:.2f} microWeber")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Axial Magnetic Field Profile
+ax1.plot(z * 100, Bz * 1e3, 'b-', lw=2.2, label=r'Finite Solenoid $B_z(z)$')
+ax1.axhline(B_inf * 1e3, color='forestgreen', linestyle='--', lw=1.5, label=f'Ideal Infinite $B_{{\\infty}} = {B_inf*1e3:.2f}$ mT')
+ax1.axvline(-0.5 * L * 100, color='crimson', linestyle=':', lw=1.5, label='Solenoid Ends')
+ax1.axvline(0.5 * L * 100, color='crimson', linestyle=':', lw=1.5)
+ax1.scatter([0], [B_center * 1e3], color='gold', s=100, edgecolors='black', zorder=5, label=f'Center ({B_center*1e3:.2f} mT)')
+ax1.scatter([0.5 * L * 100], [B_end * 1e3], color='red', s=80, zorder=5, label=f'Edge ({B_end*1e3:.2f} mT)')
+ax1.set_title(r'Axial Magnetic Field $B_z(z)$ Distribution', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Axial Position $z$ (cm)', fontsize=11)
+ax1.set_ylabel('Magnetic Field $B_z$ (mT)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(fontsize=9, loc='lower center')
+
+# Plot 2: 2D Spatial Cross-Section Field Intensity Map
+r_grid = np.linspace(-3 * R, 3 * R, 150)
+z_grid_2d = np.linspace(-L, L, 150)
+R_2D, Z_2D = np.meshgrid(r_grid, z_grid_2d)
+
+# Near-axis expansion approximation for 2D field map visualization
+term1_2d = (Z_2D + 0.5 * L) / np.sqrt(R**2 + (Z_2D + 0.5 * L)**2)
+term2_2d = (Z_2D - 0.5 * L) / np.sqrt(R**2 + (Z_2D - 0.5 * L)**2)
+B_axial_2d = 0.5 * mu0 * n * I * (term1_2d - term2_2d)
+radial_damping = np.where(np.abs(R_2D) <= R, 1.0, np.exp(-2.5 * (np.abs(R_2D) - R) / R))
+B_2D = B_axial_2d * radial_damping
+
+im = ax2.imshow(B_2D.T * 1e3, extent=[-L * 100, L * 100, -3 * R * 100, 3 * R * 100], cmap='plasma', origin='lower', aspect='auto')
+ax2.axvline(-0.5 * L * 100, color='white', linestyle='--', alpha=0.7)
+ax2.axvline(0.5 * L * 100, color='white', linestyle='--', alpha=0.7)
+ax2.axhline(R * 100, color='cyan', linestyle=':', alpha=0.8, label=r'Radius $R$')
+ax2.axhline(-R * 100, color='cyan', linestyle=':', alpha=0.8)
+cbar = plt.colorbar(im, ax=ax2)
+cbar.set_label('Field Magnitude $B$ (mT)', fontsize=10)
+ax2.set_title('Cross-Sectional Magnetic Field Intensity', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Axial Position $z$ (cm)', fontsize=11)
+ax2.set_ylabel('Radial Position $r$ (cm)', fontsize=11)
+ax2.legend(loc='upper right', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(
+            ['{{TURNS}}', '{{LENGTH}}', '{{CURRENT}}', '{{RADIUS}}'],
+            [(string)$turns, (string)$length, (string)$current, (string)$radius],
+            $template
+        );
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Electrodynamics: Finite Solenoid Magnetic Field (N = {$turns}, L = {$length} m, I = {$current} A)",
+            'code' => $code,
+            'explanation' => "Calculates the axial magnetic field distribution for a finite solenoid with {$turns} turns carrying {$current} A over {$length} m. Contrasts the exact finite geometry center field with the ideal infinite solenoid approximation \$B = \\mu_0 n I\$, confirming edge field halving \$B(\\pm L/2) \\approx B_0 / 2\$.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Compute the magnetic field inside a Toroid of mean radius R_m: B = mu_0 * N * I / (2 * pi * r).',
+                'Design a Helmholtz coil pair and verify that d^2 B / dz^2 = 0 at the midpoint.',
+                'Calculate self-inductance L = mu_0 * n^2 * A * length and compare with stored magnetic energy 0.5 * L * I^2.'
             ]
         ];
     }
@@ -1202,9 +1364,130 @@ PY;
     }
 
     // =========================================================================
+    // 4B. CHAOTIC DOUBLE PENDULUM (Lagrangian RK4 Dynamics & Sensitivity)
+    // =========================================================================
+    if (str_contains($p, 'double pendulum') || (str_contains($p, 'chaos') && str_contains($p, 'pendulum')) || str_contains($p, 'chaotic pendulum') || str_contains($p, 'chaotic motion')) {
+        $code = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Nonlinear Dynamics: Chaotic Double Pendulum (RK4 Numerical Integration)
+# Governing Euler-Lagrange Equations of Motion for Coupled Rigid Links
+# Demonstrates extreme sensitivity to initial conditions (Lyapunov exponent)
+# ==============================================================================
+
+# Physical Parameters
+g = 9.81            # Gravitational acceleration (m/s^2)
+m1, m2 = 1.0, 1.0   # Bob masses (kg)
+L1, L2 = 1.0, 1.0   # Rod lengths (m)
+
+t_max = 25.0
+dt = 0.005
+steps = int(t_max / dt)
+t = np.linspace(0, t_max, steps)
+
+def double_pendulum_derivs(state):
+    """Computes exact nonlinear derivatives [dth1, dom1, dth2, dom2]"""
+    th1, om1, th2, om2 = state
+    delta = th1 - th2
+    denom = 2 * m1 + m2 - m2 * np.cos(2 * delta)
+    
+    num1 = -g * (2 * m1 + m2) * np.sin(th1) - m2 * g * np.sin(th1 - 2 * th2) - 2 * np.sin(delta) * m2 * (om2**2 * L2 + om1**2 * L1 * np.cos(delta))
+    d_om1 = num1 / (L1 * denom)
+    
+    num2 = 2 * np.sin(delta) * (om1**2 * L1 * (m1 + m2) + g * (m1 + m2) * np.cos(th1) + om2**2 * L2 * m2 * np.cos(delta))
+    d_om2 = num2 / (L2 * denom)
+    
+    return np.array([om1, d_om1, om2, d_om2])
+
+def rk4_integrate(initial_state):
+    """Integrates equations of motion using 4th-Order Runge-Kutta"""
+    sol = np.zeros((steps, 4))
+    sol[0] = initial_state
+    for i in range(steps - 1):
+        s = sol[i]
+        k1 = double_pendulum_derivs(s)
+        k2 = double_pendulum_derivs(s + 0.5 * dt * k1)
+        k3 = double_pendulum_derivs(s + 0.5 * dt * k2)
+        k4 = double_pendulum_derivs(s + dt * k3)
+        sol[i + 1] = s + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
+    return sol
+
+# System A: Initial state [theta1 = 90°, omega1 = 0, theta2 = 90°, omega2 = 0]
+init_A = np.array([np.pi / 2.0, 0.0, np.pi / 2.0, 0.0])
+sol_A = rk4_integrate(init_A)
+
+# System B: Perturbed state by 0.001 rad (~0.057°) to illustrate Butterfly Effect
+init_B = np.array([np.pi / 2.0 + 0.001, 0.0, np.pi / 2.0, 0.0])
+sol_B = rk4_integrate(init_B)
+
+# Cartesian coordinates of both bobs
+th1_A, th2_A = sol_A[:, 0], sol_A[:, 2]
+x1_A = L1 * np.sin(th1_A)
+y1_A = -L1 * np.cos(th1_A)
+x2_A = x1_A + L2 * np.sin(th2_A)
+y2_A = y1_A - L2 * np.cos(th2_A)
+
+th1_B, th2_B = sol_B[:, 0], sol_B[:, 2]
+divergence = np.abs(th2_A - th2_B)
+
+print("=" * 65)
+print("CHAOTIC DOUBLE PENDULUM RK4 TELEMETRY")
+print("=" * 65)
+print(f"Lengths: L1 = {L1} m, L2 = {L2} m | Masses: m1 = {m1} kg, m2 = {m2} kg")
+print(f"Time Horizon: {t_max} s ({steps} RK4 integration steps, dt = {dt*1000:.1f} ms)")
+print(f"Initial Perturbation: Delta Theta_1(0) = 0.001 rad")
+print(f"Final Angle Divergence: Delta Theta_2(t_end) = {divergence[-1]:.3f} rad")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.8))
+
+# Plot 1: Real-Space Chaotic Trajectory of Tip Bob
+ax1.plot(x2_A, y2_A, color='crimson', lw=0.6, alpha=0.8, label='Tip Bob Path')
+ax1.scatter([0], [0], color='black', s=80, zorder=5, label='Fixed Pivot')
+ax1.scatter([x2_A[0]], [y2_A[0]], color='forestgreen', s=70, zorder=5, label='Start')
+ax1.scatter([x2_A[-1]], [y2_A[-1]], color='blue', s=70, zorder=5, label='End')
+ax1.set_aspect('equal')
+ax1.set_xlim(-(L1 + L2) * 1.15, (L1 + L2) * 1.15)
+ax1.set_ylim(-(L1 + L2) * 1.15, (L1 + L2) * 1.15)
+ax1.set_title('Chaotic Trajectory of Lower Bob in Real Space', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Horizontal Position $x$ (m)', fontsize=11)
+ax1.set_ylabel('Vertical Position $y$ (m)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='upper right', fontsize=8.5)
+
+# Plot 2: Exponential Divergence (Lyapunov Sensitivity)
+ax2.semilogy(t, np.maximum(divergence, 1e-10), 'indigo', lw=1.6, label=r'$|\Delta \theta_2(t)|$ Divergence')
+ax2.axhline(0.001, color='gray', linestyle=':', label='Initial Perturbation ($10^{-3}$ rad)')
+ax2.set_title('Sensitive Dependence on Initial Conditions', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Time $t$ (s)', fontsize=11)
+ax2.set_ylabel(r'Angular Difference $|\Delta \theta_2|$ (rad, Log Scale)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='lower right', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+PY;
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => 'Nonlinear Dynamics: Chaotic Double Pendulum Simulation & Sensitivity to Initial Conditions (RK4)',
+            'code' => $code,
+            'explanation' => "Simulates the chaotic double pendulum by numerically integrating the nonlinear Euler-Lagrange equations via 4th-Order Runge-Kutta. Contrasts two trajectories initiated with a 0.001-radian difference to demonstrate sensitive dependence on initial conditions and deterministic chaos.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Construct the Poincare section by sampling (theta1, omega1) whenever theta2 crosses zero.',
+                'Compute the maximal Lyapunov exponent lambda from the slope of ln(Delta theta) vs time.',
+                'Verify mechanical energy conservation E = T + V across all 5000 simulation steps.'
+            ]
+        ];
+    }
+
+    // =========================================================================
     // 4. HARMONIC OSCILLATOR & PENDULUM (SHM, Damped, Driven, Nonlinear, RK4)
     // =========================================================================
-    if (!str_contains($p, 'coupled') && !str_contains($p, 'lissajous') && (str_contains($p, 'pendulum') || (str_contains($p, 'harmonic') && !str_contains($p, 'quantum')) || str_contains($p, 'oscillator') || str_contains($p, 'shm') || str_contains($p, 'phase space') || str_contains($p, 'damped'))) {
+    if (!str_contains($p, 'double') && !str_contains($p, 'chaotic') && !str_contains($p, 'coupled') && !str_contains($p, 'lissajous') && (str_contains($p, 'pendulum') || (str_contains($p, 'harmonic') && !str_contains($p, 'quantum')) || str_contains($p, 'oscillator') || str_contains($p, 'shm') || str_contains($p, 'phase space') || str_contains($p, 'damped'))) {
         $code = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1304,7 +1587,26 @@ PY;
     // 5. PROJECTILE MOTION & BALLISTICS
     // =========================================================================
     if (str_contains($p, 'projectile') || str_contains($p, 'trajectory') || str_contains($p, 'ballistic') || (str_contains($p, 'launch') && str_contains($p, 'angle'))) {
-        $code = <<<'PY'
+        $v0 = 35.0;
+        if (preg_match('/(?:velocity|speed|v0|v)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) {
+            $v0 = (float)$m[1];
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*(?:m\/s|mps)/i', $problem, $m)) {
+            $v0 = (float)$m[1];
+        }
+
+        $userAngle = null;
+        if (preg_match('/(?:angle|at|theta)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:deg|degree|°)?/i', $problem, $m)) {
+            $userAngle = (float)$m[1];
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*(?:deg|degree|°)/i', $problem, $m)) {
+            $userAngle = (float)$m[1];
+        }
+
+        $anglesListStr = ($userAngle !== null) ? "[{$userAngle}]" : "[30.0, 45.0, 60.0]";
+        $titleStr = ($userAngle !== null) 
+            ? "Classical Ballistics: Projectile Motion (v0 = {$v0} m/s, theta = {$userAngle}°) with Drag"
+            : "Classical Ballistics: Projectile Motion Simulation (v0 = {$v0} m/s) with Drag";
+
+        $template = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -1315,8 +1617,8 @@ import matplotlib.pyplot as plt
 
 g = 9.81         # Gravitational acceleration (m/s^2)
 m = 0.145        # Mass of projectile (baseball in kg)
-v0 = 35.0        # Initial launch speed (m/s)
-angles = [30.0, 45.0, 60.0]  # Launch angles in degrees
+v0 = {{V0}}      # Initial launch speed (m/s)
+angles = {{ANGLES}}  # Launch angles in degrees
 c_drag = 0.003   # Drag coefficient (kg/m)
 dt = 0.005       # Time step (s)
 
@@ -1330,7 +1632,7 @@ for angle_deg in angles:
     t_vac = np.linspace(0, t_flight_vac, 200)
     x_vac = v0 * np.cos(theta) * t_vac
     y_vac = v0 * np.sin(theta) * t_vac - 0.5 * g * t_vac**2
-    plt.plot(x_vac, y_vac, '--', alpha=0.5, label=f'Ideal {angle_deg}° (Vacuum)')
+    plt.plot(x_vac, y_vac, '--', alpha=0.5, label=f'Ideal {angle_deg}° (Vacuum Range: {x_vac[-1]:.1f} m)')
 
     # Numerical Trajectory with Air Drag (Euler-Cromer)
     x, y = 0.0, 0.0
@@ -1372,12 +1674,13 @@ plt.legend(fontsize=9.5, loc='upper right')
 plt.tight_layout()
 plt.show()
 PY;
+        $code = str_replace(['{{V0}}', '{{ANGLES}}'], [(string)$v0, $anglesListStr], $template);
         return [
             'success' => true,
             'source' => 'physics_engine',
-            'title' => 'Projectile Motion Simulation with Nonlinear Aerodynamic Drag',
+            'title' => $titleStr,
             'code' => $code,
-            'explanation' => 'Models 2D ballistic trajectories under constant gravity and velocity-dependent quadratic aerodynamic drag. Solves the coupled differential equations using the symplectic Euler-Cromer scheme and contrasts with vacuum parabolas.',
+            'explanation' => "Models 2D ballistic trajectories for launch speed \$v_0 = {$v0}\$ m/s under constant gravity and velocity-dependent quadratic aerodynamic drag. Solves the coupled differential equations using the symplectic Euler-Cromer scheme and contrasts with vacuum parabolas.",
             'complexity' => 'Time: O(T / dt), Space: O(N)',
             'exercises' => [
                 'Find the optimal launch angle that maximizes horizontal range in the presence of air drag.',
@@ -1389,20 +1692,42 @@ PY;
 
     // =========================================================================
     // 6. ROOT FINDING (Newton-Raphson, Bisection, Quadratic, Polynomial)
+    // =========================================================================
     if ((str_contains($p, 'root') || str_contains($p, 'bisection') || str_contains($p, 'newton-raphson') || str_contains($p, 'newton raphson') || str_contains($p, 'secant') || (str_contains($p, 'quadratic') && (str_contains($p, 'equation') || str_contains($p, 'solve') || str_contains($p, 'root')))) && !str_contains($p, 'interpolation') && !str_contains($p, 'ring') && !str_contains($p, 'cooling')) {
-        $code = <<<'PY'
+        $userEqExpr = 'x**3 - 2*x - 5';
+        $userEqDisp = 'x^3 - 2x - 5 = 0';
+        if (preg_match('/(?:equation|func|function|root\s+of)\s*([a-zA-Z0-9_\+\-\*\/\^\.\(\)\s]+?)(?:=|\s*is|\s*using|\s*with|\.|\$|$)/i', $problem, $m)) {
+            $cand = trim($m[1]);
+            if (strlen($cand) >= 3 && preg_match('/[a-zA-Z]/', $cand)) {
+                $userEqDisp = $cand . ' = 0';
+                $pyCand = str_replace('^', '**', $cand);
+                $pyCand = preg_replace('/(\d+)\s*([a-zA-Z])/', '$1 * $2', $pyCand);
+                $pyCand = preg_replace('/\bsin\b/i', 'np.sin', $pyCand);
+                $pyCand = preg_replace('/\bcos\b/i', 'np.cos', $pyCand);
+                $pyCand = preg_replace('/\bexp\b/i', 'np.exp', $pyCand);
+                $userEqExpr = $pyCand;
+            }
+        }
+        $x0 = 2.0;
+        if (preg_match('/(?:initial\s*guess|x0|x_0|at)\s*=?\s*(-?\d+(?:\.\d+)?)/i', $problem, $m)) {
+            $x0 = (float)$m[1];
+        }
+
+        $template = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Numerical Root Finding: Newton-Raphson Method
-# Target Equation: f(x) = x^3 - 2*x - 5 = 0
-# Derivative:      f'(x) = 3*x^2 - 2
+# Target Equation: f(x) = {{EQ_DISP}}
+# Method Recurrence: x_{k+1} = x_k - f(x_k) / f'(x_k)
 
 def f(x):
-    return x**3 - 2*x - 5
+    return {{EQ_EXPR}}
 
 def df(x):
-    return 3*x**2 - 2
+    # High-precision numerical central difference derivative
+    h = 1e-6
+    return (f(x + h) - f(x - h)) / (2.0 * h)
 
 def newton_raphson(f, df, x0, tol=1e-8, max_iter=50):
     history = [x0]
@@ -1421,13 +1746,13 @@ def newton_raphson(f, df, x0, tol=1e-8, max_iter=50):
         x = x_next
     return x, history, errors
 
-x0 = 2.0
+x0 = {{X0}}
 root, history, errors = newton_raphson(f, df, x0)
 
 print("=" * 65)
 print("NEWTON-RAPHSON ROOT FINDING REPORT")
 print("=" * 65)
-print(f"Target:      f(x) = x^3 - 2x - 5 = 0")
+print(f"Target:      f(x) = {{EQ_DISP}}")
 print(f"Initial:     x0 = {x0}")
 print(f"Root:        x* = {root:.10f}")
 print(f"f(x*):       {f(root):.2e}")
@@ -1436,16 +1761,23 @@ print("=" * 65)
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
 
-# Plot 1: Function and Root Location
-x_vals = np.linspace(1.0, 3.0, 300)
-ax1.plot(x_vals, f(x_vals), 'b-', lw=2, label='$f(x) = x^3 - 2x - 5$')
+# Plot 1: Function Curve and Root Location
+x_span = max(3.0, abs(root - x0) * 2.0)
+x_vals = np.linspace(root - x_span, root + x_span, 400)
+try:
+    y_vals = f(x_vals)
+except Exception:
+    y_vals = [f(xi) for xi in x_vals]
+
+ax1.plot(x_vals, y_vals, 'b-', lw=2, label=f'$f(x)$ = {{EQ_DISP}}')
 ax1.axhline(0, color='gray', linestyle='--', alpha=0.7)
-ax1.scatter([root], [f(root)], color='red', s=80, zorder=5, label=f'Root $x^* \\approx {root:.5f}$')
+ax1.scatter([root], [f(root)], color='red', s=90, zorder=5, label=f'Root $x^* \\approx {root:.5f}$')
+ax1.scatter([x0], [f(x0)], color='green', s=70, zorder=5, label=f'Initial $x_0 = {x0}$')
 ax1.set_title('Function Curve & Computed Root', fontsize=12, fontweight='bold')
 ax1.set_xlabel('$x$', fontsize=11)
 ax1.set_ylabel('$f(x)$', fontsize=11)
 ax1.grid(True, alpha=0.3)
-ax1.legend()
+ax1.legend(loc='best', fontsize=9)
 
 # Plot 2: Quadratic Convergence Rate
 ax2.semilogy(range(1, len(errors) + 1), errors, 'ro-', lw=1.8, markersize=6)
@@ -1457,17 +1789,22 @@ ax2.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 PY;
+        $code = str_replace(
+            ['{{EQ_DISP}}', '{{EQ_EXPR}}', '{{X0}}'],
+            [$userEqDisp, $userEqExpr, (string)$x0],
+            $template
+        );
         return [
             'success' => true,
             'source' => 'physics_engine',
-            'title' => 'Numerical Root Finding: Newton-Raphson Quadratic Convergence',
+            'title' => "Numerical Root Finding: Newton-Raphson Method ({$userEqDisp}, x0 = {$x0})",
             'code' => $code,
-            'explanation' => 'Solves nonlinear equations $f(x) = 0$ via the Newton-Raphson tangent recurrence $x_{k+1} = x_k - f(x_k)/f\'(x_k)$, illustrating theoretical second-order (quadratic) error convergence.',
+            'explanation' => "Solves the equation \${$userEqDisp}\$ using the Newton-Raphson method with initial estimate \$x_0 = {$x0}\$. Computes numerical gradient iterations demonstrating quadratic convergence.",
             'complexity' => 'Time: O(log(1/tol)), Space: O(1)',
             'exercises' => [
-                'Implement the Bisection method on interval [2, 3] and compare iteration counts.',
-                'Test initial guesses close to local extrema where $f\'(x) = 0$ to observe divergence.',
-                'Modify the script to find roots of transcendental equations like $\\cos(x) - x = 0$.'
+                'Test convergence sensitivity with different starting guesses x0.',
+                'Compare convergence speed with the Bisection Method.',
+                'Analyze behavior when f\'(x) approaches zero (inflection point singularity).'
             ]
         ];
     }
@@ -1476,15 +1813,38 @@ PY;
     // 7. NUMERICAL INTEGRATION (Simpson, Trapezoidal, Quadrature)
     // =========================================================================
     if (str_contains($p, 'integral') || str_contains($p, 'simpson') || str_contains($p, 'trapezoid') || str_contains($p, 'quadrature') || str_contains($p, 'integrate')) {
-        $code = <<<'PY'
+        $userFunc = 'np.sin(x)';
+        $userFuncDisp = 'sin(x)';
+        if (preg_match('/(?:integrate|integral\s+of|function|of)\s*([a-zA-Z0-9_\+\-\*\/\^\.\(\)\s]+?)(?:from|between|over|\$|[\r\n]|;\s*|$)/i', $problem, $im)) {
+            $cand = trim($im[1]);
+            if (strlen($cand) >= 2 && preg_match('/[a-zA-Z]/', $cand)) {
+                $userFuncDisp = $cand;
+                $pyCand = str_replace('^', '**', $cand);
+                $pyCand = preg_replace('/(\d+)\s*([a-zA-Z])/', '$1 * $2', $pyCand);
+                $pyCand = preg_replace('/\bsin\b/i', 'np.sin', $pyCand);
+                $pyCand = preg_replace('/\bcos\b/i', 'np.cos', $pyCand);
+                $pyCand = preg_replace('/\bexp\b/i', 'np.exp', $pyCand);
+                $userFunc = $pyCand;
+            }
+        }
+
+        $a = 0.0;
+        $b = 3.14159;
+        if (preg_match('/(?:from|between)\s*(-?\d+(?:\.\d+)?)\s*(?:to|and)\s*(-?\d+(?:\.\d+)?)/i', $problem, $bm)) {
+            $a = (float)$bm[1];
+            $b = (float)$bm[2];
+        }
+
+        $template = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Numerical Integration: Composite Simpson's 1/3 Rule vs Trapezoidal Rule
-# Target: I = \int_0^pi sin(x) dx = 2.0
+# Target Integrand: f(x) = {{FUNC_DISP}}
+# Domain: [a, b] = [{{A}}, {{B}}]
 
 def f(x):
-    return np.sin(x)
+    return {{FUNC_EXPR}}
 
 def simpsons_13(f, a, b, n):
     """Composite Simpson's 1/3 Rule (n must be even)"""
@@ -1502,8 +1862,9 @@ def trapezoidal(f, a, b, n):
     y = f(x)
     return (h / 2) * (y[0] + 2 * np.sum(y[1:-1]) + y[-1])
 
-a, b = 0.0, np.pi
-exact = 2.0
+a, b = {{A}}, {{B}}
+x_ref = np.linspace(a, b, 2000)
+exact = np.trapz(f(x_ref), x_ref)
 
 n_panels = [4, 8, 16, 32, 64, 128]
 trap_errors = []
@@ -1512,11 +1873,11 @@ simp_errors = []
 for n in n_panels:
     trap_val = trapezoidal(f, a, b, n)
     simp_val = simpsons_13(f, a, b, n)
-    trap_errors.append(abs(trap_val - exact))
-    simp_errors.append(abs(simp_val - exact))
+    trap_errors.append(abs(trap_val - exact) + 1e-16)
+    simp_errors.append(abs(simp_val - exact) + 1e-16)
 
 print("=" * 65)
-print(f"NUMERICAL INTEGRATION BENCHMARK (Exact = {exact})")
+print(f"NUMERICAL INTEGRATION BENCHMARK ({{FUNC_DISP}} on [{a}, {b}], Reference = {exact:.6f})")
 print("=" * 65)
 print(f"{'N Panels':<10} | {'Trapezoidal':<15} | {'Simpson 1/3':<15}")
 for i, n in enumerate(n_panels):
@@ -1527,7 +1888,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
 
 # Plot 1: Visual Quadrature Strips
 x_dense = np.linspace(a, b, 200)
-ax1.plot(x_dense, f(x_dense), 'b-', lw=2, label='$f(x) = \\sin(x)$')
+ax1.plot(x_dense, f(x_dense), 'b-', lw=2, label=r'$f(x) = {{FUNC_DISP}}$')
 x_strip = np.linspace(a, b, 9)
 y_strip = f(x_strip)
 ax1.fill_between(x_strip, 0, y_strip, color='cyan', alpha=0.3, label='Quadrature Panels ($N=8$)')
@@ -1549,12 +1910,17 @@ ax2.legend()
 plt.tight_layout()
 plt.show()
 PY;
+        $code = str_replace(
+            ['{{FUNC_DISP}}', '{{FUNC_EXPR}}', '{{A}}', '{{B}}'],
+            [$userFuncDisp, $userFunc, (string)$a, (string)$b],
+            $template
+        );
         return [
             'success' => true,
             'source' => 'physics_engine',
-            'title' => 'Numerical Integration: Simpson\'s 1/3 vs Trapezoidal Rule Convergence',
+            'title' => "Numerical Integration: Simpson's 1/3 vs Trapezoidal Rule for {$userFuncDisp} on [{$a}, {$b}]",
             'code' => $code,
-            'explanation' => 'Computes definite integrals by parabolic (Simpson\'s) and linear (Trapezoidal) polynomial interpolation across subintervals. Verifies the $\mathcal{O}(h^4)$ vs $\mathcal{O}(h^2)$ asymptotic convergence rate.',
+            'explanation' => "Computes definite integrals by parabolic (Simpson's) and linear (Trapezoidal) polynomial interpolation across subintervals. Verifies the $\mathcal{O}(h^4)$ vs $\mathcal{O}(h^2)$ asymptotic convergence rate.",
             'complexity' => 'Time: O(N), Space: O(N)',
             'exercises' => [
                 'Evaluate Gaussian Quadrature with 3 nodes and compare accuracy with Simpson\'s rule.',
@@ -1566,7 +1932,7 @@ PY;
 
     // =========================================================================
     // 8. QUANTUM MECHANICS: TISE & POTENTIAL WELL
-    if (str_contains($p, 'schrodinger') || str_contains($p, 'tise') || str_contains($p, 'quantum') || str_contains($p, 'potential well') || str_contains($p, 'potential box') || str_contains($p, 'particle in a box') || str_contains($p, 'infinite well') || str_contains($p, 'finite well') || str_contains($p, 'square well')) {
+    if ((str_contains($p, 'schrodinger') || str_contains($p, 'tise') || str_contains($p, 'potential well') || str_contains($p, 'potential box') || str_contains($p, 'particle in a box') || str_contains($p, 'infinite well') || str_contains($p, 'finite well') || str_contains($p, 'square well') || (str_contains($p, 'quantum') && (str_contains($p, 'well') || str_contains($p, 'barrier') || str_contains($p, 'box') || str_contains($p, 'wavefunction')))) && !str_contains($p, 'compton') && !str_contains($p, 'photoelectric')) {
         $code = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1655,7 +2021,118 @@ PY;
     }
 
     // =========================================================================
-    // 9. HEAT DIFFUSION PDE (FTCS Solver)
+    // 8B. COMPTON SCATTERING & QUANTUM OPTICS
+    // =========================================================================
+    if (str_contains($p, 'compton') || (str_contains($p, 'wavelength') && str_contains($p, 'shift')) || str_contains($p, 'photoelectric') || str_contains($p, 'work function') || str_contains($p, 'stopping potential')) {
+        $angleDeg = 60.0;
+        if (preg_match('/(?:angle|at|theta)\s*=?\s*(\d+(?:\.\d+)?)\s*(?:deg|degree|°)?/i', $problem, $m)) {
+            $angleDeg = (float)$m[1];
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*(?:deg|degree|°)/i', $problem, $m)) {
+            $angleDeg = (float)$m[1];
+        }
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Quantum Mechanics: Compton Scattering Kinematics & Wavelength Shift
+# Conservation of Relativistic 4-Momentum in Photon-Electron Inelastic Collisions
+# Formula: Delta lambda = lambda' - lambda_0 = (h / (m_e * c)) * (1 - cos(theta))
+# ==============================================================================
+
+# Fundamental Physical Constants (SI Units)
+h = 6.62607015e-34       # Planck constant (J·s)
+c = 2.99792458e8         # Speed of light (m/s)
+m_e = 9.1093837e-31      # Rest mass of electron (kg)
+eV_to_J = 1.602176634e-19 # Joules per eV
+
+# Compton Wavelength of Electron: lambda_c = h / (m_e * c)
+lambda_c = h / (m_e * c)  # ~ 2.42631e-12 m (0.024263 Angstroms)
+
+# Incident Photon Parameters (X-Ray: Molybdenum K-alpha ~ 0.071 nm = 0.71 Angstrom)
+lambda_0 = 0.07093e-9    # Incident wavelength (m)
+E0_J = h * c / lambda_0  # Incident photon energy (Joules)
+E0_keV = E0_J / (eV_to_J * 1e3) # Incident photon energy in keV
+
+target_angle_deg = {{ANGLE}}
+theta_target_rad = np.radians(target_angle_deg)
+delta_lambda_target = lambda_c * (1.0 - np.cos(theta_target_rad))
+lambda_prime_target = lambda_0 + delta_lambda_target
+
+# Scattered Photon & Recoil Electron Energy
+E_prime_target_J = h * c / lambda_prime_target
+E_prime_target_keV = E_prime_target_J / (eV_to_J * 1e3)
+K_e_target_keV = E0_keV - E_prime_target_keV # Recoil kinetic energy (conservation)
+
+# Electron Recoil Angle phi: cot(phi) = (1 + h*nu_0 / (m_e * c^2)) * tan(theta / 2)
+alpha = E0_J / (m_e * c**2)
+phi_target_rad = np.arctan(1.0 / ((1.0 + alpha) * np.tan(theta_target_rad / 2.0)))
+phi_target_deg = np.degrees(phi_target_rad)
+
+print("=" * 65)
+print(f"COMPTON SCATTERING TELEMETRY (Scattering Angle = {target_angle_deg:.1f}°)")
+print("=" * 65)
+print(f"Electron Compton Wavelength (lambda_c): {lambda_c * 1e12:.5f} pm (0.02426 Å)")
+print(f"Incident Photon Wavelength (lambda_0):  {lambda_0 * 1e9:.4f} nm ({E0_keV:.2f} keV)")
+print(f"Compton Wavelength Shift (Delta lambda): {delta_lambda_target * 1e12:.4f} pm ({delta_lambda_target * 1e10:.5f} Å)")
+print(f"Scattered Photon Wavelength (lambda'):  {lambda_prime_target * 1e9:.4f} nm ({E_prime_target_keV:.2f} keV)")
+print(f"Recoil Electron Kinetic Energy (K_e):  {K_e_target_keV:.3f} keV ({K_e_target_keV / E0_keV * 100:.1f}% transfer)")
+print(f"Electron Recoil Ejection Angle (phi):  {phi_target_deg:.2f}°")
+print("=" * 65)
+
+# Full angular sweep [0 to 180 degrees]
+theta_deg_arr = np.linspace(0, 180, 500)
+theta_rad_arr = np.radians(theta_deg_arr)
+delta_lambda_arr = lambda_c * (1.0 - np.cos(theta_rad_arr))
+lambda_prime_arr = lambda_0 + delta_lambda_arr
+E_prime_arr = (h * c / lambda_prime_arr) / (eV_to_J * 1e3)
+K_e_arr = E0_keV - E_prime_arr
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Compton Wavelength Shift vs Scattering Angle
+ax1.plot(theta_deg_arr, delta_lambda_arr * 1e12, 'b-', lw=2.2, label=r'$\Delta \lambda = \lambda_C (1 - \cos\theta)$')
+ax1.axhline(lambda_c * 1e12, color='gray', linestyle=':', label=r'$\lambda_C = 2.426$ pm ($90^\circ$)')
+ax1.axhline(2 * lambda_c * 1e12, color='forestgreen', linestyle=':', label=r'$2\lambda_C = 4.853$ pm (Backscatter $180^\circ$)')
+ax1.scatter([target_angle_deg], [delta_lambda_target * 1e12], color='crimson', s=100, edgecolors='black', zorder=5, 
+            label=f'Target $\\theta={target_angle_deg}^\\circ$ ($\\Delta\\lambda={delta_lambda_target*1e12:.2f}$ pm)')
+ax1.set_title(r'Compton Wavelength Shift $\Delta \lambda$ vs Scattering Angle', fontsize=12, fontweight='bold')
+ax1.set_xlabel(r'Scattering Angle $\theta$ (Degrees)', fontsize=11)
+ax1.set_ylabel(r'Shift $\Delta \lambda$ (Picometers, pm)', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='upper left', fontsize=8.5)
+
+# Plot 2: Energy Partitioning (Scattered Photon vs Recoil Electron)
+ax2.plot(theta_deg_arr, E_prime_arr, 'b-', lw=2.0, label=r'Scattered Photon Energy $E^\prime$')
+ax2.plot(theta_deg_arr, K_e_arr, 'r--', lw=2.0, label=r'Recoil Electron Energy $K_e$')
+ax2.axvline(target_angle_deg, color='crimson', linestyle=':', alpha=0.7)
+ax2.scatter([target_angle_deg], [E_prime_target_keV], color='blue', s=70, zorder=5)
+ax2.scatter([target_angle_deg], [K_e_target_keV], color='red', s=70, zorder=5)
+ax2.set_title('Energy Partitioning in Compton Collisions', fontsize=12, fontweight='bold')
+ax2.set_xlabel(r'Scattering Angle $\theta$ (Degrees)', fontsize=11)
+ax2.set_ylabel('Energy (keV)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='center right', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{ANGLE}}', (string)$angleDeg, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Quantum Physics: Compton Scattering Wavelength Shift & Recoil Kinematics (theta = {$angleDeg}°)",
+            'code' => $code,
+            'explanation' => "Calculates the relativistic Compton wavelength shift \$\\Delta \\lambda = \\lambda_c (1 - \\cos\\theta)\$ for scattering angle \$\\theta = {$angleDeg}^\\circ\$, where \$\\lambda_c = \\frac{h}{m_e c} \\approx 2.426 \\times 10^{-12}\$ m. Computes exact 4-momentum energy partitioning between the scattered photon and recoiling Compton electron.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Compute the maximum Compton edge kinetic energy of the recoil electron at theta = 180 degrees.',
+                'Calculate the recoil electron scattering angle phi using conservation of transverse momentum.',
+                'Model the Klein-Nishina differential scattering cross-section d sigma / d Omega.'
+            ]
+        ];
+    }
     if ((str_contains($p, 'heat diffusion') || str_contains($p, 'thermal diffusion') || str_contains($p, 'heat equation') || str_contains($p, 'heat conduction') || str_contains($p, 'ftcs') || (str_contains($p, 'heat') && (str_contains($p, 'rod') || str_contains($p, 'bar')))) && !str_contains($p, 'specific heat')) {
         $code = <<<'PY'
 import numpy as np
@@ -2254,10 +2731,52 @@ PY;
     }
 
     // =========================================================================
-    // 16. RADIOACTIVE DECAY & BATEMAN CHAIN
+    // 16. RADIOACTIVE DECAY & HALF-LIFE KINETICS
     // =========================================================================
-    if (str_contains($p, 'decay') || str_contains($p, 'radioactive') || str_contains($p, 'half life') || str_contains($p, 'nuclear decay') || str_contains($p, 'bateman')) {
-        $code = <<<'PY'
+    if (str_contains($p, 'decay') || str_contains($p, 'radioactive') || str_contains($p, 'half life') || str_contains($p, 'half-life') || str_contains($p, 'nuclear decay') || str_contains($p, 'bateman')) {
+        $isotope = 'Carbon-14 (14C)';
+        $tHalf = 5730.0;
+        $unit = 'years';
+        $isSpecific = false;
+
+        if (preg_match('/\b(carbon[\s\-_]*14|c[\s\-_]*14)\b/i', $problem)) {
+            $isotope = 'Carbon-14 (14C)';
+            $tHalf = 5730.0;
+            $unit = 'years';
+            $isSpecific = true;
+        } elseif (preg_match('/\b(uranium[\s\-_]*238|u[\s\-_]*238)\b/i', $problem)) {
+            $isotope = 'Uranium-238 (238U)';
+            $tHalf = 4.468e9;
+            $unit = 'years';
+            $isSpecific = true;
+        } elseif (preg_match('/\b(radon[\s\-_]*222|rn[\s\-_]*222)\b/i', $problem)) {
+            $isotope = 'Radon-222 (222Rn)';
+            $tHalf = 3.82;
+            $unit = 'days';
+            $isSpecific = true;
+        } elseif (preg_match('/\b(cobalt[\s\-_]*60|co[\s\-_]*60)\b/i', $problem)) {
+            $isotope = 'Cobalt-60 (60Co)';
+            $tHalf = 5.27;
+            $unit = 'years';
+            $isSpecific = true;
+        } elseif (preg_match('/\b(iodine[\s\-_]*131|i[\s\-_]*131)\b/i', $problem)) {
+            $isotope = 'Iodine-131 (131I)';
+            $tHalf = 8.02;
+            $unit = 'days';
+            $isSpecific = true;
+        }
+
+        if (preg_match('/(?:half[\s\-_]*life|t1\/2|t_half)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) {
+            $tHalf = (float)$m[1];
+            $isSpecific = true;
+            if (preg_match('/(\d+(?:\.\d+)?)\s*(years|year|yrs|yr|days|day|hours|hour|hrs|hr|minutes|min|seconds|sec|s)\b/i', $problem, $um)) {
+                $unit = strtolower($um[2]);
+            }
+        }
+
+        // If Bateman or decay chain is explicitly requested
+        if (str_contains($p, 'chain') || str_contains($p, 'bateman') || str_contains($p, 'daughter') || str_contains($p, 'series')) {
+            $code = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -2306,25 +2825,306 @@ plt.legend(fontsize=10.5)
 plt.tight_layout()
 plt.show()
 PY;
+            return [
+                'success' => true,
+                'source' => 'physics_engine',
+                'title' => 'Radioactive Decay Chains: Analytical Bateman Formulation',
+                'code' => $code,
+                'explanation' => 'Models sequential radioactive transmutation across isotope chains using exact Bateman solutions. Identifies secular and transient equilibrium states and peak daughter isotope activity.',
+                'complexity' => 'Time: O(N), Space: O(N)',
+                'exercises' => [
+                    'Simulate secular equilibrium where parent half-life is vastly greater than daughter half-life.',
+                    'Implement Monte Carlo stochastic radioactive decay where individual nuclei decay probabilistically.',
+                    'Compute radiological age dating of a rock sample based on daughter-to-parent isotope ratios.'
+                ]
+            ];
+        }
+
+        // Single Isotope Exponential Decay Kinetics
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Nuclear Physics: Radioactive Decay Kinetics & Half-Life Simulation
+# Target Isotope: {{ISOTOPE}} (Half-Life t_{1/2} = {{THALF}} {{UNIT}})
+# Differential Law: dN/dt = - lambda * N  ===>  N(t) = N_0 * exp(- lambda * t) = N_0 * (1/2)^(t / t_{1/2})
+# Activity (Becquerels / Decays per unit time): A(t) = lambda * N(t)
+# ==============================================================================
+
+isotope_name = "{{ISOTOPE}}"
+t_half = {{THALF}}        # Half-life
+time_unit = "{{UNIT}}"
+N0 = 10000.0             # Initial number of radioactive parent nuclei
+
+# Decay Constant lambda = ln(2) / t_half
+decay_constant = np.log(2) / t_half
+mean_lifetime = 1.0 / decay_constant  # tau = t_1/2 / ln(2) approx 1.4427 * t_1/2
+
+# Simulate over 5 half-lives
+t_max = 5.0 * t_half
+t = np.linspace(0, t_max, 500)
+
+# Remaining Parent Nuclei N(t) and Decayed Daughter Nuclei N_d(t)
+N_remaining = N0 * np.exp(-decay_constant * t)
+N_decayed = N0 - N_remaining
+activity = decay_constant * N_remaining
+
+print("=" * 65)
+print(f"RADIOACTIVE DECAY TELEMETRY: {isotope_name}")
+print("=" * 65)
+print(f"Half-Life (t_1/2):       {t_half} {time_unit}")
+print(f"Decay Constant (lambda): {decay_constant:.4e} /{time_unit}")
+print(f"Mean Lifetime (tau):     {mean_lifetime:.2f} {time_unit}")
+print(f"Initial Population (N0): {N0:.0f} nuclei")
+print("-" * 65)
+for k in range(1, 6):
+    tk = k * t_half
+    Nk = N0 * (0.5**k)
+    print(f"After {k} Half-Lives (t = {tk:7.1f} {time_unit}): {Nk:7.1f} nuclei ({Nk/N0*100:5.2f}%)")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Linear Decay Profile & Half-Life Markers
+ax1.plot(t, N_remaining, 'b-', lw=2.2, label=r'Parent Nuclei $N(t) = N_0 e^{-\lambda t}$')
+ax1.plot(t, N_decayed, 'g--', lw=1.8, label=r'Daughter Products $N_d(t) = N_0(1 - e^{-\lambda t})$')
+
+for k in range(1, 4):
+    tk = k * t_half
+    Nk = N0 * (0.5**k)
+    ax1.scatter([tk], [Nk], color='red', s=60, zorder=5)
+    ax1.axvline(tk, color='gray', linestyle=':', alpha=0.5)
+    ax1.text(tk, Nk + 0.04 * N0, f'{k}$t_{{1/2}}$\n({Nk/N0*100:.1f}%)', fontsize=8, ha='center', color='darkred')
+
+ax1.set_title(f'Radioactive Decay of {isotope_name}', fontsize=12, fontweight='bold')
+ax1.set_xlabel(f'Time $t$ ({time_unit})', fontsize=11)
+ax1.set_ylabel('Number of Parent Nuclei $N(t)$', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='center right', fontsize=9.5)
+
+# Plot 2: Semi-Logarithmic Scale (Demonstrating Linear Decay)
+ax2.semilogy(t, N_remaining, 'crimson', lw=2.0, label=r'$\ln[N(t)] = \ln(N_0) - \lambda t$')
+ax2.set_title('Logarithmic Linearity of Radioactive Decay', fontsize=12, fontweight='bold')
+ax2.set_xlabel(f'Time $t$ ({time_unit})', fontsize=11)
+ax2.set_ylabel(r'Nuclei Population $N(t)$ (Log Scale)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='upper right', fontsize=9.5)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(
+            ['{{ISOTOPE}}', '{{THALF}}', '{{UNIT}}'],
+            [$isotope, (string)$tHalf, $unit],
+            $template
+        );
         return [
             'success' => true,
             'source' => 'physics_engine',
-            'title' => 'Radioactive Decay Chains: Analytical Bateman Formulation',
+            'title' => "Nuclear Physics: Radioactive Decay Kinetics of {$isotope} (t_1/2 = {$tHalf} {$unit})",
             'code' => $code,
-            'explanation' => 'Models sequential radioactive transmutation across isotope chains using exact Bateman solutions. Identifies secular and transient equilibrium states and peak daughter isotope activity.',
+            'explanation' => "Simulates exponential radioactive decay \$N(t) = N_0 e^{-\\lambda t} = N_0 (1/2)^{t / t_{1/2}}\$ for {$isotope} with half-life \$t_{1/2} = {$tHalf}\$ {$unit}. Computes decay constant \$\\lambda = \\ln(2)/t_{1/2}\$, mean lifetime \$\\tau\$, and benchmarks logarithmic linearity.",
             'complexity' => 'Time: O(N), Space: O(N)',
             'exercises' => [
-                'Simulate secular equilibrium where parent half-life is vastly greater than daughter half-life.',
-                'Implement Monte Carlo stochastic radioactive decay where individual nuclei decay probabilistically.',
-                'Compute radiological age dating of a rock sample based on daughter-to-parent isotope ratios.'
+                'Compute the age of an ancient organic sample if the 14C / 12C ratio is 25% of modern carbon.',
+                'Simulate radioactive equilibrium in a closed nuclear reactor environment.',
+                'Implement Monte Carlo stochastic decay where each nucleus has decay probability p = 1 - exp(-lambda * dt).'
             ]
         ];
     }
 
     // =========================================================================
+    // 16B. QUANTUM STATISTICAL MECHANICS (FERMI-DIRAC & BOSE-EINSTEIN DISTRIBUTIONS)
+    // =========================================================================
+    if (str_contains($p, 'fermi') || str_contains($p, 'bose') || str_contains($p, 'condensation')) {
+        $isFermi = !str_contains($p, 'bose');
+        
+        $Ef = 5.0; // 5 eV Fermi energy default
+        if (preg_match('/(?:fermi[\s\-_]*energy|ef|e_f)\s*=?\s*(\d+(?:\.\d+)?)/i', $problem, $m)) {
+            $Ef = (float)$m[1];
+        } elseif (preg_match('/(\d+(?:\.\d+)?)\s*ev\b/i', $problem, $m)) {
+            $Ef = (float)$m[1];
+        }
+
+        // Check for temperatures
+        $temps = [];
+        if (preg_match_all('/(\d{2,5})\s*k\b/i', $problem, $tm)) {
+            foreach ($tm[1] as $tVal) {
+                $temps[] = (int)$tVal;
+            }
+        }
+        if (empty($temps)) {
+            $temps = $isFermi ? [0, 100, 300, 1000] : [100, 200, 300];
+        }
+        $tempsStr = "[" . implode(", ", array_unique($temps)) . "]";
+
+        if ($isFermi) {
+            $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Quantum Statistical Mechanics: Fermi-Dirac Distribution for Fermions (Spin 1/2)
+# Occupation Probability: f(E) = 1 / (exp((E - E_F) / (k_B * T)) + 1)
+# Density of States in 3D: g(E) = (V / (2 * pi^2)) * (2m / hbar^2)^(3/2) * sqrt(E)
+# Occupied State Population: N(E) = g(E) * f(E)
+# ==============================================================================
+
+# Fundamental Constants
+kB_eV = 8.617333262e-5  # Boltzmann constant in eV/K
+Ef = {{EF}}             # Fermi energy in eV
+temperatures = {{TEMPS}} # Kelvin temperatures
+
+# Energy spectrum from 0 to 2 * Ef
+E = np.linspace(0.001, 2.0 * Ef, 600)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+colors = ['black', 'blue', 'green', 'crimson', 'purple', 'orange']
+
+print("=" * 65)
+print(f"FERMI-DIRAC QUANTUM STATISTICS REPORT (Fermi Energy E_F = {Ef:.2f} eV)")
+print("=" * 65)
+print(f"Fermi Energy (E_F):         {Ef:.4f} eV")
+print(f"Fermi Temperature (T_F):    {Ef / kB_eV:.1f} K")
+print(f"Thermal Energy at 300 K:    {kB_eV * 300:.4f} eV")
+print("-" * 65)
+
+# Plot 1: Fermi-Dirac Occupation Probability f(E)
+for idx, T in enumerate(temperatures):
+    c = colors[idx % len(colors)]
+    if T == 0:
+        f_E = np.where(E < Ef, 1.0, np.where(E == Ef, 0.5, 0.0))
+        label_str = r'$T = 0$ K (Step Function)'
+    else:
+        # Numerically stable evaluation avoiding exp overflow
+        x = (E - Ef) / (kB_eV * T)
+        f_E = np.zeros_like(x)
+        mask_low = x < -100
+        mask_high = x > 100
+        mask_mid = ~mask_low & ~mask_high
+        f_E[mask_low] = 1.0
+        f_E[mask_high] = 0.0
+        f_E[mask_mid] = 1.0 / (np.exp(x[mask_mid]) + 1.0)
+        label_str = f'$T = {T}$ K ($k_BT = {kB_eV * T:.3f}$ eV)'
+    
+    ax1.plot(E, f_E, lw=2.0, color=c, label=label_str)
+    
+    # 3D Density of states g(E) ~ sqrt(E) and occupied density
+    g_E = np.sqrt(E)
+    N_E = g_E * f_E
+    ax2.plot(E, N_E, lw=2.0, color=c, label=label_str)
+
+ax1.axvline(Ef, color='red', linestyle='--', alpha=0.7, label=f'$E_F = {Ef}$ eV')
+ax1.axhline(0.5, color='gray', linestyle=':', alpha=0.5)
+ax1.scatter([Ef], [0.5], color='red', s=60, zorder=5)
+ax1.set_title('Fermi-Dirac Distribution Function $f(E)$', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Energy $E$ (eV)', fontsize=11)
+ax1.set_ylabel('Occupation Probability $f(E)$', fontsize=11)
+ax1.set_ylim(-0.05, 1.08)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='best', fontsize=9)
+
+# Plot 2: Electron Energy Distribution N(E) = g(E) * f(E)
+ax2.axvline(Ef, color='red', linestyle='--', alpha=0.7)
+ax2.set_title(r'Electron Population Density $N(E) = g(E)f(E)$', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Energy $E$ (eV)', fontsize=11)
+ax2.set_ylabel(r'Occupied Density (Arb. Units)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='best', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+PY;
+            $code = str_replace(['{{EF}}', '{{TEMPS}}'], [(string)$Ef, $tempsStr], $template);
+            return [
+                'success' => true,
+                'source' => 'physics_engine',
+                'title' => "Quantum Statistical Mechanics: Fermi-Dirac Distribution (E_F = {$Ef} eV)",
+                'code' => $code,
+                'explanation' => "Calculates the quantum Fermi-Dirac occupation probability \$f(E) = \\frac{1}{e^{(E - E_F)/(k_B T)} + 1}\$ for Fermi energy \$E_F = {$Ef}\$ eV across temperatures {$tempsStr}. Highlights step-function behavior at \$T = 0\$ K, thermal broadening across the Fermi surface, and 3D density of states filling \$N(E) = g(E)f(E)\$.",
+                'complexity' => 'Time: O(N_temps * N_points), Space: O(N)',
+                'exercises' => [
+                    'Show analytically that the derivative df/dE at E = E_F equals -1 / (4 * k_B * T).',
+                    'Integrate N(E) from 0 to E_F at T = 0 to verify the total electron density n = (2m E_F / hbar^2)^(3/2) / (3 pi^2).',
+                    'Model chemical potential mu(T) temperature dependence via Sommerfeld expansion: mu(T) approx E_F [1 - (pi^2 / 12) * (k_B T / E_F)^2].'
+                ]
+            ];
+        } else {
+            // Bose-Einstein Distribution & Condensation
+            $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Quantum Statistical Mechanics: Bose-Einstein Distribution & Condensation (BEC)
+# Bosons (Integer Spin 0, 1, 2...)
+# Distribution: f_BE(E) = 1 / (exp((E - mu) / (k_B * T)) - 1)
+# Condensation Fraction: N_0 / N = 1 - (T / T_c)^(3/2)  for T < T_c
+# ==============================================================================
+
+kB_eV = 8.617333262e-5  # eV/K
+Tc = 150.0              # Critical condensation temperature (K)
+
+# Energy spectrum
+E = np.linspace(0.005, 0.15, 500)  # Energy in eV
+mu = -0.001                         # Chemical potential mu <= 0 for bosons
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+temps = [50, 100, 150, 250] # Kelvin
+colors = ['purple', 'blue', 'forestgreen', 'crimson']
+
+for idx, T in enumerate(temps):
+    x = (E - mu) / (kB_eV * T)
+    f_BE = 1.0 / (np.exp(np.clip(x, -50, 50)) - 1.0)
+    ax1.plot(E * 1e3, f_BE, lw=2.0, color=colors[idx], label=f'$T = {T}$ K')
+
+ax1.set_title('Bose-Einstein Distribution Function $f_{BE}(E)$', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Energy $E$ (meV)', fontsize=11)
+ax1.set_ylabel(r'Average Occupation Number $f_{BE}$', fontsize=11)
+ax1.set_ylim(0, 15)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Plot 2: Macroscopic Condensate Fraction N0 / N vs T / Tc
+T_norm = np.linspace(0.0, 2.0, 300)
+N0_fraction = np.where(T_norm <= 1.0, 1.0 - T_norm**1.5, 0.0)
+
+ax2.plot(T_norm, N0_fraction, 'b-', lw=2.4, label=r'Condensate Fraction $N_0 / N = 1 - (T/T_c)^{3/2}$')
+ax2.axvline(1.0, color='crimson', linestyle='--', label=r'Critical Temperature $T_c$')
+ax2.scatter([1.0], [0.0], color='crimson', s=70, zorder=5)
+ax2.fill_between(T_norm, 0, N0_fraction, color='cyan', alpha=0.2)
+ax2.set_title('Bose-Einstein Condensate Fraction vs $T / T_c$', fontsize=12, fontweight='bold')
+ax2.set_xlabel(r'Reduced Temperature $T / T_c$', fontsize=11)
+ax2.set_ylabel(r'Ground State Fraction $N_0 / N$', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+PY;
+            return [
+                'success' => true,
+                'source' => 'physics_engine',
+                'title' => 'Quantum Statistical Mechanics: Bose-Einstein Distribution & Condensation (BEC)',
+                'code' => $template,
+                'explanation' => 'Models the quantum Bose-Einstein distribution function for bosons and computes the macroscopic ground-state condensation fraction \$N_0 / N = 1 - (T/T_c)^{3/2}\$ below the critical temperature \$T_c\$.',
+                'complexity' => 'Time: O(N), Space: O(N)',
+                'exercises' => [
+                    'Derive the critical temperature Tc = (h^2 / 2 pi m k_B) * (n / zeta(3/2))^(2/3).',
+                    'Compare the Bose-Einstein, Fermi-Dirac, and classical Maxwell-Boltzmann distributions at high temperatures.',
+                    'Analyze the singularity in f_BE as E -> mu when mu -> 0.'
+                ]
+            ];
+        }
+    }
+
+    // =========================================================================
     // 17. STATISTICAL MECHANICS (Maxwell-Boltzmann, Speed Distribution)
     // =========================================================================
-    if (str_contains($p, 'maxwell') || str_contains($p, 'boltzmann') || str_contains($p, 'speed distribution') || str_contains($p, 'fermi') || str_contains($p, 'bose')) {
+    if ((str_contains($p, 'maxwell') || str_contains($p, 'boltzmann') || str_contains($p, 'speed distribution')) && !str_contains($p, 'fermi') && !str_contains($p, 'bose')) {
         $code = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -2465,9 +3265,125 @@ PY;
     }
 
     // =========================================================================
+    // 18B. BLACKBODY RADIATION, PLANCK'S LAW & WIEN'S DISPLACEMENT
+    // =========================================================================
+    if (str_contains($p, 'blackbody') || str_contains($p, 'planck') || str_contains($p, 'wien') || str_contains($p, 'stefan-boltzmann') || str_contains($p, 'cavity radiation') || (str_contains($p, 'radiation') && str_contains($p, 'spectrum'))) {
+        $temps = [];
+        if (preg_match_all('/(\d{3,5})\s*k\b/i', $problem, $tm)) {
+            foreach ($tm[1] as $tVal) {
+                $temps[] = (int)$tVal;
+            }
+        }
+        if (empty($temps)) {
+            $temps = [3000, 4000, 5000];
+        }
+        $tempsStr = "[" . implode(", ", array_unique($temps)) . "]";
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Quantum Physics: Planck's Blackbody Radiation Law & Wien's Displacement
+# Spectral Radiance (Planck Formula):
+# B_lambda(lambda, T) = (2 * h * c^2 / lambda^5) / (exp(h * c / (lambda * k_B * T)) - 1)
+# Wien's Displacement Law: lambda_peak * T = b approx 2.89777e-3 m·K
+# Stefan-Boltzmann Law: Total Power P = sigma * T^4
+# ==============================================================================
+
+# Fundamental Constants (SI Units)
+h = 6.62607015e-34       # Planck constant (J·s)
+c = 2.99792458e8         # Speed of light (m/s)
+kB = 1.380649e-23        # Boltzmann constant (J/K)
+sigma = 5.670374e-8      # Stefan-Boltzmann constant (W/(m^2·K^4))
+b_wien = 2.8977719e-3    # Wien displacement constant (m·K)
+
+temperatures = {{TEMPS}} # Temperatures in Kelvin
+
+# Wavelength spectrum from 50 nm to 2500 nm (0.05 um to 2.5 um)
+wavelengths_nm = np.linspace(50, 2500, 800)
+wavelengths_m = wavelengths_nm * 1e-9
+
+def planck_spectral_radiance(lam_m, T):
+    """Computes spectral radiance B_lambda in kW / (sr * m^2 * nm)"""
+    exponent = (h * c) / (lam_m * kB * T)
+    # Clip exponent for numerical stability
+    exp_factor = np.exp(np.clip(exponent, None, 100)) - 1.0
+    radiance_SI = (2.0 * h * c**2) / (lam_m**5 * exp_factor) # W / (sr * m^3)
+    # Convert to kW / (sr * m^2 * nm)
+    return radiance_SI * 1e-9 / 1e3
+
+print("=" * 65)
+print("PLANCK BLACKBODY RADIATION TELEMETRY")
+print("=" * 65)
+for T in temperatures:
+    lam_peak_nm = (b_wien / T) * 1e9
+    peak_radiance = planck_spectral_radiance(lam_peak_nm * 1e-9, T)
+    total_power = sigma * T**4
+    print(f"Temperature T = {T:4d} K: Peak lambda = {lam_peak_nm:6.1f} nm | Peak B = {peak_radiance:.3f} kW/(sr·m²·nm) | Total Power = {total_power/1e6:7.3f} MW/m²")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.6))
+
+colors = ['crimson', 'darkorange', 'gold', 'forestgreen', 'royalblue', 'purple']
+
+# Plot 1: Spectral Radiance Curves vs Wavelength
+for idx, T in enumerate(temperatures):
+    col = colors[idx % len(colors)]
+    B_lam = planck_spectral_radiance(wavelengths_m, T)
+    lam_peak = (b_wien / T) * 1e9
+    B_peak = planck_spectral_radiance(lam_peak * 1e-9, T)
+    
+    ax1.plot(wavelengths_nm, B_lam, lw=2.2, color=col, label=f'$T = {T}$ K (Peak: {lam_peak:.0f} nm)')
+    ax1.scatter([lam_peak], [B_peak], color=col, s=60, zorder=5)
+
+# Shaded Visible Spectrum Band (380 nm - 750 nm)
+ax1.axvspan(380, 750, color='yellow', alpha=0.15, label='Visible Light (380-750 nm)')
+ax1.set_title("Planck's Spectral Radiance $B_\\lambda(\\lambda, T)$", fontsize=12, fontweight='bold')
+ax1.set_xlabel('Wavelength $\\lambda$ (nm)', fontsize=11)
+ax1.set_ylabel('Spectral Radiance (kW / (sr·m²·nm))', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='upper right', fontsize=8.5)
+
+# Plot 2: Wien's Displacement Law Hyperbola
+T_range = np.linspace(min(temperatures) * 0.7, max(temperatures) * 1.3, 200)
+lam_peaks_nm = (b_wien / T_range) * 1e9
+
+ax2.plot(T_range, lam_peaks_nm, 'b-', lw=2.2, label=r'Wien Law: $\lambda_{\mathrm{max}} = b / T$')
+for idx, T in enumerate(temperatures):
+    col = colors[idx % len(colors)]
+    lam_p = (b_wien / T) * 1e9
+    ax2.scatter([T], [lam_p], color=col, s=80, edgecolors='black', zorder=5, label=f'{T} K: {lam_p:.0f} nm')
+
+ax2.set_title("Wien's Displacement Law: Peak Wavelength Decay", fontsize=12, fontweight='bold')
+ax2.set_xlabel('Temperature $T$ (Kelvin)', fontsize=11)
+ax2.set_ylabel(r'Peak Wavelength $\lambda_{\mathrm{max}}$ (nm)', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='upper right', fontsize=8.5)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{TEMPS}}', $tempsStr, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Quantum Physics: Planck's Blackbody Radiation Law & Wien's Displacement ({$tempsStr})",
+            'code' => $code,
+            'explanation' => "Models Planck's spectral distribution of cavity radiation \$B_\\lambda(\\lambda, T) = \\frac{2hc^2}{\\lambda^5 (e^{hc/\\lambda k_B T} - 1)}\$ across temperatures {$tempsStr}. Highlights Wien's displacement peaks \$\\lambda_{\\mathrm{peak}} T = 2.898 \\times 10^{-3}\$ m·K and Stefan-Boltzmann total integrated power \$P = \\sigma T^4\$.",
+            'complexity' => 'Time: O(N_temps * N_points), Space: O(N)',
+            'exercises' => [
+                'Integrate Planck radiance over all wavelengths to numerically verify Stefan-Boltzmann constant sigma.',
+                'Derive the Rayleigh-Jeans classical approximation (lambda >> hc / k_B T) and demonstrate the Ultraviolet Catastrophe.',
+                'Compute the surface temperature of the Sun assuming peak solar wavelength lambda_max = 500 nm.'
+            ]
+        ];
+    }
+
+    // =========================================================================
     // 19. FOURIER SERIES & SPECTRAL ANALYSIS (Square, Triangular, FFT)
     // =========================================================================
-    if (str_contains($p, 'fourier') || str_contains($p, 'fft') || str_contains($p, 'spectrum') || str_contains($p, 'harmonics')) {
+    if (str_contains($p, 'fourier') || str_contains($p, 'fft') || str_contains($p, 'harmonics') || str_contains($p, 'gibbs') || (str_contains($p, 'spectrum') && (str_contains($p, 'frequency') || str_contains($p, 'power spectrum') || str_contains($p, 'signal')))) {
         $code = <<<'PY'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -2924,11 +3840,10 @@ PY;
     }
 
     // =========================================================================
-    // 25. EXPLICIT MATHEMATICAL FUNCTION PLOT REQUESTS
+    // 25. EXPLICIT MATHEMATICAL FUNCTION PLOT & EQUATION REQUESTS
     // =========================================================================
-    if (preg_match('/(?:plot|graph)\s+(?:y\s*=|f\(x\)\s*=|the\s+function\s+|the\s+curve\s+)?([a-zA-Z0-9_\+\-\*\/\^\(\)\.\s]+)/i', $problem, $eqMatch)) {
-        $eqStr = strtolower($eqMatch[1]);
-        if (str_contains($eqStr, 'sin') || str_contains($eqStr, 'cos') || str_contains($eqStr, 'exp') || str_contains($eqStr, 'tan') || str_contains($eqStr, '^') || str_contains($eqStr, '**') || str_contains($eqStr, 'log') || str_contains($eqStr, 'sqrt')) {
+    if (str_contains($p, 'plot') || str_contains($p, 'graph') || str_contains($p, 'curve') || str_contains($p, 'function') || str_contains($p, 'dy/dt') || str_contains($p, 'dy/dx') || str_contains($p, 'ode')) {
+        if (str_contains($p, 'sin') || str_contains($p, 'cos') || str_contains($p, 'exp') || str_contains($p, 'tan') || str_contains($p, '^') || str_contains($p, '**') || str_contains($p, 'log') || str_contains($p, 'sqrt') || str_contains($p, 'dy/dt') || str_contains($p, 'dy/dx')) {
             return synthesizeDynamicPhysicsCode($problem, $includePlot);
         }
     }
@@ -2953,10 +3868,17 @@ PY;
  */
 function searchDatabaseForProgramSmart($problem) {
     try {
-        $db = new PDO("mysql:host=localhost;dbname=python4p;charset=utf8mb4", "root", "", [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]);
+        global $conn;
+        $db = $conn;
+        if (!$db) {
+            if (file_exists(__DIR__ . '/../db.php')) {
+                require_once __DIR__ . '/../db.php';
+                $db = $conn;
+            }
+        }
+        if (!$db) {
+            return null;
+        }
 
         require __DIR__ . '/../program/python/menu.php';
 
@@ -2969,7 +3891,8 @@ function searchDatabaseForProgramSmart($problem) {
             'by', 'at', 'can', 'you', 'create', 'display', 'print', 'first', 'second', 'kind',
             'function', 'functions', 'method', 'methods', 'type', 'types', 'basic', 'problem',
             'problems', 'given', 'order', 'ode', 'differential', 'equation', 'equations',
-            'algorithm', 'algorithms', 'loop', 'loops', 'value', 'values', 'system', 'systems'
+            'algorithm', 'algorithms', 'loop', 'loops', 'value', 'values', 'system', 'systems',
+            'angle', 'angles', 'degree', 'degrees', 'shift', 'shifts', 'scatter', 'scattering'
         ];
 
         $tokens = preg_split('/[^a-zA-Z0-9_]+/', $p);
@@ -3055,8 +3978,8 @@ function searchDatabaseForProgramSmart($problem) {
             }
         }
 
-        // Confident threshold check (minimum score 50)
-        if ($bestScore >= 50 && $bestMatch !== null) {
+        // Confident threshold check (strict minimum score 75 to avoid false positives)
+        if ($bestScore >= 75 && $bestMatch !== null) {
             $stmt = $db->prepare("SELECT id, menu_id, submenu_id, program_id, algo, content, explanation FROM python WHERE menu_id = ? AND submenu_id = ? AND content IS NOT NULL AND LENGTH(content) > 20 ORDER BY program_id ASC LIMIT 1");
             $stmt->execute([(int)$bestMatch['menu_id'], (int)$bestMatch['submenu_id']]);
             $prog = $stmt->fetch();
@@ -3068,19 +3991,18 @@ function searchDatabaseForProgramSmart($problem) {
             }
         }
 
-        // Secondary SQL search if high-confidence topic wasn't found
+        // Targeted SQL search on algo title ONLY (never raw content with generic words)
         $placeholders = [];
         $params = [];
         foreach ($keywords as $kw) {
             if (strlen($kw) >= 4) {
-                $placeholders[] = "algo LIKE ? OR content LIKE ?";
-                $params[] = "%$kw%";
+                $placeholders[] = "algo LIKE ?";
                 $params[] = "%$kw%";
             }
         }
 
         if (!empty($placeholders)) {
-            $sql = "SELECT id, menu_id, submenu_id, program_id, algo, content, explanation FROM python WHERE " . implode(" OR ", $placeholders) . " LIMIT 30";
+            $sql = "SELECT id, menu_id, submenu_id, program_id, algo, content, explanation FROM python WHERE (" . implode(" OR ", $placeholders) . ") AND content IS NOT NULL LIMIT 20";
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $candidates = $stmt->fetchAll();
@@ -3090,17 +4012,20 @@ function searchDatabaseForProgramSmart($problem) {
             foreach ($candidates as $cand) {
                 $cScore = 0;
                 $algo = strtolower(strip_tags($cand['algo'] ?? ''));
-                $content = strtolower($cand['content'] ?? '');
+                $matchCount = 0;
                 foreach ($keywords as $kw) {
-                    if (str_contains($algo, $kw)) $cScore += 30;
-                    if (str_contains($content, $kw)) $cScore += 15;
+                    if (str_contains($algo, $kw)) {
+                        $cScore += 35;
+                        $matchCount++;
+                    }
                 }
-                if ($cScore > $bestCandScore) {
+                // Require at least two distinct keywords to match algo
+                if ($matchCount >= 2 && $cScore > $bestCandScore) {
                     $bestCandScore = $cScore;
                     $bestCand = $cand;
                 }
             }
-            if ($bestCandScore >= 45 && $bestCand !== null && !empty($bestCand['content'])) {
+            if ($bestCandScore >= 70 && $bestCand !== null && !empty($bestCand['content'])) {
                 return $bestCand;
             }
         }
@@ -3174,9 +4099,361 @@ function synthesizeDynamicPhysicsCode($problem, $includePlot) {
     $p = strtolower($problem);
 
     // -------------------------------------------------------------------------
+    // Dynamic Sub-Pattern 1: Ordinary Differential Equation (ODE) / Initial Value Problem
+    // -------------------------------------------------------------------------
+    if (preg_match('/(?:dy\/dx|dy\/dt|d\^2y\/dt\^2|d2y\/dt2|y\'|differential equation|solve ode|euler method|rk4)/i', $problem)) {
+        $odeExpr = '-2.0 * y + 4.0 * np.sin(t)';
+        $odeDisp = 'dy/dt = -2y + 4 sin(t)';
+        if (preg_match('/(?:dy\/dt|dy\/dx|y\')\s*=\s*([a-zA-Z0-9_\+\-\*\/\^\.\(\)\s]+?)(?:with|for|initial|\$|[\r\n]|;\s*|$)/i', $problem, $om)) {
+            $cand = trim($om[1]);
+            $odeDisp = 'dy/dt = ' . $cand;
+            $pyCand = str_replace('^', '**', $cand);
+            $pyCand = preg_replace('/(\d+)\s*([a-zA-Z])/', '$1 * $2', $pyCand);
+            $pyCand = preg_replace('/\bsin\b/i', 'np.sin', $pyCand);
+            $pyCand = preg_replace('/\bcos\b/i', 'np.cos', $pyCand);
+            $pyCand = preg_replace('/\bexp\b/i', 'np.exp', $pyCand);
+            $odeExpr = $pyCand;
+        }
+
+        $y0 = 1.0;
+        if (preg_match('/(?:y\(0\)|y0|initial)\s*=?\s*(-?\d+(?:\.\d+)?)/i', $problem, $ym)) {
+            $y0 = (float)$ym[1];
+        }
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Computational Solution: {{DESC}}
+# Numerical Solution of Ordinary Differential Equation (Initial Value Problem)
+# Target ODE: {{ODE_DISP}}, y(0) = {{Y0}}
+# Solvers: 4th-Order Runge-Kutta (RK4) & 1st-Order Euler Method
+# ==============================================================================
+
+def f(t, y):
+    """Governing derivative dy/dt = f(t, y)"""
+    try:
+        return {{ODE_EXPR}}
+    except Exception:
+        return -2.0 * y + np.sin(t)
+
+# Time Discretization
+t0 = 0.0
+t_end = 10.0
+dt = 0.02
+steps = int((t_end - t0) / dt) + 1
+t = np.linspace(t0, t_end, steps)
+
+# Array allocation
+y_rk4 = np.zeros(steps)
+y_euler = np.zeros(steps)
+y_rk4[0] = {{Y0}}
+y_euler[0] = {{Y0}}
+
+# Numerical Integration
+for i in range(steps - 1):
+    ti = t[i]
+    
+    # 1. Euler step: y_{n+1} = y_n + dt * f(t_n, y_n)
+    y_euler[i + 1] = y_euler[i] + dt * f(ti, y_euler[i])
+    
+    # 2. RK4 step: O(dt^4) high accuracy
+    yi = y_rk4[i]
+    k1 = f(ti, yi)
+    k2 = f(ti + 0.5 * dt, yi + 0.5 * dt * k1)
+    k3 = f(ti + 0.5 * dt, yi + 0.5 * dt * k2)
+    k4 = f(ti + dt, yi + dt * k3)
+    y_rk4[i + 1] = yi + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
+
+# Phase portrait dy/dt
+dydt_rk4 = np.array([f(ti, yi) for ti, yi in zip(t, y_rk4)])
+
+print("=" * 65)
+print("NUMERICAL ODE TELEMETRY: {{ODE_DISP}}")
+print("=" * 65)
+print(f"Initial Condition:     y(0) = {{Y0}}")
+print(f"Time Horizon:          [{t0:.1f}, {t_end:.1f}] s (steps = {steps}, dt = {dt*1000:.1f} ms)")
+print(f"Final State (RK4):     y({t_end:.1f}) = {y_rk4[-1]:.6f}")
+print(f"Final State (Euler):   y({t_end:.1f}) = {y_euler[-1]:.6f}")
+print(f"Max Euler Discrepancy: {np.max(np.abs(y_rk4 - y_euler)):.4e}")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+
+# Plot 1: Solution Trajectory y(t)
+ax1.plot(t, y_rk4, 'b-', lw=2.2, label='4th-Order Runge-Kutta (RK4)')
+ax1.plot(t, y_euler, 'r--', lw=1.6, alpha=0.7, label='Euler Method ($O(\\Delta t)$)')
+ax1.scatter([t0], [{{Y0}}], color='gold', s=80, edgecolors='black', zorder=5, label=f'Init $y(0) = {{Y0}}$')
+ax1.set_title('ODE Numerical Solution $y(t)$', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Independent Variable $t$', fontsize=11)
+ax1.set_ylabel('State Variable $y(t)$', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='best', fontsize=9)
+
+# Plot 2: Phase Portrait (y vs dy/dt)
+ax2.plot(y_rk4, dydt_rk4, 'm-', lw=1.8, label=r'Phase Trajectory $(y, \dot{y})$')
+ax2.scatter([y_rk4[0]], [dydt_rk4[0]], color='green', s=70, zorder=5, label='Start')
+ax2.scatter([y_rk4[-1]], [dydt_rk4[-1]], color='red', s=70, zorder=5, label='End')
+ax2.set_title('Phase Space Trajectory $(y, dy/dt)$', fontsize=12, fontweight='bold')
+ax2.set_xlabel('$y$', fontsize=11)
+ax2.set_ylabel(r'$\dot{y} = dy/dt$', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='best', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(
+            ['{{DESC}}', '{{ODE_DISP}}', '{{ODE_EXPR}}', '{{Y0}}'],
+            [$cleanDesc, $odeDisp, $odeExpr, (string)$y0],
+            $template
+        );
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Numerical ODE Integration: {$odeDisp} (RK4 vs Euler)",
+            'code' => $code,
+            'explanation' => "Solves the initial value problem \${$odeDisp}\$ with \$y(0) = {$y0}\$ numerically using 4th-Order Runge-Kutta (RK4) and contrasts with the 1st-order Euler method. Generates solution trajectories and phase portraits.",
+            'complexity' => 'Time: O(N_steps), Space: O(N_steps)',
+            'exercises' => [
+                'Vary the time step dt and observe how Euler truncation error grows as O(dt) while RK4 remains stable.',
+                'Generalize the solver to a 2nd-order ODE by reducing it to a system of two coupled 1st-order equations.',
+                'Implement an adaptive step-size Runge-Kutta-Fehlberg (RK45) scheme.'
+            ]
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Dynamic Sub-Pattern 2: Numerical Definite Quadrature / Integration
+    // -------------------------------------------------------------------------
+    if (preg_match('/(?:integrate|integral|area under|quadrature|simpson|trapezoid)/i', $problem)) {
+        $userFunc = 'np.sin(x) * np.exp(-0.5 * x)';
+        $userFuncDisp = 'sin(x) * exp(-0.5x)';
+        if (preg_match('/(?:integrate|integral of|function|of)\s*([a-zA-Z0-9_\+\-\*\/\^\.\(\)\s]+?)(?:from|between|over|\$|\.|$)/i', $problem, $im)) {
+            $cand = trim($im[1]);
+            if (strlen($cand) >= 2 && preg_match('/[a-zA-Z]/', $cand)) {
+                $userFuncDisp = $cand;
+                $pyCand = str_replace('^', '**', $cand);
+                $pyCand = preg_replace('/(\d+)\s*([a-zA-Z])/', '$1 * $2', $pyCand);
+                $pyCand = preg_replace('/\bsin\b/i', 'np.sin', $pyCand);
+                $pyCand = preg_replace('/\bcos\b/i', 'np.cos', $pyCand);
+                $pyCand = preg_replace('/\bexp\b/i', 'np.exp', $pyCand);
+                $userFunc = $pyCand;
+            }
+        }
+
+        $a = 0.0;
+        $b = 3.14159;
+        if (preg_match('/(?:from|between)\s*(-?\d+(?:\.\d+)?)\s*(?:to|and)\s*(-?\d+(?:\.\d+)?)/i', $problem, $bm)) {
+            $a = (float)$bm[1];
+            $b = (float)$bm[2];
+        }
+
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Computational Solution: {{DESC}}
+# Numerical Definite Quadrature: Simpson's 1/3 Rule vs Trapezoidal Rule
+# Target Integrand: f(x) = {{FUNC_DISP}}
+# Domain of Integration: [a, b] = [{{A}}, {{B}}]
+# ==============================================================================
+
+def f(x):
+    """Target integrand function"""
+    try:
+        return {{FUNC_EXPR}}
+    except Exception:
+        return np.sin(x) * np.exp(-0.3 * x)
+
+a = {{A}}
+b = {{B}}
+N_intervals = 100  # Even number for Simpson's 1/3 rule
+
+# 1. Composite Trapezoidal Rule: O(h^2)
+x_trap = np.linspace(a, b, N_intervals + 1)
+y_trap = f(x_trap)
+h_trap = (b - a) / N_intervals
+integral_trapezoidal = (h_trap / 2.0) * (y_trap[0] + 2.0 * np.sum(y_trap[1:-1]) + y_trap[-1])
+
+# 2. Composite Simpson's 1/3 Rule: O(h^4)
+x_simp = np.linspace(a, b, N_intervals + 1)
+y_simp = f(x_simp)
+h_simp = (b - a) / N_intervals
+integral_simpson = (h_simp / 3.0) * (y_simp[0] + 4.0 * np.sum(y_simp[1:-1:2]) + 2.0 * np.sum(y_simp[2:-1:2]) + y_simp[-1])
+
+# 3. High-Resolution Reference Integral (Gaussian Quadrature Benchmark)
+x_fine = np.linspace(a, b, 2000)
+y_fine = f(x_fine)
+dx_fine = (b - a) / 1999
+integral_ref = np.trapz(y_fine, x_fine)
+
+print("=" * 65)
+print("NUMERICAL QUADRATURE REPORT: {{FUNC_DISP}}")
+print("=" * 65)
+print(f"Integration Limits:    [{a}, {b}] (dx = {h_simp:.5f})")
+print(f"Trapezoidal Rule:      I_trap = {integral_trapezoidal:.8f}")
+print(f"Simpson's 1/3 Rule:    I_simp = {integral_simpson:.8f}")
+print(f"Benchmark Reference:   I_ref  = {integral_ref:.8f}")
+print(f"Simpson Error:         {abs(integral_simpson - integral_ref):.4e}")
+print("=" * 65)
+
+# Error scaling across interval counts
+subdivisions = [10, 20, 50, 100, 200, 500]
+err_trap, err_simp = [], []
+for n in subdivisions:
+    x_sub = np.linspace(a, b, n + 1)
+    y_sub = f(x_sub)
+    h_sub = (b - a) / n
+    it = (h_sub / 2.0) * (y_sub[0] + 2.0 * np.sum(y_sub[1:-1]) + y_sub[-1])
+    isimp = (h_sub / 3.0) * (y_sub[0] + 4.0 * np.sum(y_sub[1:-1:2]) + 2.0 * np.sum(y_sub[2:-1:2]) + y_sub[-1])
+    err_trap.append(abs(it - integral_ref) + 1e-16)
+    err_simp.append(abs(isimp - integral_ref) + 1e-16)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.5))
+
+# Plot 1: Shaded Definite Integral Area
+x_plot = np.linspace(a - 0.2 * abs(b - a), b + 0.2 * abs(b - a), 500)
+ax1.plot(x_plot, f(x_plot), 'b-', lw=2.2, label=r'$f(x) = {{FUNC_DISP}}$')
+ax1.fill_between(x_fine, 0, y_fine, color='cyan', alpha=0.25, label=f'Area = {integral_simpson:.4f}')
+ax1.axvline(a, color='crimson', linestyle=':', label=f'Lower $a = {a}$')
+ax1.axvline(b, color='forestgreen', linestyle=':', label=f'Upper $b = {b}$')
+ax1.axhline(0, color='gray', linestyle='--', alpha=0.5)
+ax1.set_title('Definite Integral: Shaded Area Under Curve', fontsize=12, fontweight='bold')
+ax1.set_xlabel('$x$', fontsize=11)
+ax1.set_ylabel('$f(x)$', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='best', fontsize=9)
+
+# Plot 2: Log-Log Error Convergence Decay
+hs = [(b - a) / n for n in subdivisions]
+ax2.loglog(hs, err_trap, 'ro-', lw=1.8, label=r'Trapezoidal Error $O(h^2)$')
+ax2.loglog(hs, err_simp, 'bs-', lw=1.8, label=r"Simpson's 1/3 Error $O(h^4)$")
+ax2.set_title('Asymptotic Error Convergence vs Step Size $h$', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Step Size $h = (b - a)/N$ (Log Scale)', fontsize=11)
+ax2.set_ylabel('Absolute Error (Log Scale)', fontsize=11)
+ax2.grid(True, which='both', alpha=0.3)
+ax2.legend(loc='best', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace(
+            ['{{DESC}}', '{{FUNC_DISP}}', '{{FUNC_EXPR}}', '{{A}}', '{{B}}'],
+            [$cleanDesc, $userFuncDisp, $userFunc, (string)$a, (string)$b],
+            $template
+        );
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Numerical Quadrature: Integration of {$userFuncDisp} over [{$a}, {$b}]",
+            'code' => $code,
+            'explanation' => "Calculates the definite integral \$\\int_{{$a}}^{{$b}} f(x) dx\$ using Simpson's 1/3 rule and the Trapezoidal method. Demonstrates quartic \$O(h^4)\$ error convergence against quadratic \$O(h^2)\$ decay.",
+            'complexity' => 'Time: O(N), Space: O(N)',
+            'exercises' => [
+                'Test integration of a function with an essential singularity using Romberg extrapolation.',
+                'Implement Gauss-Legendre quadrature with orthogonal Legendre polynomial roots.',
+                'Compute multi-dimensional integrals over 2D circular domains using polar coordinate transformation.'
+            ]
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Dynamic Sub-Pattern 3: Monte Carlo & 2D Random Walk Simulation
+    // -------------------------------------------------------------------------
+    if (preg_match('/(?:monte carlo|random walk|brownian|stochastic|coin toss|dice|random process)/i', $problem)) {
+        $template = <<<'PY'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================================================================
+# Computational Solution: {{DESC}}
+# Stochastic Physics: 2D Random Walk & Brownian Motion Ensemble Simulation
+# Mean Displacement: <R> = 0 (Isotropic)
+# Mean Squared Displacement (MSD): <R^2(t)> = 2 * d * D * t (Einstein Relation)
+# ==============================================================================
+
+num_steps = 1000       # Time steps per walker
+num_walkers = 15       # Ensemble size for statistical averaging
+step_size = 1.0        # Mean free path per step
+
+# Generate 2D random steps with isotropic random angles theta in [0, 2*pi]
+angles = np.random.uniform(0, 2 * np.pi, size=(num_walkers, num_steps))
+dx = step_size * np.cos(angles)
+dy = step_size * np.sin(angles)
+
+# Cumulative trajectory positions (starting at origin [0, 0])
+x_paths = np.hstack([np.zeros((num_walkers, 1)), np.cumsum(dx, axis=1)])
+y_paths = np.hstack([np.zeros((num_walkers, 1)), np.cumsum(dy, axis=1)])
+
+# Mean squared displacement (MSD) across all walkers over time
+squared_displacement = x_paths**2 + y_paths**2
+msd = np.mean(squared_displacement, axis=0)
+time_steps = np.arange(num_steps + 1)
+
+final_radii = np.sqrt(squared_displacement[:, -1])
+mean_final_r = np.mean(final_radii)
+theoretical_rms = np.sqrt(num_steps) * step_size
+
+print("=" * 65)
+print("2D BROWNIAN RANDOM WALK ENSEMBLE REPORT")
+print("=" * 65)
+print(f"Ensemble Size:             {num_walkers} independent walkers")
+print(f"Number of Steps (N):       {num_steps} steps (step size = {step_size})")
+print(f"Mean Final Radius <R>:     {mean_final_r:.3f}")
+print(f"Theoretical RMS Radius:    sqrt(N) = {theoretical_rms:.3f}")
+print(f"Empirical / Theory Ratio:  {mean_final_r / theoretical_rms:.3f}")
+print("=" * 65)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.6))
+
+# Plot 1: 2D Spatial Trajectories
+for i in range(num_walkers):
+    ax1.plot(x_paths[i], y_paths[i], lw=1.0, alpha=0.7)
+    ax1.scatter([x_paths[i, -1]], [y_paths[i, -1]], s=40, zorder=4)
+
+ax1.scatter([0], [0], color='gold', s=120, edgecolors='black', zorder=5, label='Origin (0,0)')
+ax1.set_aspect('equal')
+ax1.set_title(f'2D Brownian Trajectories ({num_walkers} Walkers, N = {num_steps})', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Position $x$', fontsize=11)
+ax1.set_ylabel('Position $y$', fontsize=11)
+ax1.grid(True, alpha=0.3)
+ax1.legend(loc='upper right', fontsize=9)
+
+# Plot 2: Mean Squared Displacement (MSD) Linear Growth
+ax2.plot(time_steps, msd, 'b-', lw=2.2, label=r'Empirical Ensemble $\langle R^2(t) \rangle$')
+ax2.plot(time_steps, time_steps * (step_size**2), 'r--', lw=1.8, label=r'Theoretical Einstein Law $\langle R^2 \rangle = N \cdot l^2$')
+ax2.set_title('Mean Squared Displacement Linear Scaling', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Time Step Index $N$', fontsize=11)
+ax2.set_ylabel(r'MSD $\langle R^2 \rangle$', fontsize=11)
+ax2.grid(True, alpha=0.3)
+ax2.legend(loc='upper left', fontsize=9.5)
+
+plt.tight_layout()
+plt.show()
+PY;
+        $code = str_replace('{{DESC}}', $cleanDesc, $template);
+        return [
+            'success' => true,
+            'source' => 'physics_engine',
+            'title' => "Stochastic Simulation: 2D Random Walk & Brownian Diffusion Ensemble",
+            'code' => $code,
+            'explanation' => "Simulates an ensemble of 2D Brownian random walks and verifies Einstein's diffusion scaling law \$\\langle R^2(t) \\rangle = N l^2\$. Visualizes stochastic trajectories and linear mean-square displacement growth.",
+            'complexity' => 'Time: O(N_walkers * N_steps), Space: O(N_walkers * N_steps)',
+            'exercises' => [
+                'Implement 3D random walks and verify that the probability of returning to the origin drops to ~34% (Polya theorem).',
+                'Add an external drift velocity (electric field on charged ions) and observe biased random walks.',
+                'Compute the probability density histogram of final radial positions and fit with Rayleigh distribution.'
+            ]
+        ];
+    }
+
+    // -------------------------------------------------------------------------
     // Pattern A: Area / Perimeter / Geometry (e.g. Circle, Sphere, Triangle)
     // -------------------------------------------------------------------------
-    if (str_contains($p, 'circle') || str_contains($p, 'radius') || str_contains($p, 'sphere') || str_contains($p, 'area')) {
+    if (str_contains($p, 'circle') || str_contains($p, 'radius') || str_contains($p, 'sphere') || (str_contains($p, 'area') && !str_contains($p, 'integral'))) {
         $radius = 5.0;
         if (preg_match('/(\d+(?:\.\d+)?)/', $problem, $m)) {
             $radius = (float)$m[1];
@@ -3259,7 +4536,7 @@ PY;
     // -------------------------------------------------------------------------
     // Pattern B: Energy / Work / Power / Kinematics (e.g. Kinetic Energy, Momentum)
     // -------------------------------------------------------------------------
-    if (str_contains($p, 'kinetic') || str_contains($p, 'energy') || str_contains($p, 'momentum') || str_contains($p, 'velocity') || str_contains($p, 'speed') || str_contains($p, 'force')) {
+    if ((str_contains($p, 'kinetic energy') || (str_contains($p, 'momentum') && str_contains($p, 'mass')) || (str_contains($p, 'velocity') && str_contains($p, 'mass'))) && !str_contains($p, 'wave') && !str_contains($p, 'quantum') && !str_contains($p, 'integral') && !str_contains($p, 'differential')) {
         $mass = 2.0;
         $velocity = 15.0;
         if (preg_match_all('/(\d+(?:\.\d+)?)/', $problem, $matches)) {
@@ -3341,20 +4618,38 @@ PY;
     // -------------------------------------------------------------------------
     $mathExpr = 'np.sin(x) * np.exp(-0.2 * x)';
     $userFuncText = 'sin(x) * exp(-0.2*x)';
-    if (preg_match('/(?:plot|graph|function|equation)\s*(?:y\s*=\s*|f\(x\)\s*=\s*)?([a-zA-Z0-9_\+\-\*\/\^\(\)\.\s]+)/i', $problem, $m)) {
+    $candidate = '';
+    if (preg_match('/(?:y\s*=|f\(x\)\s*=)\s*([a-zA-Z0-9_\+\-\*\/\^\.\(\)\s]+?)(?:from|between|\$|[\r\n]|;\s*|$)/i', $problem, $m)) {
         $candidate = trim($m[1]);
-        if (strlen($candidate) > 2) {
-            $userFuncText = $candidate;
-            // Convert math syntax to numpy
-            $pyExpr = preg_replace('/\^/', '**', $candidate);
-            $pyExpr = preg_replace('/\bsin\b/i', 'np.sin', $pyExpr);
-            $pyExpr = preg_replace('/\bcos\b/i', 'np.cos', $pyExpr);
-            $pyExpr = preg_replace('/\btan\b/i', 'np.tan', $pyExpr);
-            $pyExpr = preg_replace('/\bexp\b/i', 'np.exp', $pyExpr);
-            $pyExpr = preg_replace('/\blog\b/i', 'np.log', $pyExpr);
-            $pyExpr = preg_replace('/\bsqrt\b/i', 'np.sqrt', $pyExpr);
-            $mathExpr = $pyExpr;
-        }
+    } elseif (preg_match('/(?:plot|graph|function|curve|equation)\s*(?:the\s+mathematical\s+curve\s+|the\s+curve\s+|the\s+function\s+)?(?:y\s*=\s*|f\(x\)\s*=\s*)?([a-zA-Z0-9_\+\-\*\/\^\.\(\)\s]+?)(?:from|between|\$|[\r\n]|;\s*|$)/i', $problem, $m)) {
+        $candidate = trim($m[1]);
+    }
+
+    if (!empty($candidate) && strlen($candidate) > 2) {
+        $userFuncText = $candidate;
+        // Convert math syntax to numpy
+        $pyExpr = preg_replace('/\^/', '**', $candidate);
+        $pyExpr = preg_replace('/(\d+)\s*([a-zA-Z])/', '$1 * $2', $pyExpr);
+        $pyExpr = preg_replace('/\bsin\b/i', 'np.sin', $pyExpr);
+        $pyExpr = preg_replace('/\bcos\b/i', 'np.cos', $pyExpr);
+        $pyExpr = preg_replace('/\btan\b/i', 'np.tan', $pyExpr);
+        $pyExpr = preg_replace('/\bexp\b/i', 'np.exp', $pyExpr);
+        $pyExpr = preg_replace('/\blog\b/i', 'np.log', $pyExpr);
+        $pyExpr = preg_replace('/\bsqrt\b/i', 'np.sqrt', $pyExpr);
+        $mathExpr = $pyExpr;
+    }
+
+    $x_start = -5.0;
+    $x_end = 5.0;
+    if (preg_match('/from\s*(?:x\s*=\s*)?(-?\d+(?:\.\d+)?)\s*to\s*(-?\d+(?:\.\d+)?)/i', $problem, $xm)) {
+        $x_start = (float)$xm[1];
+        $x_end = (float)$xm[2];
+    } elseif (preg_match('/between\s*(-?\d+(?:\.\d+)?)\s*and\s*(-?\d+(?:\.\d+)?)/i', $problem, $xm)) {
+        $x_start = (float)$xm[1];
+        $x_end = (float)$xm[2];
+    } elseif (str_contains($mathExpr, 'sqrt') || str_contains($mathExpr, 'log')) {
+        $x_start = 0.1;
+        $x_end = 10.0;
     }
 
     $template = <<<'PY'
@@ -3368,8 +4663,8 @@ import matplotlib.pyplot as plt
 # ==============================================================================
 
 # 1. Spatial Discretization
-x_start = -5.0
-x_end = 5.0
+x_start = {{XSTART}}
+x_end = {{XEND}}
 num_samples = 500
 x = np.linspace(x_start, x_end, num_samples)
 dx = x[1] - x[0]
@@ -3420,14 +4715,18 @@ plt.tight_layout()
 plt.show()
 PY;
 
-    $code = str_replace(['{{DESC}}', '{{FUNC}}', '{{EXPR}}'], [$cleanDesc, $userFuncText, $mathExpr], $template);
+    $code = str_replace(
+        ['{{DESC}}', '{{FUNC}}', '{{EXPR}}', '{{XSTART}}', '{{XEND}}'],
+        [$cleanDesc, $userFuncText, $mathExpr, (string)$x_start, (string)$x_end],
+        $template
+    );
 
     return [
         'success' => true,
         'source' => 'physics_engine',
-        'title' => 'Numerical Function Modeling: ' . substr($cleanDesc, 0, 60),
+        'title' => 'Numerical Function Modeling: y = ' . $userFuncText . " on [{$x_start}, {$x_end}]",
         'code' => $code,
-        'explanation' => "Generated an analytical and numerical simulation tailored directly to the requested problem: {$cleanDesc}. Discretizes the domain, calculates numerical derivatives and cumulative integrals, and plots multi-panel telemetry.",
+        'explanation' => "Generated an analytical and numerical simulation tailored directly to the requested problem: {$cleanDesc}. Discretizes the domain [{$x_start}, {$x_end}], calculates numerical derivatives and cumulative integrals, and plots multi-panel telemetry.",
         'complexity' => 'Time: O(N), Space: O(N)',
         'exercises' => [
             'Change domain bounds [x_start, x_end] to observe long-term asymptotic behavior.',

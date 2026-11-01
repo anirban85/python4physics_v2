@@ -47,3 +47,6 @@ $adsense_enabled   = !empty($adsense_client_id);
 $infolinks_pid     = getenv('INFOLINKS_PID') ?: '3428216';
 $infolinks_wsid    = getenv('INFOLINKS_WSID') ?: '0';
 $infolinks_enabled = !empty($infolinks_pid);
+
+// Google Gemini API Configuration for Ask AI & Multimodal Synthesis
+$gemini_api_key    = getenv('GEMINI_API_KEY') ?: '';
