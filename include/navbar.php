@@ -75,11 +75,11 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
 
         <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0;">
             <li><a href="<?php echo $siteurl; ?>" class="nav-link-item"><i class="fa-solid fa-house fa-fw"></i> Home</a></li>
-            <li><a href="<?php echo $siteurl; ?>ask_ai.php" class="nav-link-item nav-link-ai"><i class="fa-solid fa-wand-magic-sparkles fa-fw" style="color: #818cf8;"></i> Ask AI Code Generator</a></li>
+            <li><a href="<?php echo $siteurl; ?>ask_ai.php" class="nav-link-item nav-link-ai"><i class="fa-solid fa-wand-magic-sparkles fa-fw" style="color: #818cf8;"></i> Ask AI (Python Solver)</a></li>
             <li><a href="<?php echo $siteurl; ?>about.php" class="nav-link-item"><i class="fa-solid fa-circle-info fa-fw"></i> About Us</a></li>
             <li><a href="<?php echo $siteurl; ?>program/python/index.php" class="nav-link-item"><i class="fa-brands fa-python fa-fw"></i> Python Workbench</a></li>
-            <li><a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="nav-link-item"><i class="fa-solid fa-chart-line fa-fw"></i> GNUplot Visualizer</a></li>
-            <li><a href="<?php echo $siteurl; ?>program/latex/index.php" class="nav-link-item"><i class="fa-solid fa-file-code fa-fw"></i> LaTeX Formulations</a></li>
+            <li><a href="<?php echo $siteurl; ?>program/gnuplot/index.php" class="nav-link-item"><i class="fa-solid fa-chart-line fa-fw"></i> GNUplot Graphs &amp; Scripts</a></li>
+            <li><a href="<?php echo $siteurl; ?>program/latex/index.php" class="nav-link-item"><i class="fa-solid fa-file-code fa-fw"></i> LaTeX Templates &amp; Math</a></li>
             <li><a href="<?php echo $siteurl; ?>assignments.php" class="nav-link-item"><i class="fa-solid fa-list-check fa-fw"></i> Interactive Assignments</a></li>
             <li><a href="<?php echo $siteurl; ?>visualization.php" class="nav-link-item"><i class="fa-solid fa-sliders fa-fw"></i> Interactive Visualization</a></li>
             <li><a href="<?php echo $siteurl; ?>arduino.php" class="nav-link-item"><i class="fa-solid fa-microchip fa-fw"></i> Arduino Physics Lab</a></li>

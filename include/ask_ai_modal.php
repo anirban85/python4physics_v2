@@ -15,7 +15,7 @@
                 <div>
                     <h3 id="askAiModalTitle" style="font-size: 1.25rem; margin: 0; color: var(--text);">Ask AI: Python Code Generator</h3>
                     <div style="font-size: 0.78rem; color: var(--text-dim); display: flex; gap: 0.75rem; align-items: center; margin-top: 2px;">
-                        <span><i class="fa-solid fa-microchip"></i> Powered by Gemini 2.0 & Scientific Physics Engine</span>
+                        <span><i class="fa-solid fa-graduation-cap"></i> Computational Physics Assistant</span>
                     </div>
                 </div>
             </div>
@@ -96,8 +96,8 @@
             <!-- Loading Spinner State -->
             <div id="aiLoadingIndicator" style="display: none; padding: 3rem 1rem; text-align: center; color: var(--text-muted);">
                 <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent); margin-bottom: 1rem;"></i>
-                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem;">Synthesizing Computational Physics Script...</div>
-                <div style="font-size: 0.85rem; color: var(--text-dim);">Analyzing governing physical equations and formulating optimized Python code</div>
+                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem;">Generating Python Program...</div>
+                <div style="font-size: 0.85rem; color: var(--text-dim);">Formulating equations and writing verified numerical code...</div>
             </div>
 
             <!-- Error Message Box -->
@@ -150,7 +150,7 @@
                 <!-- Theoretical & Algorithmic Summary -->
                 <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-md); padding: 1.25rem;">
                     <h5 style="color: var(--accent); margin: 0 0 0.5rem 0; font-size: 0.95rem; display: flex; align-items: center; gap: 0.45rem;">
-                        <i class="fa-solid fa-lightbulb"></i> Theoretical Overview & Mechanics
+                        <i class="fa-solid fa-book-open"></i> Theory &amp; Method
                     </h5>
                     <div id="aiExplanationText" style="font-size: 0.92rem; line-height: 1.65; color: var(--text-color);"></div>
                 </div>
@@ -354,7 +354,7 @@ async function submitAskAI() {
         if (promptEcho) promptEcho.innerText = data.user_prompt || problemText;
         document.getElementById('aiResultTitle').innerText = data.title || 'Computational Physics Solution';
         document.getElementById('aiResultComplexityBadge').innerText = data.complexity || 'O(N)';
-        document.getElementById('aiResultSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini 2.0 AI' : 'Physics Synthesizer';
+        document.getElementById('aiResultSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini AI Model' : 'Curriculum Solver';
         document.getElementById('aiResultSourceBadge').className = data.source === 'gemini_ai' ? 'badge badge-primary' : 'badge badge-cyan';
 
         var codeBlock = document.getElementById('aiCodeBlock');
@@ -513,9 +513,9 @@ if (typeof callGeminiClientDirectly !== 'function') {
                     if (parsed && parsed.code) {
                         var doc = '"""\n' +
                             '='.repeat(78) + '\n' +
-                            'Python4Physics - Ask AI Generated Solution\n' +
-                            'User Prompt: ' + problemText.replace(/[\r\n]+/g, ' ') + '\n' +
-                            'Physical Domain: ' + (parsed.title || 'Gemini 2.0 AI Synthesis') + '\n' +
+                            'Python4Physics - Computational Physics Program\n' +
+                            'Problem: ' + problemText.replace(/[\r\n]+/g, ' ') + '\n' +
+                            'Topic: ' + (parsed.title || 'Computational Physics Solution') + '\n' +
                             'Complexity: ' + (parsed.complexity || 'O(N)') + '\n' +
                             '='.repeat(78) + '\n' +
                             '"""\n\n';

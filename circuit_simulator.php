@@ -796,7 +796,7 @@ require_once __DIR__ . '/include/navbar.php';
             
             <div class="ms-inspector-body">
                 <p style="font-size: 0.8rem; color: #94a3b8; margin: 0 0 14px 0; line-height: 1.45;">
-                    Upload an image or photograph of any circuit diagram (from a textbook, lab manual, exam, or sketch). The AI engine automatically compiles components, wiring topology, values, and launches live physical simulation output immediately.
+                    Upload an image or diagram of any circuit (from a textbook, lab manual, exam, or sketch) to generate the component schematic and run the circuit simulation.
                 </p>
 
                 <div class="ms-diagram-grid">
@@ -854,13 +854,13 @@ require_once __DIR__ . '/include/navbar.php';
 
                             <div id="msDiagramLoadingState" style="display: none; text-align: center; margin: auto; color: #38bdf8;">
                                 <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                                <div style="font-size: 0.84rem; font-weight: 700;">Synthesizing Schematic with AI...</div>
-                                <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;" id="msDiagramLoadingSubtext">Extracting topology &amp; assigning physical parameters</div>
+                                <div style="font-size: 0.84rem; font-weight: 700;">Analyzing Circuit Schematic...</div>
+                                <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;" id="msDiagramLoadingSubtext">Identifying components and circuit connections</div>
                             </div>
 
                             <div id="msDiagramResultState" style="display: none;">
                                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span class="badge badge-cyan" id="msResultEngineBadge" style="font-size: 0.68rem;">AI SYNTHESIZED</span>
+                                    <span class="badge badge-cyan" id="msResultEngineBadge" style="font-size: 0.68rem;">SCHEMATIC GENERATED</span>
                                     <span style="font-size: 0.7rem; color: #4ade80; font-weight: 600;"><i class="fa-solid fa-check"></i> Ready to Run</span>
                                 </div>
                                 <div class="ms-diagram-summary-card">

@@ -7,8 +7,8 @@
 require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
-$page_title = "Ask AI - Scientific Python Code Generator & Numerical Physics Synthesizer";
-$page_description = "Generate verified Python scripts, numerical ODE/PDE solvers, matrix algorithms, and scientific plots from problem descriptions using AI.";
+$page_title = "Ask AI - Computational Physics Code Assistant & Problem Solver";
+$page_description = "Generate verified Python scripts, numerical ODE/PDE solvers, matrix algorithms, and scientific plots from problem descriptions.";
 
 require_once __DIR__ . '/include/header.php';
 require_once __DIR__ . '/include/navbar.php';
@@ -18,13 +18,13 @@ require_once __DIR__ . '/include/navbar.php';
     <!-- Page Header -->
     <div style="text-align: center; max-width: 820px; margin: 0 auto 2.5rem auto;">
         <span class="badge badge-primary" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Scientific Assistant
+            <i class="fa-solid fa-graduation-cap"></i> Computational Physics Assistant
         </span>
         <h1 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-top: 0.75rem; margin-bottom: 0.75rem;">
             Ask AI: <span class="gradient-text">Physics Code Generator</span>
         </h1>
         <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted);">
-            Describe any physics simulation, mathematical formulation, or numerical analysis task. Our AI engine synthesizes clean, robust, and verified Python code with NumPy, SciPy, and Matplotlib ready to run directly in your browser.
+            Describe a physics simulation, equation, or numerical calculation. It generates clean, tested Python code using NumPy, SciPy, and Matplotlib ready to run directly in your browser.
         </p>
     </div>
 
@@ -100,8 +100,8 @@ require_once __DIR__ . '/include/navbar.php';
         <!-- Loading State -->
         <div id="pageLoading" style="display: none; padding: 3rem 1rem; text-align: center; color: var(--text-muted);">
             <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent); margin-bottom: 1rem;"></i>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;">Synthesizing Scientific Python Code...</div>
-            <div style="font-size: 0.88rem; color: var(--text-dim);">Analyzing mathematical formulation, algorithm stability, and plotting routines</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;">Generating Python Solution...</div>
+            <div style="font-size: 0.88rem; color: var(--text-dim);">Formulating numerical method, algorithm steps, and visualization...</div>
         </div>
 
         <!-- Error Alert -->
@@ -382,7 +382,7 @@ async function generateCodeFromPage() {
         document.getElementById('pagePromptEcho').innerText = data.user_prompt || problemText;
         document.getElementById('pageResultTitle').innerText = data.title || 'Computational Physics Solution';
         document.getElementById('pageComplexityBadge').innerText = data.complexity || 'O(N)';
-        document.getElementById('pageSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini 2.0 AI' : (data.source === 'curriculum_library' ? 'Curriculum Engine' : 'Physics Synthesizer');
+        document.getElementById('pageSourceBadge').innerText = data.source === 'gemini_ai' ? 'Gemini AI Model' : (data.source === 'curriculum_library' ? 'Curriculum Library' : 'Computational Solver');
         document.getElementById('pageSourceBadge').className = data.source === 'gemini_ai' ? 'badge badge-primary' : 'badge badge-cyan';
 
         if (pageCodeMirror) {
@@ -553,9 +553,9 @@ async function callGeminiClientDirectly(apiKey, problemText, includePlot) {
                 if (parsed && parsed.code) {
                     var doc = '"""\n' +
                         '='.repeat(78) + '\n' +
-                        'Python4Physics - Ask AI Generated Solution\n' +
-                        'User Prompt: ' + problemText.replace(/[\r\n]+/g, ' ') + '\n' +
-                        'Physical Domain: ' + (parsed.title || 'Gemini 2.0 AI Synthesis') + '\n' +
+                        'Python4Physics - Computational Physics Program\n' +
+                        'Problem: ' + problemText.replace(/[\r\n]+/g, ' ') + '\n' +
+                        'Topic: ' + (parsed.title || 'Computational Physics Solution') + '\n' +
                         'Complexity: ' + (parsed.complexity || 'O(N)') + '\n' +
                         '='.repeat(78) + '\n' +
                         '"""\n\n';

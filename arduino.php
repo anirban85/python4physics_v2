@@ -7,8 +7,8 @@
 require_once __DIR__ . '/site_config.php';
 require_once __DIR__ . '/db.php';
 
-$page_title = "Arduino in the Physics Laboratory - Tinkercad Circuits Virtual Simulator";
-$page_description = "Autodesk Tinkercad Circuits style virtual Arduino laboratory: pick components, wire breadboards with professional orthogonal routing, execute live C++ firmware, and plot real-time telemetry.";
+$page_title = "Arduino in the Physics Laboratory - Interactive Virtual Electronics Workbench";
+$page_description = "Interactive virtual Arduino laboratory: connect components on breadboards, write and run C++ microcontroller sketches, and plot live sensor waveforms.";
 
 require_once __DIR__ . '/include/header.php';
 require_once __DIR__ . '/include/navbar.php';
@@ -33,12 +33,12 @@ require_once __DIR__ . '/include/navbar.php';
   "url": "https://python4physics.in/arduino.php",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "All (Web Browser)",
-  "description": "Interactive virtual breadboard and Arduino Uno R3 electronics simulator. Mount components, wire orthogonal breadboards, write C++ sketches, and plot live telemetry graphs.",
+  "description": "Interactive virtual breadboard and Arduino Uno R3 electronics simulator. Mount components, wire breadboards, write C++ sketches, and plot live sensor graphs.",
   "featureList": [
     "Solderless breadboard mounting with full pin connectivity",
     "Photorealistic Arduino Uno R3 with interactive digital and analog pins",
     "Live CodeMirror editor for Arduino C++ firmware compilation and execution",
-    "Real-time serial oscilloscope monitor and sensor waveform telemetry",
+    "Real-time serial oscilloscope monitor and sensor waveform plots",
     "BOM (Bill of Materials) CSV export and high-resolution schematic snapshot"
   ],
   "offers": {
@@ -60,7 +60,7 @@ require_once __DIR__ . '/include/navbar.php';
             Virtual Arduino <span class="gradient-text">Circuits Workbench</span>
         </h1>
         <p style="font-size: 1.05rem; line-height: 1.5; color: var(--text-muted); margin: 0;">
-            Pick components from the right-hand drawer, mount them onto the solderless breadboard, draw professional multi-point orthogonal wires, and run real-time C++ firmware simulations with live telemetry.
+            Pick components from the drawer, mount them onto the solderless breadboard, connect wiring, and run C++ sketches with live sensor and waveform plots.
         </p>
     </div>
 
@@ -95,7 +95,7 @@ require_once __DIR__ . '/include/navbar.php';
                 <select id="tcPresetSelector" style="font-size: 0.82rem; padding: 0.35rem 0.75rem; background: var(--tc-toolbar-bg); color: var(--tc-text-main); border: 1px solid var(--tc-toolbar-border); border-radius: 6px; font-weight: 600;">
                     <optgroup label="Syllabus Physics & Electronics Experiments (16 Projects)">
                         <option value="ldr_lamp">Exp 01: LDR Ambient Light Detector & Lamp Switch</option>
-                        <option value="ldr_sensor">Exp 02: LDR Potential Divider & LED Brightness Telemetry</option>
+                        <option value="ldr_sensor">Exp 02: LDR Potential Divider & LED Brightness Measurement</option>
                         <option value="ultrasonic">Exp 03: HC-SR04 Ultrasonic Distance Sensor & Real-Time Echo</option>
                         <option value="ir_remote">Exp 04: TSOP1838 IR Receiver & TV Remote Hex Code Decoder</option>
                         <option value="pir_alarm">Exp 05: HC-SR501 PIR Motion Sensor & Security Alarm</option>
@@ -676,7 +676,7 @@ require_once __DIR__ . '/include/navbar.php';
                             </span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 4px;">
-                            <button type="button" class="tc-window-ctrl-btn" id="tcTftModeBtn" title="Switch Display View: Live Screen vs Telemetry vs Demo">🖥️ Screen</button>
+                            <button type="button" class="tc-window-ctrl-btn" id="tcTftModeBtn" title="Switch Display View: Live Screen vs Sensor Readout vs Demo">🖥️ Screen</button>
                             <button type="button" class="tc-window-ctrl-btn" id="tcTftScaleBtn" title="Toggle Display Scale: 2x Sharp vs 1x">2x Scale</button>
                             <button type="button" class="tc-window-ctrl-btn tc-window-btn-close" id="tcCloseTftModalBtn" title="Close TFT Replica">&times;</button>
                         </div>
@@ -895,7 +895,7 @@ Ready for firmware telemetry and UART serial communication...
                     <!-- Bottom Plotter Controls -->
                     <div class="tc-plotter-bottom-bar">
                         <div style="display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: #94a3b8;">
-                            <span>Channel 1 (Analog Telemetry)</span>
+                            <span>Channel 1 (Analog Voltage)</span>
                             <span class="tc-channel-badge" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem;">CH1 ACTIVE</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1425,7 +1425,7 @@ Ready for firmware telemetry and UART serial communication...
                                 <i class="fa-solid fa-sun" style="color: #f59e0b; font-size: 1.3rem;"></i>
                             </div>
                             <span class="tc-component-card-name">LDR Solar Sensor</span>
-                            <span class="tc-starter-card-desc">Photoelectric Lux Telemetry</span>
+                            <span class="tc-starter-card-desc">Photoelectric Light Measurement</span>
                         </div>
 
                         <!-- Starter 5: Ultrasonic Rangefinder -->
@@ -1545,7 +1545,7 @@ Ready for firmware telemetry and UART serial communication...
                                 <i class="fa-solid fa-display" style="color: #38bdf8; font-size: 1.3rem;"></i>
                             </div>
                             <span class="tc-component-card-name">1.8" TFT / LCD Graphics</span>
-                            <span class="tc-starter-card-desc">High-Res Color Telemetry</span>
+                            <span class="tc-starter-card-desc">Color Sensor Readout</span>
                         </div>
 
                         <!-- Syllabus Exp 09: 7-Seg Decade Counter -->
@@ -1733,7 +1733,7 @@ Ready for firmware telemetry and UART serial communication...
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
                 <div>
                     <span class="badge badge-emerald">Experiment 04</span>
-                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Potentiometer Voltage Divider & 10-Bit ADC Telemetry</h3>
+                    <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">Potentiometer Voltage Divider & 10-Bit ADC Measurement</h3>
                     <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Verify Ohm's law and potential divider relation with 1024-step analog digitization.</p>
                 </div>
                 <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="potentiometer" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
@@ -1991,19 +1991,19 @@ Ready for firmware telemetry and UART serial communication...
                 <div>
                     <span class="badge badge-cyan">Syllabus Exp 15</span>
                     <h3 style="font-size: 1.4rem; margin-top: 0.25rem; margin-bottom: 0.25rem;">HC-05 Bluetooth Module & Smartphone Controller</h3>
-                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Full-duplex UART serial telemetry with virtual smartphone controller (Arduino BlueControl) for voice and wireless device actuation.</p>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.92rem;">Full-duplex UART serial communication with virtual smartphone controller (Arduino BlueControl) for voice and wireless device actuation.</p>
                 </div>
                 <button type="button" class="btn-modern btn-primary btn-sm tc-launch-project-btn" data-preset="bluetooth_hc05" style="font-size: 0.82rem; padding: 0.4rem 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-play"></i> Open in Circuit Simulator
                 </button>
             </div>
             <div class="theory-card" style="margin-bottom: 1rem; padding: 1.25rem;">
-                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-brands fa-bluetooth-b" style="color: #38bdf8;"></i> UART Serial Telemetry Protocol</h4>
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-brands fa-bluetooth-b" style="color: #38bdf8;"></i> UART Serial Communication Protocol</h4>
                 <div class="katex-display">
                     $$ \text{Baud} = 9600\text{ bps}, \quad \text{Format: 8-N-1}, \quad \text{Command: '1' } \to \text{LED HIGH}, \quad \text{'0' } \to \text{LED LOW} $$
                 </div>
                 <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
-                    Transmit characters from the interactive smartphone keypad into HC-05 RX Pin 10, controlling peripherals wirelessly and receiving sensor telemetry.
+                    Transmit characters from the interactive smartphone keypad into HC-05 RX Pin 10, controlling peripherals wirelessly and receiving sensor readings.
                 </p>
             </div>
         </article>

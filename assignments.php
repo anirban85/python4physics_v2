@@ -358,7 +358,7 @@ $SLIDER_CONFIG = [
                                 <h3 class="param-studio-title">
                                     <i class="fa-solid fa-sliders" style="color: var(--accent);"></i>
                                     Interactive Parameter Studio
-                                    <span style="font-size: 0.76rem; font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">(Changes dynamically update Python Code & Math Telemetry)</span>
+                                    <span style="font-size: 0.76rem; font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">(Updates parameters and calculations in real time)</span>
                                 </h3>
                                 <button type="button" class="btn-modern btn-secondary btn-sm" onclick="runParamSimulation(<?php echo $as_id; ?>)">
                                     <i class="fa-solid fa-play" style="color: var(--success);"></i> Run with Parameters
@@ -386,10 +386,10 @@ $SLIDER_CONFIG = [
                                 <?php endforeach; ?>
                             </div>
 
-                            <!-- Live Telemetry HUD -->
+                            <!-- Live Calculated Values Ribbon -->
                             <div class="param-hud-ribbon" id="<?php echo $cfg['hud_id']; ?>">
-                                <span><i class="fa-solid fa-gauge-high" style="color: var(--accent);"></i> TELEMETRY:</span>
-                                <span class="param-hud-loading">Drag sliders above to view live analytical metrics...</span>
+                                <span><i class="fa-solid fa-calculator" style="color: var(--accent);"></i> CALCULATED VALUES:</span>
+                                <span class="param-hud-loading">Adjust sliders above to view live analytical metrics...</span>
                             </div>
                         </div>
                     <?php endif; ?>

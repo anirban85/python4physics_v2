@@ -110,7 +110,7 @@ require_once __DIR__ . '/include/navbar.php';
                         Dhruba Chand Halder College, Dakshin Barasat, West Bengal, India
                     </p>
                     <p style="color: var(--text-muted); margin-bottom: 0.75rem;">
-                        Dr. Shaw specializes in computational astrophysics, orbital mechanics, differential equation solvers, and hardware-software telemetry. He designs practical laboratory modules integrating Python, Arduino microcontrollers, and WebAssembly to make scientific computing directly accessible to undergraduate students.
+                        Dr. Shaw specializes in computational astrophysics, orbital mechanics, differential equation solvers, and computer-interfaced laboratory instrumentation. He designs practical laboratory modules integrating Python, Arduino microcontrollers, and interactive computational models to make scientific computing directly accessible to undergraduate students.
                     </p>
                     <ul style="list-style: none; padding-left: 0; margin-bottom: 0; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-dim);">
                         <li><i class="fa-solid fa-graduation-cap" style="color: var(--primary); margin-right: 6px;"></i> Ph.D. in Physics</li>

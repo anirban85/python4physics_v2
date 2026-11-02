@@ -130,7 +130,7 @@ if (empty($clean_path) || $clean_path === '/' || str_ends_with($clean_path, '/in
           "@id": "<?php echo rtrim($siteurl, '/'); ?>/#website",
           "url": "<?php echo rtrim($siteurl, '/'); ?>/",
           "name": "Python4Physics",
-          "description": "Computational Physics Algorithms, Numerical Solvers & Scientific Telemetry",
+          "description": "Computational Physics Programs, Numerical Solvers & Scientific Simulations",
           "publisher": {
             "@id": "<?php echo rtrim($siteurl, '/'); ?>/#organization"
           },

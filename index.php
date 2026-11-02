@@ -44,12 +44,12 @@ require_once __DIR__ . '/include/navbar.php';
         <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center;">
             <span class="badge badge-cyan"><i class="fa-solid fa-atom"></i> Computational Physics Laboratory</span>
             <span class="badge badge-amber"><i class="fa-solid fa-square-root-variable"></i> Numerical ODE & PDE Solvers</span>
-            <span class="badge badge-blue"><i class="fa-brands fa-python"></i> Pyodide WASM Runtime</span>
+            <span class="badge badge-blue"><i class="fa-brands fa-python"></i> Interactive In-Browser Python</span>
         </div>
 
         <h1 style="font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.5rem;">
             Computational Physics <br>
-            <span class="gradient-text">Algorithms, Solvers & Scientific Telemetry</span>
+            <span class="gradient-text">Algorithms, Numerical Solvers & Scientific Computing</span>
         </h1>
 
         <p style="font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.6; max-width: 820px; margin: 0 auto 2.5rem auto; color: var(--text-muted);">
@@ -77,7 +77,7 @@ require_once __DIR__ . '/include/navbar.php';
                 <div>
                     <div class="p4p-pillar-head">
                         <div class="p4p-pillar-icon py-icon"><i class="fa-brands fa-python"></i></div>
-                        <span class="p4p-pillar-badge py-badge"><i class="fa-solid fa-play"></i> In-Browser WASM</span>
+                        <span class="p4p-pillar-badge py-badge"><i class="fa-solid fa-play"></i> Run in Browser</span>
                     </div>
                     <div class="p4p-pillar-title">Python ODE & PDE Solvers</div>
                     <div class="p4p-pillar-desc">Real-time numerical solvers for coupled ODEs, chaotic orbits, and quantum wavefunctions.</div>
@@ -202,7 +202,7 @@ require_once __DIR__ . '/include/navbar.php';
                     <div class="p4p-pillar-chips">
                         <span class="p4p-mini-chip">Syllabus Exps</span>
                         <span class="p4p-mini-chip">Sensors & SPI TFT</span>
-                        <span class="p4p-mini-chip">Telemetry</span>
+                        <span class="p4p-mini-chip">Data Acquisition</span>
                     </div>
                 </div>
 
@@ -416,7 +416,7 @@ plt.show()
                     <span class="physics-formula-tag">$V(t) = V_0 e^{-t/RC}$</span>
                 </div>
                 <h3>6. Arduino Experimental Lab</h3>
-                <p>Computer-interfaced physics apparatus: photogate timing, RC transient curves, acoustic resonance, and live serial telemetry.</p>
+                <p>Computer-interfaced physics apparatus: photogate timing, RC transient curves, acoustic resonance, and real-time serial sensor data.</p>
                 <div style="margin-top: 1.25rem;">
                     <a href="<?php echo $siteurl; ?>arduino.php" class="btn-modern btn-outline btn-sm">Enter Lab &rarr;</a>
                 </div>

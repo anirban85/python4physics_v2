@@ -14,7 +14,7 @@ require_admin_login();
 // Enforce Indian Standard Time (IST) globally
 date_default_timezone_set('Asia/Kolkata');
 
-$page_title = "Traffic & Telemetry Intelligence Dashboard";
+$page_title = "Website Traffic & Analytics Dashboard";
 
 // Parse Date / Range Query Parameters
 $filterInput = [];
@@ -441,7 +441,7 @@ require_once __DIR__ . '/layout_top.php';
     <div>
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; flex-wrap: wrap;">
             <h1 class="admin-page-title" style="margin: 0;">
-                <i class="fa-solid fa-chart-line" style="color: var(--admin-accent); margin-right: 6px;"></i> Traffic &amp; Telemetry Intelligence
+                <i class="fa-solid fa-chart-line" style="color: var(--admin-accent); margin-right: 6px;"></i> Website Traffic &amp; Usage Analytics
             </h1>
             <div class="analytics-live-pill">
                 <span class="pulse-dot"></span>
@@ -453,7 +453,7 @@ require_once __DIR__ . '/layout_top.php';
             </div>
         </div>
         <p class="admin-page-subtitle">
-            First-party audience demography, active session duration, interactive physics laboratory execution telemetry, and intraday velocity in Indian Standard Time (IST).
+            Visitor statistics, reading time, code executions, and page visits recorded in Indian Standard Time (IST).
         </p>
     </div>
 
@@ -562,7 +562,7 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-stat-card">
         <div class="kpi-accent-glow" style="background: #38bdf8;"></div>
         <i class="fa-solid fa-eye admin-stat-icon" style="color: #38bdf8;"></i>
-        <div class="admin-stat-label">Total Impressions</div>
+        <div class="admin-stat-label">Page Views</div>
         <div class="admin-stat-value" style="color: #38bdf8;"><?php echo number_format($kpis['total_views'] ?? 0); ?></div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Across <?php echo number_format($kpis['unique_sessions'] ?? 0); ?> user sessions &bull; <?php echo $kpis['views_per_session']; ?>/sess
@@ -584,7 +584,7 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-stat-card">
         <div class="kpi-accent-glow" style="background: #10b981;"></div>
         <i class="fa-solid fa-stopwatch admin-stat-icon" style="color: #10b981;"></i>
-        <div class="admin-stat-label">Avg Engagement</div>
+        <div class="admin-stat-label">Average Reading Time</div>
         <div class="admin-stat-value" style="color: #34d399;"><?php echo format_seconds_duration($kpis['avg_duration'] ?? 0); ?></div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Total: <?php echo format_seconds_duration($kpis['total_duration'] ?? 0); ?> active reading
@@ -617,7 +617,7 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-stat-card">
         <div class="kpi-accent-glow" style="background: #f59e0b;"></div>
         <i class="fa-solid fa-bolt admin-stat-icon" style="color: #f59e0b;"></i>
-        <div class="admin-stat-label">Lab Executions</div>
+        <div class="admin-stat-label">Programs Run</div>
         <div class="admin-stat-value" style="color: #fbbf24;"><?php echo number_format($totalExec); ?></div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Python &bull; SPICE &bull; Arduino &bull; Plots
@@ -628,7 +628,7 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-stat-card">
         <div class="kpi-accent-glow" style="background: #a855f7;"></div>
         <i class="fa-solid fa-circle-check admin-stat-icon" style="color: #a855f7;"></i>
-        <div class="admin-stat-label">Solver Reliability</div>
+        <div class="admin-stat-label">Program Success Rate</div>
         <div class="admin-stat-value" style="color: #c084fc;"><?php echo $successRate; ?>%</div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Avg Latency: <?php echo round($execStats['avg_latency'] ?? 0); ?> ms
@@ -639,7 +639,7 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-stat-card">
         <div class="kpi-accent-glow" style="background: #14b8a6;"></div>
         <i class="fa-solid fa-gauge-high admin-stat-icon" style="color: #14b8a6;"></i>
-        <div class="admin-stat-label">Peak Velocity (IST)</div>
+        <div class="admin-stat-label">Peak Visit Hour (IST)</div>
         <div class="admin-stat-value" style="color: #2dd4bf; font-size: 1.35rem;"><?php echo date('h A', strtotime("2026-01-01 {$peakHour}:00:00")); ?> IST</div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--admin-text-muted);">
             Peak Day: <strong><?php echo htmlspecialchars($peakDay); ?></strong>
@@ -655,25 +655,25 @@ require_once __DIR__ . '/layout_top.php';
         <i class="fa-solid fa-chart-area"></i> Overview &amp; Trends
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-hourly', this)">
-        <i class="fa-solid fa-clock"></i> Hourly Matrix (IST)
+        <i class="fa-solid fa-clock"></i> Hourly Distribution (IST)
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-channels', this)">
-        <i class="fa-solid fa-arrow-trend-up"></i> Acquisition &amp; Referrers
+        <i class="fa-solid fa-arrow-trend-up"></i> Traffic Sources &amp; Referrers
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-demography', this)">
         <i class="fa-solid fa-earth-asia"></i> Demography &amp; Cities
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-devices', this)">
-        <i class="fa-solid fa-laptop-code"></i> Devices &amp; Tech Stack
+        <i class="fa-solid fa-laptop-code"></i> Devices &amp; Browsers
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-pages', this)">
         <i class="fa-solid fa-file-waveform"></i> Page-by-Page Performance
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-executions', this)">
-        <i class="fa-solid fa-microchip"></i> Computational Labs
+        <i class="fa-solid fa-microchip"></i> Code &amp; Program Executions
     </button>
     <button type="button" class="analytics-tab-btn" onclick="switchAnalyticsTab('tab-realtime', this)">
-        <i class="fa-solid fa-satellite-dish"></i> Live Stream Feed
+        <i class="fa-solid fa-satellite-dish"></i> Recent Activity Feed
     </button>
 </div>
 
@@ -687,10 +687,10 @@ require_once __DIR__ . '/layout_top.php';
             <div>
                 <h2 class="admin-card-title">
                     <i class="fa-solid fa-chart-line" style="color: var(--admin-accent);"></i> 
-                    <?php echo $filter['is_single_day'] ? '24-Hour Intraday Traffic Curve (IST)' : 'Daily Traffic & Audience Volume Over Time (IST)'; ?>
+                    <?php echo $filter['is_single_day'] ? '24-Hour Visit Distribution (IST)' : 'Daily Visits &amp; Activity Over Time (IST)'; ?>
                 </h2>
                 <p class="admin-page-subtitle" style="font-size: 0.85rem; margin-top: 0.2rem;">
-                    <?php echo $filter['is_single_day'] ? 'Hour-by-hour telemetry from 00:00 IST to 23:59 IST' : 'Daily timeline of page impressions, unique sessions, and computational simulations'; ?> &bull; All dates strictly in Indian Standard Time.
+                    <?php echo $filter['is_single_day'] ? 'Hour-by-hour visits from 00:00 IST to 23:59 IST' : 'Daily timeline of page views, unique sessions, and program runs'; ?> &bull; All dates in Indian Standard Time.
                 </p>
             </div>
             <div style="font-size: 0.8rem; color: var(--admin-text-muted);">
@@ -1457,8 +1457,8 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-card">
         <div class="admin-card-header">
             <div>
-                <h2 class="admin-card-title"><i class="fa-solid fa-satellite-dish" style="color: #10b981;"></i> Real-Time Live Activity Stream (IST)</h2>
-                <p class="admin-page-subtitle" style="font-size: 0.85rem; margin-top: 0.2rem;">Live telemetry stream of incoming visitors, active reading sessions, and simulations with exact IST timestamps.</p>
+                <h2 class="admin-card-title"><i class="fa-solid fa-clock-rotate-left" style="color: #10b981;"></i> Recent Visitor Activity (IST)</h2>
+                <p class="admin-page-subtitle" style="font-size: 0.85rem; margin-top: 0.2rem;">Activity log of visitors, page reading sessions, and program runs with exact IST timestamps.</p>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="auto-refresh-box" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--admin-text-muted);">

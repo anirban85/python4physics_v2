@@ -45,7 +45,7 @@ require_once __DIR__ . '/include/navbar.php';
         </section>
 
         <section>
-            <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">3. Client-Side Code Execution & Pyodide WASM Runtime</h2>
+            <h2 style="color: var(--accent); font-size: 1.45rem; margin-bottom: 0.75rem;">3. Browser-Based Python Code Execution</h2>
             <p>
                 All Python simulations on this portal are executed client-side via Pyodide (WebAssembly) inside your local web browser sandbox. 
             </p>

@@ -27,7 +27,7 @@ if (!function_exists('get_physics_pedagogical_guide')) {
                 'title' => 'Print Function: Standard Console Output & Scientific Data Formatting',
                 'overview' => '
                     <div class="pedagogy-pointwise-grid">
-                        <div class="pedagogy-point-item"><i class="fa-solid fa-terminal" style="color:var(--accent);"></i> <strong>Standard Output Interface:</strong> In computational science, <code>print()</code> routes numerical metrics, runtime telemetry, and physical states to standard output (<code>stdout</code>).</div>
+                        <div class="pedagogy-point-item"><i class="fa-solid fa-terminal" style="color:var(--accent);"></i> <strong>Standard Output Interface:</strong> In computational science, <code>print()</code> routes numerical metrics, simulation variables, and physical states to standard output (<code>stdout</code>).</div>
                         <div class="pedagogy-point-item"><i class="fa-solid fa-sliders" style="color:var(--accent);"></i> <strong>Formatting Precision:</strong> F-strings (<code>f"{val:.4e}"</code>) enable exact scientific exponential notation, while <code>f"{val:.3f}"</code> specifies decimal width matching significant figures.</div>
                         <div class="pedagogy-point-item"><i class="fa-solid fa-table-columns" style="color:var(--accent);"></i> <strong>Tabular Alignment:</strong> Multi-column scientific data streams can be cleanly aligned using format widths (<code>f"{t:>8.2f} {x:>12.4e}"</code>).</div>
                     </div>',
@@ -43,7 +43,7 @@ if (!function_exists('get_physics_pedagogical_guide')) {
                     <ul class="pedagogy-list">
                         <li><strong>Standard Stream:</strong> Use <code>print(*objects, sep=\' \', end=\'\\n\')</code> to emit computed states.</li>
                         <li><strong>Significant Figures:</strong> Match format specifier to measurement accuracy (avoid displaying spurious 16-digit machine decimals).</li>
-                        <li><strong>Multi-parameter Telemetry:</strong> Combine multiple physical variables into a single formatted output line inside time loops.</li>
+                        <li><strong>Multi-variable Output:</strong> Combine multiple physical variables into a single formatted output line inside time loops.</li>
                     </ul>',
                 'exercises' => [
                     'Write a script to print physical constants ($c, \\hbar, G, k_B$) neatly formatted in scientific notation with four significant figures.',
@@ -334,7 +334,7 @@ if (!function_exists('get_physics_pedagogical_guide')) {
                 'title' => 'Python Strings: Instrument Metadata Parsing & Plot Label Formatting',
                 'overview' => '
                     <div class="pedagogy-pointwise-grid">
-                        <div class="pedagogy-point-item"><i class="fa-solid fa-font" style="color:var(--accent);"></i> <strong>Experimental Telemetry:</strong> Essential for parsing data headers from lab multimeters, oscilloscopes, and spectrophotometers.</div>
+                        <div class="pedagogy-point-item"><i class="fa-solid fa-font" style="color:var(--accent);"></i> <strong>Laboratory Data Processing:</strong> Essential for parsing data headers from lab multimeters, oscilloscopes, and spectrophotometers.</div>
                         <div class="pedagogy-point-item"><i class="fa-solid fa-filter" style="color:var(--accent);"></i> <strong>String Sanitization:</strong> Methods (<code>.strip()</code>, <code>.split()</code>, <code>.replace()</code>) isolate numerical values from textual units.</div>
                         <div class="pedagogy-point-item"><i class="fa-solid fa-chart-line" style="color:var(--accent);"></i> <strong>LaTeX Plot Titles:</strong> Generates formatted labels with mathematical symbols (e.g. <code>rf"$\omega_0 = {omega:.2f}\text{{ rad/s}}$"</code>).</div>
                     </div>',
@@ -517,7 +517,7 @@ if (!function_exists('get_physics_pedagogical_guide')) {
                     <ul class="pedagogy-list">
                         <li><strong>Bubble Sort:</strong> Iterate through array, swapping adjacent inverted pairs; stop when a complete pass requires zero swaps.</li>
                         <li><strong>Python Timsort:</strong> Python\'s built-in <code>.sort()</code> employs an adaptive merge-insertion hybrid with $\\mathcal{O}(N \\log N)$ worst-case.</li>
-                        <li><strong>Coordinate Synchronization:</strong> When sorting physical coordinates, ensure corresponding telemetry arrays (velocities, energies) are permuted in tandem.</li>
+                        <li><strong>Coordinate Synchronization:</strong> When sorting physical coordinates, ensure corresponding physical arrays (velocities, energies) are permuted in tandem.</li>
                     </ul>',
                 'exercises' => [
                     'Implement Bubble Sort and count the exact number of swaps needed to sort an array of 50 randomized energy values.',
@@ -1017,7 +1017,7 @@ if (!function_exists('generate_smart_physics_guide')) {
                 'title' => $safe_subtopic . ': Scientific Visualization & Field Mapping',
                 'overview' => '
                     <div class="pedagogy-pointwise-grid">
-                        <div class="pedagogy-point-item"><i class="fa-solid fa-chart-line" style="color:var(--accent);"></i> <strong>Visual Telemetry:</strong> Translates raw numerical simulation arrays into intuitive 2D/3D graphical curves, vector fields, and heatmaps.</div>
+                        <div class="pedagogy-point-item"><i class="fa-solid fa-chart-line" style="color:var(--accent);"></i> <strong>Graphical Representation:</strong> Translates raw numerical simulation arrays into intuitive 2D/3D graphical curves, vector fields, and heatmaps.</div>
                         <div class="pedagogy-point-item"><i class="fa-solid fa-compass-drafting" style="color:var(--accent);"></i> <strong>Physical Field Representation:</strong> Renders electrostatic equipotentials, fluid streamlines, and phase-space trajectories with exact physical coordinates.</div>
                         <div class="pedagogy-point-item"><i class="fa-solid fa-palette" style="color:var(--accent);"></i> <strong>Perceptual Color Mapping:</strong> Employs scientifically calibrated colormaps (Viridis, Plasma) to represent continuous scalar potentials without visual artifacting.</div>
                     </div>',
@@ -1174,7 +1174,7 @@ if (!function_exists('generate_smart_physics_guide')) {
                 <div class="pedagogy-pointwise-grid">
                     <div class="pedagogy-point-item"><i class="fa-solid fa-atom" style="color:var(--accent);"></i> <strong>Core Concept:</strong> Computational formulation and simulation of <strong>' . $safe_subtopic . '</strong> within the study of <strong>' . $safe_chapter . '</strong>.</div>
                     <div class="pedagogy-point-item"><i class="fa-solid fa-microchip" style="color:var(--accent);"></i> <strong>Algorithmic Translation:</strong> Translates theoretical governing equations into clean, discrete Python procedures and verified numerical solvers.</div>
-                    <div class="pedagogy-point-item"><i class="fa-solid fa-chart-line" style="color:var(--accent);"></i> <strong>Scientific Telemetry:</strong> Evaluates numerical accuracy, parameter sensitivity, and error bounds for reliable computational results.</div>
+                    <div class="pedagogy-point-item"><i class="fa-solid fa-chart-line" style="color:var(--accent);"></i> <strong>Numerical Verification:</strong> Evaluates numerical accuracy, parameter sensitivity, and error bounds for reliable computational results.</div>
                 </div>',
             'formulation' => '
                 <p>Governing computational formulation for <strong>' . $safe_subtopic . '</strong>:</p>

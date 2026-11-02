@@ -849,7 +849,7 @@ if (!function_exists('parse_analytics_date_filter_ist')) {
                 $start = "2020-01-01 00:00:00";
                 $end   = "{$todayStr} 23:59:59";
                 $isSingleDay = false;
-                $label = "All Time Telemetry (IST)";
+                $label = "All Time Analytics (IST)";
                 $fromDate = "2020-01-01";
                 $toDate = $todayStr;
                 break;

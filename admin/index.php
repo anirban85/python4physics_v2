@@ -74,7 +74,7 @@ try {
     </div>
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
         <a href="analytics.php" class="btn-admin btn-admin-primary" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); border: none;">
-            <i class="fa-solid fa-chart-pie"></i> Traffic &amp; Telemetry
+            <i class="fa-solid fa-chart-pie"></i> Website Traffic &amp; Analytics
         </a>
         <a href="programs.php?action=create" class="btn-admin btn-admin-secondary">
             <i class="fa-solid fa-plus"></i> Upload Program
@@ -134,7 +134,7 @@ try {
 
     <a href="analytics.php" class="admin-stat-card" style="border-color: rgba(14, 165, 233, 0.4); text-decoration: none; display: block;">
         <i class="fa-solid fa-chart-pie admin-stat-icon" style="color: #38bdf8;"></i>
-        <div class="admin-stat-label">Traffic &amp; Telemetry</div>
+        <div class="admin-stat-label">Website Traffic &amp; Analytics</div>
         <div class="admin-stat-value" style="color: #38bdf8; font-size: 1.55rem; display: flex; align-items: center; gap: 8px;">
             <span>Insights</span>
             <span class="admin-badge admin-badge-green" style="font-size: 0.72rem; padding: 2px 7px;"><i class="fa-solid fa-circle" style="font-size: 0.45rem; vertical-align: middle;"></i> Live</span>
