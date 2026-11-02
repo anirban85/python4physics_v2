@@ -612,8 +612,11 @@ require_once __DIR__ . '/include/navbar.php';
                         <div class="ms-cro-knob-row">
                             <span class="ms-cro-label">Time / Div:</span>
                             <select id="msCroTimeDiv" class="ms-cro-select">
+                                <option value="0.00001">10 µs</option>
+                                <option value="0.00002">20 µs</option>
                                 <option value="0.00005">50 µs</option>
                                 <option value="0.0001">100 µs</option>
+                                <option value="0.0002">200 µs</option>
                                 <option value="0.0005">500 µs</option>
                                 <option value="0.001">1 ms</option>
                                 <option value="0.002">2 ms</option>
@@ -695,6 +698,11 @@ require_once __DIR__ . '/include/navbar.php';
                         <div>Ch B Vp-p: <span id="msCroVppB" style="color: #38bdf8;">--</span></div>
                         <div>Ch B Freq: <span id="msCroFreqB" style="color: #38bdf8;">--</span></div>
                     </div>
+
+                    <!-- Footer Close Button (Convenient fallback) -->
+                    <button type="button" class="ms-tool-btn" id="msCroFooterCloseBtn" style="justify-content: center; width: 100%; margin-top: 8px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;" title="Close this oscilloscope panel (Shortcut: Esc)">
+                        <i class="fa-solid fa-xmark"></i> Close Oscilloscope (Esc)
+                    </button>
                 </div>
             </div>
         </div>
@@ -729,6 +737,11 @@ require_once __DIR__ . '/include/navbar.php';
                     <button type="button" class="ms-dmm-mode-btn" data-mode="I_AC">I (AC)</button>
                     <button type="button" class="ms-dmm-mode-btn" data-mode="OHM">&Omega;</button>
                 </div>
+
+                <!-- Footer Close Button -->
+                <button type="button" class="ms-tool-btn" id="msDmmFooterCloseBtn" style="justify-content: center; width: 100%; margin-top: 10px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;" title="Close this multimeter panel (Shortcut: Esc)">
+                    <i class="fa-solid fa-xmark"></i> Close Multimeter (Esc)
+                </button>
             </div>
         </div>
 
@@ -758,6 +771,11 @@ require_once __DIR__ . '/include/navbar.php';
                     <span id="msXfgAmpDisplay" style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;">5.0 V</span>
                 </div>
                 <input type="range" class="ms-xfg-slider" id="msXfgAmpSlider" min="0.1" max="20" step="0.1" value="5" style="width: 100%;">
+
+                <!-- Footer Close Button -->
+                <button type="button" class="ms-tool-btn" id="msXfgFooterCloseBtn" style="justify-content: center; width: 100%; margin-top: 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;" title="Close this function generator panel (Shortcut: Esc)">
+                    <i class="fa-solid fa-xmark"></i> Close Generator (Esc)
+                </button>
             </div>
         </div>
 

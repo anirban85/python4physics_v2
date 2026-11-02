@@ -8593,10 +8593,11 @@ void loop() {
                 fitToViewport();
             });
 
-            // Wheel scroll disabled for canvas zoom - zoom only via + and - buttons
+            // Wheel scroll: allow natural page vertical scroll across canvas
+            // Zoom in/out is controlled via toolbar +/- buttons
             container.addEventListener('wheel', (e) => {
-                e.preventDefault();
-            }, { passive: false });
+                // Do not preventDefault, letting page scroll freely
+            }, { passive: true });
         }
 
         // Toggle Wire Style (Curved Flexible Jumper vs Straight)

@@ -1033,6 +1033,7 @@
         }
 
         makeWindowsDraggable() {
+            const self = this;
             const windows = document.querySelectorAll('.ms-floating-window');
             windows.forEach(win => {
                 win.addEventListener('pointerdown', () => {
@@ -1044,12 +1045,31 @@
                 let isMoving = false;
                 let startX, startY, origLeft, origTop;
 
+                const closeCurrentWindow = () => {
+                    win.classList.remove('active');
+                    if (win.id === 'msCroWindow' && self.cro) self.cro.isOpen = false;
+                    if (win.id === 'msXfgWindow' && self.xfg) self.xfg.isOpen = false;
+                    if (win.id === 'msDmmWindow' && self.dmm) self.dmm.isOpen = false;
+                };
+
+                // Double-click header to close window conveniently
+                header.addEventListener('dblclick', e => {
+                    e.preventDefault();
+                    closeCurrentWindow();
+                });
+
+                // Right-click header also closes window as a convenient shortcut
+                header.addEventListener('contextmenu', e => {
+                    e.preventDefault();
+                    closeCurrentWindow();
+                });
+
                 const startDrag = e => {
-                    if (e.target.classList.contains('ms-window-close-btn')) return;
+                    if (e.target.classList.contains('ms-window-close-btn') || e.target.closest('.ms-window-close-btn')) return;
                     isMoving = true;
                     win.classList.add('dragging');
-                    const clientX = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
-                    const clientY = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
+                    const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                    const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
                     startX = clientX;
                     startY = clientY;
                     origLeft = win.offsetLeft;
@@ -1058,12 +1078,20 @@
 
                 const doDrag = e => {
                     if (!isMoving) return;
-                    const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
-                    const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+                    const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                    const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
                     const dx = clientX - startX;
                     const dy = clientY - startY;
-                    win.style.left = (origLeft + dx) + 'px';
-                    win.style.top = (origTop + dy) + 'px';
+
+                    // Clamping: ensure header cannot be dragged above top (min 10px) or off the sides
+                    const parent = win.offsetParent || document.body;
+                    const maxW = parent.clientWidth || window.innerWidth;
+                    const maxH = parent.clientHeight || window.innerHeight;
+                    const newLeft = Math.max(10, Math.min(maxW - 80, origLeft + dx));
+                    const newTop = Math.max(10, Math.min(maxH - 50, origTop + dy));
+
+                    win.style.left = newLeft + 'px';
+                    win.style.top = newTop + 'px';
                     win.style.right = 'auto'; // allow free moving
                 };
 
@@ -1081,6 +1109,21 @@
                 window.addEventListener('touchmove', doDrag, { passive: true });
                 window.addEventListener('touchend', endDrag);
             });
+
+            // Global Escape key listener: closes any active instrument or modal immediately
+            if (!this._hasWindowEscListener) {
+                this._hasWindowEscListener = true;
+                window.addEventListener('keydown', e => {
+                    if (e.key === 'Escape') {
+                        if (self.cro && self.cro.isOpen) self.cro.hide();
+                        if (self.xfg && self.xfg.isOpen) self.xfg.hide();
+                        if (self.dmm && self.dmm.isOpen) self.dmm.hide();
+                        document.querySelectorAll('.ms-floating-window.active').forEach(w => w.classList.remove('active'));
+                        document.getElementById('msInspectorModal')?.classList.remove('active');
+                        document.getElementById('msDiagramModal')?.classList.remove('active');
+                    }
+                });
+            }
         }
 
         // --------------------------------------------------------------------
@@ -1638,10 +1681,11 @@
                 self.onPointerUp(e);
             });
 
-            // Wheel scroll disabled for canvas zoom - zoom in/out only via + or - click
+            // Wheel scroll: allow natural vertical page scrolling across the entire workbench & canvas
+            // Canvas zoom is dedicated to the toolbar zoom buttons (+ / -)
             this.container.addEventListener('wheel', e => {
-                e.preventDefault();
-            }, { passive: false });
+                // Do not preventDefault, letting standard browser vertical scroll take place naturally
+            }, { passive: true });
 
             // Mobile Touch Events (Pinch-Zoom, 1-Finger Pan, Wire/Comp Drag)
             this.svg.addEventListener('touchstart', e => {
@@ -3612,6 +3656,40 @@
         }
 
         simulationTick() {
+            // Adaptive time-step calculation based on highest frequency signal in the circuit
+            let maxFreq = 50.0;
+            if (this.components) {
+                for (let i = 0; i < this.components.length; i++) {
+                    const c = this.components[i];
+                    if (c.type === 'ac_source' && c.props && c.props.frequency) {
+                        const f = Math.abs(parseFloat(c.props.frequency));
+                        if (f > maxFreq) maxFreq = f;
+                    }
+                }
+            }
+            if (this.xfg && this.xfg.activeSource && this.xfg.activeSource.props && this.xfg.activeSource.props.frequency) {
+                const f = Math.abs(parseFloat(this.xfg.activeSource.props.frequency));
+                if (f > maxFreq) maxFreq = f;
+            }
+
+            // Ensure at least 45-50 simulation samples per period of highest frequency
+            let desiredDt = 1.0 / (50.0 * Math.max(50.0, maxFreq));
+            if (desiredDt > 0.00002) desiredDt = 0.00002;
+
+            // Also match timebase division on active oscilloscope if finer resolution needed
+            if (this.cro && this.cro.isOpen && this.cro.timeDiv) {
+                const croDt = this.cro.timeDiv / 35.0;
+                if (croDt < desiredDt) desiredDt = croDt;
+            }
+
+            // Clamp dt between 100 ns (up to 250+ kHz) and 20 µs
+            desiredDt = Math.max(1e-7, Math.min(0.00002, desiredDt));
+            this.simDt = desiredDt;
+
+            // Calculate steps per tick to advance ~250-350 µs physical time per animation frame
+            const targetAdvance = 0.0003;
+            this.stepsPerTick = Math.max(8, Math.min(120, Math.round(targetAdvance / this.simDt)));
+
             // Run multiple sub-steps for physical numerical stability
             for (let s = 0; s < this.stepsPerTick; s++) {
                 this.simTime += this.simDt;
@@ -5337,6 +5415,9 @@
             const closeBtn = document.getElementById('msCroCloseBtn');
             if (closeBtn) closeBtn.onclick = () => this.hide();
 
+            const footerCloseBtn = document.getElementById('msCroFooterCloseBtn');
+            if (footerCloseBtn) footerCloseBtn.onclick = () => this.hide();
+
             const autosetBtn = document.getElementById('msCroAutosetBtn');
             if (autosetBtn) autosetBtn.onclick = () => this.autoset();
 
@@ -5773,7 +5854,7 @@
                 else freq = 50;
             }
 
-            const standardTdivs = [0.00005, 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05];
+            const standardTdivs = [0.00001, 0.00002, 0.00005, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05];
             const period = 1.0 / freq;
             const targetTdiv = (2.5 * period) / 10.0; // Display ~2.5 full periods across 10 divs
 
@@ -5822,6 +5903,9 @@
                 this.windowEl.classList.add('active');
                 this.isOpen = true;
                 this.wb.bringWindowToFront('msCroWindow');
+                if (this.windowEl.offsetTop < 15) {
+                    this.windowEl.style.top = '25px';
+                }
                 const titleEl = document.getElementById('msCroWindowTitle');
                 if (titleEl) {
                     const tapName = this.activeTap && this.wb.components.includes(this.activeTap)
@@ -6021,50 +6105,26 @@
             if (n === 2) {
                 ctx.moveTo(pts[0].x, pts[0].y);
                 ctx.lineTo(pts[1].x, pts[1].y);
+            } else if (n >= 100) {
+                // High density point set (dense simulation):
+                // Direct subpixel path connects physical MNA points with true waveform fidelity and zero extrema-flattening
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < n; i++) {
+                    ctx.lineTo(pts[i].x, pts[i].y);
+                }
             } else {
-                // Fritsch-Carlson Monotonic Cubic Spline (C^1 continuous, zero overshoot, silky curves)
-                const m = new Float32Array(n);
-                const dx = new Float32Array(n - 1);
-                const dy = new Float32Array(n - 1);
-                const slope = new Float32Array(n - 1);
-                for (let i = 0; i < n - 1; i++) {
-                    dx[i] = pts[i + 1].x - pts[i].x;
-                    dy[i] = pts[i + 1].y - pts[i].y;
-                    slope[i] = dx[i] !== 0 ? dy[i] / dx[i] : 0;
-                }
-                m[0] = slope[0];
-                for (let i = 1; i < n - 1; i++) {
-                    if (slope[i - 1] * slope[i] <= 0) {
-                        m[i] = 0;
-                    } else {
-                        m[i] = (slope[i - 1] + slope[i]) * 0.5;
-                    }
-                }
-                m[n - 1] = slope[n - 2];
-                for (let i = 0; i < n - 1; i++) {
-                    if (slope[i] === 0) {
-                        m[i] = 0;
-                        m[i + 1] = 0;
-                    } else {
-                        const alpha = m[i] / slope[i];
-                        const beta = m[i + 1] / slope[i];
-                        const dist = alpha * alpha + beta * beta;
-                        if (dist > 9) {
-                            const tau = 3 / Math.sqrt(dist);
-                            m[i] = tau * alpha * slope[i];
-                            m[i + 1] = tau * beta * slope[i];
-                        }
-                    }
-                }
-
+                // Catmull-Rom cubic spline interpolation for low point counts (< 100 points)
+                // Preserves natural sinusoidal curvature without clamping peaks to zero slope
                 ctx.moveTo(pts[0].x, pts[0].y);
                 for (let i = 0; i < n - 1; i++) {
+                    const p0 = i > 0 ? pts[i - 1] : pts[i];
                     const p1 = pts[i];
                     const p2 = pts[i + 1];
-                    const c1x = p1.x + dx[i] / 3;
-                    const c1y = p1.y + m[i] * dx[i] / 3;
-                    const c2x = p2.x - dx[i] / 3;
-                    const c2y = p2.y - m[i + 1] * dx[i] / 3;
+                    const p3 = i < n - 2 ? pts[i + 2] : p2;
+                    const c1x = p1.x + (p2.x - p0.x) / 6;
+                    const c1y = p1.y + (p2.y - p0.y) / 6;
+                    const c2x = p2.x - (p3.x - p1.x) / 6;
+                    const c2y = p2.y - (p3.y - p1.y) / 6;
                     ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
                 }
             }
@@ -6156,10 +6216,10 @@
             const visible = this.historyBuffer.filter(s => s.t >= startTime - dt && s.t <= endTime + dt);
             if (visible.length < 2) return;
 
-            // Uniform decimation if sample density exceeds 600 points across screen
+            // Uniform decimation only if sample density exceeds 1200 points across screen
             let sampled = visible;
-            if (visible.length > 600) {
-                const step = Math.ceil(visible.length / 500);
+            if (visible.length > 1200) {
+                const step = Math.ceil(visible.length / 800);
                 sampled = [];
                 for (let i = 0; i < visible.length; i += step) {
                     sampled.push(visible[i]);
@@ -6278,6 +6338,9 @@
         bindControls() {
             const closeBtn = document.getElementById('msDmmCloseBtn');
             if (closeBtn) closeBtn.onclick = () => this.hide();
+
+            const footerCloseBtn = document.getElementById('msDmmFooterCloseBtn');
+            if (footerCloseBtn) footerCloseBtn.onclick = () => this.hide();
 
             const modeBtns = document.querySelectorAll('.ms-dmm-mode-btn');
             modeBtns.forEach(btn => {
@@ -6428,6 +6491,9 @@
         bindControls() {
             const closeBtn = document.getElementById('msXfgCloseBtn');
             if (closeBtn) closeBtn.onclick = () => this.hide();
+
+            const footerCloseBtn = document.getElementById('msXfgFooterCloseBtn');
+            if (footerCloseBtn) footerCloseBtn.onclick = () => this.hide();
 
             const freqSlider = document.getElementById('msXfgFreqSlider');
             const freqDisp = document.getElementById('msXfgFreqDisplay');
