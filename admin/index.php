@@ -65,6 +65,26 @@ try {
 } catch (Throwable $e) {
     $recent_programs = [];
 }
+
+// Fetch menu & submenu titles for clear context display
+$menus_map = [];
+$submenus_map = [];
+try {
+    if ($conn) {
+        $m_stmt = $conn->query("SELECT language, menu_id, title FROM p4p_menus");
+        if ($m_stmt) {
+            foreach ($m_stmt->fetchAll(PDO::FETCH_ASSOC) as $m) {
+                $menus_map[$m['language']][(int)$m['menu_id']] = $m['title'];
+            }
+        }
+        $s_stmt = $conn->query("SELECT language, menu_id, submenu_id, title FROM p4p_submenus");
+        if ($s_stmt) {
+            foreach ($s_stmt->fetchAll(PDO::FETCH_ASSOC) as $s) {
+                $submenus_map[$s['language']][(int)$s['menu_id']][(int)$s['submenu_id']] = $s['title'];
+            }
+        }
+    }
+} catch (Throwable $e) {}
 ?>
 
 <div class="admin-page-header">
@@ -217,12 +237,12 @@ try {
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Language</th>
-                    <th>Chapter ID</th>
-                    <th>Subtopic ID</th>
-                    <th>Prog ID</th>
-                    <th>Program Title / Algorithm</th>
-                    <th style="text-align: right;">Action</th>
+                    <th style="width: 130px;">Language</th>
+                    <th style="min-width: 180px;">Chapter (Menu)</th>
+                    <th style="min-width: 180px;">Subtopic (Submenu)</th>
+                    <th style="width: 80px;">Prog ID</th>
+                    <th style="min-width: 220px;">Program Title / Algorithm</th>
+                    <th style="width: 100px; text-align: right;">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -232,6 +252,13 @@ try {
                     </tr>
                 <?php else: ?>
                     <?php foreach ($recent_programs as $p): ?>
+                        <?php
+                        $m_id = (int)$p['menu_id'];
+                        $s_id = (int)$p['submenu_id'];
+                        $m_title = $menus_map[$p['lang']][$m_id] ?? ($m_id === 0 ? 'General / Uncategorized' : "Chapter {$m_id}");
+                        $s_title = $submenus_map[$p['lang']][$m_id][$s_id] ?? ($s_id === 0 ? 'General' : "Topic {$m_id}.{$s_id}");
+                        $algo_disp = !empty(trim($p['algo'] ?? '')) ? trim($p['algo']) : ($s_title !== 'General' ? "{$s_title} (Prog #{$p['program_id']})" : "Program #{$p['program_id']}");
+                        ?>
                         <tr>
                             <td>
                                 <?php if ($p['lang'] === 'python'): ?>
@@ -244,10 +271,30 @@ try {
                                     <span class="admin-badge admin-badge-green"><i class="fa-solid fa-file-invoice"></i> LaTeX</span>
                                 <?php endif; ?>
                             </td>
-                            <td>Chapter <?php echo (int)$p['menu_id']; ?></td>
-                            <td>Topic <?php echo (int)$p['submenu_id']; ?></td>
-                            <td>#<?php echo (int)$p['program_id']; ?></td>
-                            <td style="font-weight: 600;"><?php echo htmlspecialchars(mb_substr($p['algo'] ?? 'Untitled Program', 0, 60)); ?></td>
+                            <td>
+                                <div style="font-weight: 600; color: var(--admin-text-main); font-size: 0.88rem; display: flex; align-items: center; gap: 5px;">
+                                    <i class="fa-regular fa-folder-open" style="color: #38bdf8; font-size: 0.85rem;"></i>
+                                    <span><?php echo htmlspecialchars($m_title); ?></span>
+                                </div>
+                                <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-left: 19px;">
+                                    <?php echo $m_id > 0 ? "Chapter {$m_id}" : "General"; ?>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: #a5b4fc; font-size: 0.88rem; display: flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-file-code" style="color: #818cf8; font-size: 0.82rem;"></i>
+                                    <span><?php echo htmlspecialchars($s_title); ?></span>
+                                </div>
+                                <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-left: 18px;">
+                                    <?php echo $s_id > 0 ? "Topic {$m_id}.{$s_id}" : "General"; ?>
+                                </div>
+                            </td>
+                            <td>
+                                <strong style="color: var(--admin-accent); font-family: 'JetBrains Mono', monospace;">#<?php echo (int)$p['program_id']; ?></strong>
+                            </td>
+                            <td style="font-weight: 600; color: var(--admin-text-main);">
+                                <?php echo htmlspecialchars(mb_substr($algo_disp, 0, 70)); ?>
+                            </td>
                             <td style="text-align: right;">
                                 <a href="programs.php?action=edit&lang=<?php echo urlencode($p['lang']); ?>&id=<?php echo (int)$p['id']; ?>" class="btn-admin btn-admin-secondary btn-admin-sm">
                                     <i class="fa-solid fa-pen-to-square"></i> Edit

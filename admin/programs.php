@@ -22,7 +22,7 @@ $notice = "";
 $error = "";
 
 // Handle POST actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $post_action = $_POST['post_action'] ?? '';
     $lang = $_POST['language'] ?? 'python';
     if (!in_array($lang, $valid_langs)) {
@@ -181,16 +181,70 @@ $all_submenus = $subs_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Map for Javascript cascading select
 $cascade_data = ['python' => [], 'gnuplot' => [], 'latex' => [], 'visualization' => []];
+$menu_title_map = [];
+$submenu_title_map = [];
+
 foreach ($all_menus as $m) {
     $cascade_data[$m['language']][$m['menu_id']] = [
         'title' => $m['title'],
         'submenus' => []
     ];
+    $menu_title_map[$m['language']][(int)$m['menu_id']] = $m['title'];
 }
 foreach ($all_submenus as $s) {
     if (isset($cascade_data[$s['language']][$s['menu_id']])) {
         $cascade_data[$s['language']][$s['menu_id']]['submenus'][$s['submenu_id']] = $s['title'];
     }
+    $submenu_title_map[$s['language']][(int)$s['menu_id']][(int)$s['submenu_id']] = $s['title'];
+}
+
+function p4p_get_menu_title($lang, $menu_id, $menu_title_map) {
+    $m_id = (int)$menu_id;
+    if (isset($menu_title_map[$lang][$m_id])) {
+        return $menu_title_map[$lang][$m_id];
+    }
+    if ($m_id === 0) {
+        return 'General / Uncategorized';
+    }
+    return "Chapter {$m_id}";
+}
+
+function p4p_get_submenu_title($lang, $menu_id, $submenu_id, $submenu_title_map) {
+    $m_id = (int)$menu_id;
+    $s_id = (int)$submenu_id;
+    if (isset($submenu_title_map[$lang][$m_id][$s_id])) {
+        return $submenu_title_map[$lang][$m_id][$s_id];
+    }
+    if ($s_id === 0) {
+        return 'General / Overview';
+    }
+    return "Topic {$m_id}.{$s_id}";
+}
+
+function p4p_get_program_algo($prog, $sub_title) {
+    $algo = trim($prog['algo'] ?? '');
+    if (!empty($algo)) {
+        return ['title' => $algo, 'is_derived' => false];
+    }
+    $content = $prog['content'] ?? '';
+    if (!empty($content)) {
+        if (preg_match('/^[\s\r\n]*(?:"""|\'\'\')([\s\S]*?)(?:"""|\'\'\')/u', $content, $m)) {
+            $lines = array_filter(array_map('trim', explode("\n", $m[1])));
+            if (!empty($lines)) {
+                return ['title' => reset($lines), 'is_derived' => true];
+            }
+        }
+        if (preg_match('/^#\s*(.+)$/m', $content, $m)) {
+            $c = trim($m[1]);
+            if (!empty($c) && strlen($c) <= 80 && !preg_match('/^[\-=*#\s]+$/', $c)) {
+                return ['title' => $c, 'is_derived' => true];
+            }
+        }
+    }
+    if (!empty($sub_title) && $sub_title !== 'General / Overview') {
+        return ['title' => $sub_title . ' (Prog #' . (int)$prog['program_id'] . ')', 'is_derived' => true];
+    }
+    return ['title' => 'Program #' . (int)$prog['program_id'], 'is_derived' => true];
 }
 
 // If editing, fetch program
@@ -209,14 +263,18 @@ if ($action === 'edit') {
 }
 
 // If listing, fetch programs for selected language
-$filter_menu = isset($_GET['menu']) && is_numeric($_GET['menu']) ? (int)$_GET['menu'] : null;
+$filter_menu = isset($_GET['menu']) && is_numeric($_GET['menu']) && $_GET['menu'] !== '' ? (int)$_GET['menu'] : null;
+$filter_submenu = isset($_GET['submenu']) && is_numeric($_GET['submenu']) && $_GET['submenu'] !== '' ? (int)$_GET['submenu'] : null;
 $programs_list = [];
 if ($action === 'list') {
-    if ($filter_menu) {
+    if ($filter_menu !== null && $filter_submenu !== null) {
+        $stmt = $conn->prepare("SELECT * FROM `$selected_lang` WHERE `menu_id` = :m_id AND `submenu_id` = :s_id ORDER BY `menu_id` ASC, `submenu_id` ASC, `program_id` ASC");
+        $stmt->execute([':m_id' => $filter_menu, ':s_id' => $filter_submenu]);
+    } elseif ($filter_menu !== null) {
         $stmt = $conn->prepare("SELECT * FROM `$selected_lang` WHERE `menu_id` = :m_id ORDER BY `menu_id` ASC, `submenu_id` ASC, `program_id` ASC");
         $stmt->execute([':m_id' => $filter_menu]);
     } else {
-        $stmt = $conn->query("SELECT * FROM `$selected_lang` ORDER BY `menu_id` ASC, `submenu_id` ASC, `program_id` ASC LIMIT 150");
+        $stmt = $conn->query("SELECT * FROM `$selected_lang` ORDER BY `menu_id` ASC, `submenu_id` ASC, `program_id` ASC LIMIT 500");
     }
     $programs_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -558,9 +616,10 @@ require_once __DIR__ . '/layout_top.php';
     <div class="admin-card" style="padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
         <form method="GET" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
             <input type="hidden" name="lang" value="<?php echo htmlspecialchars($selected_lang); ?>">
+            
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <label class="admin-label" style="margin-bottom: 0;">Filter Chapter:</label>
-                <select name="menu" class="admin-select" style="width: auto; min-width: 200px;" onchange="this.form.submit()">
+                <label class="admin-label" style="margin-bottom: 0;"><i class="fa-regular fa-folder-open" style="color: #38bdf8;"></i> Filter Chapter:</label>
+                <select name="menu" class="admin-select" style="width: auto; min-width: 220px;" onchange="this.form.submit()">
                     <option value="">All Chapters</option>
                     <?php if (isset($cascade_data[$selected_lang])): ?>
                         <?php foreach ($cascade_data[$selected_lang] as $mId => $mData): ?>
@@ -571,9 +630,27 @@ require_once __DIR__ . '/layout_top.php';
                     <?php endif; ?>
                 </select>
             </div>
-            <?php if ($filter_menu): ?>
-                <a href="?lang=<?php echo urlencode($selected_lang); ?>" class="btn-admin btn-admin-secondary btn-admin-sm">Reset Filter</a>
+
+            <?php if ($filter_menu !== null && !empty($cascade_data[$selected_lang][$filter_menu]['submenus'])): ?>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label class="admin-label" style="margin-bottom: 0;"><i class="fa-solid fa-file-code" style="color: #818cf8;"></i> Filter Subtopic:</label>
+                    <select name="submenu" class="admin-select" style="width: auto; min-width: 220px;" onchange="this.form.submit()">
+                        <option value="">All Subtopics in Ch <?php echo $filter_menu; ?></option>
+                        <?php foreach ($cascade_data[$selected_lang][$filter_menu]['submenus'] as $sId => $sTitle): ?>
+                            <option value="<?php echo $sId; ?>" <?php echo $filter_submenu === (int)$sId ? 'selected' : ''; ?>>
+                                <?php echo $filter_menu; ?>.<?php echo $sId; ?>: <?php echo htmlspecialchars($sTitle); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             <?php endif; ?>
+
+            <?php if ($filter_menu !== null || $filter_submenu !== null): ?>
+                <a href="?lang=<?php echo urlencode($selected_lang); ?>" class="btn-admin btn-admin-secondary btn-admin-sm">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Filter
+                </a>
+            <?php endif; ?>
+
             <span style="color: var(--admin-text-muted); font-size: 0.85rem; margin-left: auto;">
                 Showing <?php echo count($programs_list); ?> program(s)
             </span>
@@ -585,41 +662,84 @@ require_once __DIR__ . '/layout_top.php';
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Location</th>
-                        <th style="width: 80px;">Prog ID</th>
-                        <th>Program Title / Algorithm</th>
-                        <th style="width: 120px;">Code Size</th>
-                        <th style="width: 220px; text-align: right;">Action</th>
+                        <th style="width: 75px;">Location</th>
+                        <th style="min-width: 170px;">Chapter (Menu)</th>
+                        <th style="min-width: 170px;">Subtopic (Submenu)</th>
+                        <th style="width: 70px;">Prog ID</th>
+                        <th style="min-width: 220px;">Program Title / Algorithm</th>
+                        <th style="width: 95px;">Code Size</th>
+                        <th style="width: 180px; text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($programs_list)): ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: var(--admin-text-muted); padding: 2.5rem;">
+                            <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 2.5rem;">
                                 No programs found for this selection. Click <strong>Upload New Program</strong> to add one!
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($programs_list as $prog): ?>
+                            <?php
+                            $m_id = (int)$prog['menu_id'];
+                            $s_id = (int)$prog['submenu_id'];
+                            $menu_name = p4p_get_menu_title($selected_lang, $m_id, $menu_title_map);
+                            $submenu_name = p4p_get_submenu_title($selected_lang, $m_id, $s_id, $submenu_title_map);
+                            $algo_info = p4p_get_program_algo($prog, $submenu_name);
+                            $display_title = $algo_info['title'];
+                            $bytes = strlen($prog['content'] ?? '');
+                            $size_str = $bytes < 1024 ? "{$bytes} B" : round($bytes / 1024, 1) . " KB";
+                            $loc_badge = "{$m_id}.{$s_id}";
+                            ?>
                             <tr>
                                 <td>
-                                    <span class="admin-badge admin-badge-cyan">
-                                        <?php echo (int)$prog['menu_id']; ?>.<?php echo (int)$prog['submenu_id']; ?>
+                                    <span class="admin-badge admin-badge-cyan" style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">
+                                        <?php echo htmlspecialchars($loc_badge); ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <strong>#<?php echo (int)$prog['program_id']; ?></strong>
-                                </td>
-                                <td style="font-weight: 600;">
-                                    <?php echo htmlspecialchars($prog['algo'] ?? 'Untitled Program'); ?>
+                                    <div style="font-weight: 600; color: var(--admin-text-main); font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-regular fa-folder-open" style="color: #38bdf8; font-size: 0.85rem;"></i>
+                                        <span><?php echo htmlspecialchars($menu_name); ?></span>
+                                    </div>
+                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-left: 20px;">
+                                        <?php echo $m_id > 0 ? "Chapter {$m_id}" : "General Menu"; ?>
+                                    </div>
                                 </td>
                                 <td>
-                                    <span style="color: var(--admin-text-muted); font-size: 0.8rem;">
-                                        <?php echo strlen($prog['content'] ?? ''); ?> bytes
+                                    <div style="font-weight: 600; color: #a5b4fc; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-file-code" style="color: #818cf8; font-size: 0.82rem;"></i>
+                                        <span><?php echo htmlspecialchars($submenu_name); ?></span>
+                                    </div>
+                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-left: 19px;">
+                                        <?php echo $s_id > 0 ? "Topic {$m_id}.{$s_id}" : "General Submenu"; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 700; color: var(--admin-accent); font-family: 'JetBrains Mono', monospace;">
+                                        #<?php echo (int)$prog['program_id']; ?>
                                     </span>
                                 </td>
-                                <td style="text-align: right;">
-                                    <button type="button" class="btn-admin btn-admin-secondary btn-admin-sm" onclick="previewCode(<?php echo (int)$prog['id']; ?>, '<?php echo htmlspecialchars(addslashes($prog['algo'] ?? '')); ?>')">
+                                <td>
+                                    <div style="font-weight: 600; color: var(--admin-text-main);">
+                                        <?php echo htmlspecialchars($display_title); ?>
+                                        <?php if ($algo_info['is_derived']): ?>
+                                            <span class="admin-badge" style="font-size: 0.65rem; padding: 1px 5px; opacity: 0.8; vertical-align: middle; margin-left: 4px; background: rgba(148, 163, 184, 0.15); color: #94a3b8;" title="Title auto-derived from script or subtopic">auto</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if (!empty($prog['explanation'])): ?>
+                                        <div style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;" title="<?php echo htmlspecialchars($prog['explanation'] ?? ''); ?>">
+                                            <?php echo htmlspecialchars(mb_substr($prog['explanation'] ?? '', 0, 70)); ?>...
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span style="color: var(--admin-text-muted); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace;">
+                                        <?php echo $size_str; ?>
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <button type="button" class="btn-admin btn-admin-secondary btn-admin-sm" onclick="previewCode(<?php echo (int)$prog['id']; ?>, '<?php echo htmlspecialchars(addslashes($display_title)); ?>', '<?php echo htmlspecialchars(addslashes($menu_name)); ?>', '<?php echo htmlspecialchars(addslashes($submenu_name)); ?>', '<?php echo $loc_badge; ?>')">
                                         <i class="fa-solid fa-eye"></i> View
                                     </button>
                                     <a href="?action=edit&lang=<?php echo urlencode($selected_lang); ?>&id=<?php echo (int)$prog['id']; ?>" class="btn-admin btn-admin-secondary btn-admin-sm">
@@ -629,12 +749,12 @@ require_once __DIR__ . '/layout_top.php';
                                         <input type="hidden" name="post_action" value="delete_program">
                                         <input type="hidden" name="language" value="<?php echo htmlspecialchars($selected_lang); ?>">
                                         <input type="hidden" name="id" value="<?php echo (int)$prog['id']; ?>">
-                                        <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">
+                                        <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm" title="Delete Program">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
                                     <!-- Hidden code store for preview -->
-                                    <textarea id="code_store_<?php echo (int)$prog['id']; ?>" style="display: none;"><?php echo htmlspecialchars($prog['content']); ?></textarea>
+                                    <textarea id="code_store_<?php echo (int)$prog['id']; ?>" style="display: none;"><?php echo htmlspecialchars($prog['content'] ?? ''); ?></textarea>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -646,10 +766,13 @@ require_once __DIR__ . '/layout_top.php';
 
     <!-- Modal: Preview Code -->
     <div id="previewModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 1rem;">
-        <div style="background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 1rem; width: 100%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
-            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--admin-border); display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="previewTitle" style="margin: 0; font-size: 1.15rem;"></h3>
-                <button type="button" onclick="closePreviewModal()" style="background: none; border: none; color: var(--admin-text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <div style="background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 1rem; width: 100%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--admin-border); display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h3 id="previewTitle" style="margin: 0; font-size: 1.15rem; color: var(--admin-text-main);"></h3>
+                    <div id="previewSubtitle" style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;"></div>
+                </div>
+                <button type="button" onclick="closePreviewModal()" style="background: none; border: none; color: var(--admin-text-muted); font-size: 1.5rem; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
             </div>
             <div style="padding: 1rem; overflow-y: auto; flex: 1;">
                 <pre id="previewCodeBox" style="margin: 0; padding: 1rem; background: #0b0f19; border-radius: 0.5rem; color: #f8fafc; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; word-break: break-all;"></pre>
@@ -661,9 +784,10 @@ require_once __DIR__ . '/layout_top.php';
     </div>
 
     <script>
-    function previewCode(id, title) {
+    function previewCode(id, title, menuName, subName, loc) {
         const code = document.getElementById('code_store_' + id).value;
         document.getElementById('previewTitle').textContent = title;
+        document.getElementById('previewSubtitle').textContent = `Location: ${loc} • Chapter: ${menuName} • Subtopic: ${subName}`;
         document.getElementById('previewCodeBox').textContent = code;
         document.getElementById('previewModal').style.display = 'flex';
     }
